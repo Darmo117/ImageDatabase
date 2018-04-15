@@ -97,7 +97,7 @@ class EditTagsDialog(Dialog):
     # noinspection PyUnresolvedReferences
     def _init_types_tab(self):
         self._types_table = QtW.QTableWidget()
-        self._types_table.setColumnCount(3)
+        self._types_table.setColumnCount(4)
         self._types_table.setRowCount(len(TagType.SYMBOL_TYPES))
         self._types_table.setColumnWidth(0, 30)
         self._types_table.verticalHeader().setDefaultSectionSize(20)
@@ -183,7 +183,7 @@ class EditTagsDialog(Dialog):
 
         return self._tags_table
 
-    # noinspection PyTypeChecker
+    # noinspection PyTypeChecker,PyUnresolvedReferences
     def _add_type_item(self, type, row):
         defined = type is not None
         id_item = QtW.QTableWidgetItem(str(type.id) if defined else str(self._dummy_type_id))
@@ -203,6 +203,18 @@ class EditTagsDialog(Dialog):
         if not self._editable:
             symbol_item.setFlags(symbol_item.flags() & ~Qt.ItemIsEditable & ~Qt.ItemIsSelectable)
         self._types_table.setItem(row, 2, symbol_item)
+
+        default_color = QtG.QColor(0, 0, 0)
+        bg_color = type.color if defined else default_color
+        color = utils.negate(bg_color)
+        color_btn = QtW.QPushButton(type.color.name() if defined else default_color.name())
+        color_btn.setWhatsThis("color")
+        color_btn.setStyleSheet("background-color: " + bg_color.name() + "; color: " + color.name())
+        color_btn.clicked.connect(self._show_color_picker)
+        color_btn.setProperty("row", row)
+        if not self._editable:
+            color_btn.setEnabled(False)
+        self._types_table.setCellWidget(row, 3, color_btn)
 
     def _add_type(self):
         row = self._types_table.rowCount()
@@ -262,14 +274,15 @@ class EditTagsDialog(Dialog):
 
     def _types_changed(self, row, col):
         if self._init and self._editable:
-            result = EditTagsDialog._check_column(self._types_table, col)
-            if result == EditTagsDialog.DUPLICATE:
-                utils.show_error("Value already used! Please choose another.", parent=self)
-            if result == EditTagsDialog.EMPTY:
-                utils.show_error("Cell is empty!", parent=self)
-            if result == EditTagsDialog.OK and col == 2 and self._check_type_symbol(row) == EditTagsDialog.FORMAT:
-                utils.show_error("Symbol should only be one character long and any character "
-                                 "except letters, digits, \"_\", \"+\" and \"-\"!")
+            if col != 3:
+                result = EditTagsDialog._check_column(self._types_table, col)
+                if result == EditTagsDialog.DUPLICATE:
+                    utils.show_error("Value already used! Please choose another.", parent=self)
+                if result == EditTagsDialog.EMPTY:
+                    utils.show_error("Cell is empty!", parent=self)
+                if result == EditTagsDialog.OK and col == 2 and self._check_type_symbol(row) == EditTagsDialog.FORMAT:
+                    utils.show_error("Symbol should only be one character long and any character "
+                                     "except letters, digits, \"_\", \"+\" and \"-\"!")
 
             type = self._get_type(row)
             if row not in self._types_added_rows:
@@ -277,13 +290,14 @@ class EditTagsDialog(Dialog):
                     self._types_changed_rows.add(row)
                 elif row in self._types_changed_rows:
                     self._types_changed_rows.remove(row)
-            for row in range(self._tags_table.rowCount()):
-                if not self._tags_table.isRowHidden(row):
-                    combo = self._tags_table.cellWidget(row, 2)
-                    for i in range(combo.count()):
-                        if combo.itemText(i).startswith(str(type.id) + " "):
-                            combo.setItemText(i, EditTagsDialog._to_combo_text(type.id, type.label))
-                            break
+            if col == 1:
+                for row in range(self._tags_table.rowCount()):
+                    if not self._tags_table.isRowHidden(row):
+                        combo = self._tags_table.cellWidget(row, 2)
+                        for i in range(combo.count()):
+                            if combo.itemText(i).startswith(str(type.id) + " "):
+                                combo.setItemText(i, EditTagsDialog._to_combo_text(type.id, type.label))
+                                break
             self._check_integrity()
 
     def _tags_changed(self, row, col):
@@ -307,6 +321,15 @@ class EditTagsDialog(Dialog):
     def _combo_changed(self, _):
         combo = self.sender()
         self._tags_changed(combo.property("row"), 2)
+
+    def _show_color_picker(self):
+        color = QtW.QColorDialog.getColor()
+        if color.isValid():
+            button = self.sender()
+            row = button.property("row")
+            button.setText(color.name())
+            button.setStyleSheet("background-color: " + color.name() + "; color: " + utils.negate(color).name())
+            self._types_changed(row, 3)
 
     def _update_delete_btn(self, index):
         self._delete_btn.setEnabled(index == 0 and len(self._types_table.selectionModel().selectedRows()) != 0 or
@@ -408,10 +431,15 @@ class EditTagsDialog(Dialog):
 
         for i in range(self._types_table.columnCount()):
             cell = self._types_table.item(row, i)
+            if cell is None:
+                cell = self._types_table.cellWidget(row, i)
             arg = cell.whatsThis()
             if arg == "":
                 continue
-            args[arg] = cell.text() if arg != "id" else int(cell.text())
+            if arg == "color":
+                args[arg] = cell.palette().button().color()
+            else:
+                args[arg] = cell.text() if arg != "id" else int(cell.text())
 
         return TagType(**args)
 

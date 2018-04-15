@@ -290,10 +290,10 @@ class Application(QtW.QMainWindow):
         # Initialize tag types
         tags_dao = TagsDao(config.DATABASE)
         types = tags_dao.get_all_types()
-        TagType.init(types)
         if types is None:
             utils.show_error("Could not load tag types! Shutting down.")
             sys.exit(-1)
+        TagType.init(types)
         tags_dao.close()
 
         # noinspection PyUnusedLocal

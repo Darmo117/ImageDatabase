@@ -1,5 +1,5 @@
 import sqlite3
-
+from PyQt5.QtGui import QColor
 from app.model import Tag, TagType
 from .dao import DAO
 
@@ -7,8 +7,8 @@ from .dao import DAO
 class TagsDao(DAO):
     def get_all_types(self) -> list or None:
         try:
-            cursor = self._connection.execute("SELECT id, label, symbol FROM tag_types")
-            return [TagType(*t) for t in cursor.fetchall()]
+            cursor = self._connection.execute("SELECT id, label, symbol, color FROM tag_types")
+            return [TagType(t[0], t[1], t[2], QColor.fromRgb(t[3])) for t in cursor.fetchall()]
         except sqlite3.OperationalError:
             return None
 
@@ -33,16 +33,16 @@ class TagsDao(DAO):
 
     def add_type(self, tag_type: TagType) -> bool:
         try:
-            self._connection.execute("INSERT INTO tag_types (label, symbol) VALUES (?, ?)",
-                                     (tag_type.label, tag_type.symbol))
+            self._connection.execute("INSERT INTO tag_types (label, symbol, color) VALUES (?, ?, ?)",
+                                     (tag_type.label, tag_type.symbol, tag_type.color.rgb()))
             return True
         except (sqlite3.OperationalError, sqlite3.IntegrityError):
             return False
 
     def update_type(self, tag_type: TagType) -> bool:
         try:
-            self._connection.execute("UPDATE tag_types SET label = ?, symbol = ? WHERE id = ?",
-                                     (tag_type.label, tag_type.symbol, tag_type.id))
+            self._connection.execute("UPDATE tag_types SET label = ?, symbol = ?, color = ? WHERE id = ?",
+                                     (tag_type.label, tag_type.symbol, tag_type.color.rgb(), tag_type.id))
             return True
         except (sqlite3.OperationalError, sqlite3.IntegrityError):
             return False

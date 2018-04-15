@@ -1,5 +1,6 @@
 import os
 
+from PyQt5.QtGui import QColor
 from PyQt5.QtWidgets import QMessageBox, QFileDialog, QDesktopWidget
 
 import config
@@ -67,6 +68,10 @@ def center(window):
     center = QDesktopWidget().availableGeometry().center()
     rect.moveCenter(center)
     window.move(rect.topLeft())
+
+
+def negate(color: QColor):
+    return QColor(255 - color.red(), 255 - color.green(), 255 - color.blue())
 
 
 if __name__ == '__main__':

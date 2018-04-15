@@ -39,7 +39,6 @@ class ImageDao(DAO):
     def image_registered(self, image_path) -> bool or None:
         try:
             filename = re.escape("/" + os.path.basename(image_path))
-            print(filename)
             cursor = self._connection.execute("SELECT COUNT(*) FROM images WHERE path regexp ?", (filename,))
             return cursor.fetchall()[0][0] > 0
         except sqlite3.OperationalError:
