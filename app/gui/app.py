@@ -14,6 +14,7 @@ from app.queries import query_to_sympy
 from .components import ImageList
 
 
+# TODO liste latérale pour les tags (rangés par type)
 class Application(QtW.QMainWindow):
     def __init__(self):
         super().__init__()

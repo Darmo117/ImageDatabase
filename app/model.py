@@ -61,6 +61,7 @@ class Tag:
         return cls(0, label, type)
 
 
+# TODO associer une couleur à chaque type
 class TagType:
     SYMBOL_PATTERN = re.compile(r"^[^\w+()-]$")
     SYMBOL_TYPES = {}

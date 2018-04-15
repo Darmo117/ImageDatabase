@@ -13,6 +13,8 @@ from .dialog_base import Dialog
 
 class EditTagsDialog(Dialog):
     DISABLED_COLOR = QtG.QColor(200, 200, 200)
+    FETCH_COLOR = QtG.QColor(140, 200, 255)
+    NORMAL_COLOR = QtG.QColor(255, 255, 255)
     COMBO_ITEM_PATTERN = re.compile(r"^(\d+) - (.+)$")
 
     def __init__(self, parent=None, editable=True):
@@ -20,8 +22,9 @@ class EditTagsDialog(Dialog):
         self._init = False
         self._editable = editable
 
-        super().__init__(parent=parent, title="Edit Tags", modal=self._editable,
-                         mode=Dialog.CLOSE if not self._editable else Dialog.OK_CANCEL)
+        title = "Edit Tags" if self._editable else "Tags"
+        mode = Dialog.CLOSE if not self._editable else Dialog.OK_CANCEL
+        super().__init__(parent=parent, title=title, modal=self._editable, mode=mode)
 
         self._types_changed_rows = set()
         self._types_added_rows = set()
@@ -47,6 +50,7 @@ class EditTagsDialog(Dialog):
         self._add_type_btn.setIcon(QtG.QIcon("icons/plus.png"))
         self._add_type_btn.setToolTip("Add type")
         self._add_type_btn.setFixedSize(24, 24)
+        self._add_type_btn.setFocusPolicy(Qt.NoFocus)
         self._add_type_btn.clicked.connect(self._add_type)
         buttons.addWidget(self._add_type_btn)
 
@@ -65,6 +69,18 @@ class EditTagsDialog(Dialog):
         self._tabbed_pane.addTab(self._init_types_tab(), "Tag Types")
         self._tabbed_pane.addTab(self._init_tags_tab(), "All Tags")
         layout.addWidget(self._tabbed_pane)
+
+        search_layout = QtW.QHBoxLayout()
+        self._search_field = QtW.QLineEdit()
+        self._search_field.setPlaceholderText("Search tag or type…")
+        self._search_field.returnPressed.connect(self._search)
+        search_layout.addWidget(self._search_field)
+
+        search_btn = QtW.QPushButton("Search")
+        search_btn.clicked.connect(self._search)
+        search_layout.addWidget(search_btn)
+
+        layout.addLayout(search_layout)
 
         return layout
 
@@ -245,7 +261,7 @@ class EditTagsDialog(Dialog):
         self._update_delete_btn(self._tabbed_pane.currentIndex())
 
     def _types_changed(self, row, col):
-        if self._init:
+        if self._init and self._editable:
             result = EditTagsDialog._check_column(self._types_table, col)
             if result == EditTagsDialog.DUPLICATE:
                 utils.show_error("Value already used! Please choose another.", parent=self)
@@ -271,7 +287,7 @@ class EditTagsDialog(Dialog):
             self._check_integrity()
 
     def _tags_changed(self, row, col):
-        if self._init:
+        if self._init and self._editable:
             if col != 2:
                 result = EditTagsDialog._check_column(self._tags_table, col)
                 if result == EditTagsDialog.DUPLICATE:
@@ -295,6 +311,37 @@ class EditTagsDialog(Dialog):
     def _update_delete_btn(self, index):
         self._delete_btn.setEnabled(index == 0 and len(self._types_table.selectionModel().selectedRows()) != 0 or
                                     index == 1 and len(self._tags_table.selectionModel().selectedRows()) != 0)
+
+    def _search(self):
+        index = self._tabbed_pane.currentIndex()
+        text = self._search_field.text().strip()
+        if len(text) > 0:
+            if index == 0:
+                for i in range(self._types_table.rowCount()):
+                    label_item = self._types_table.item(i, 1)
+                    symbol_item = self._types_table.item(i, 2)
+                    if label_item.text() == text:
+                        self._types_table.setFocus()
+                        self._types_table.scrollToItem(label_item)
+                        label_item.setBackground(EditTagsDialog.FETCH_COLOR)
+                        symbol_item.setBackground(EditTagsDialog.NORMAL_COLOR)
+                    elif symbol_item.text() == text:
+                        self._types_table.setFocus()
+                        self._types_table.scrollToItem(symbol_item)
+                        symbol_item.setBackground(EditTagsDialog.FETCH_COLOR)
+                        label_item.setBackground(EditTagsDialog.NORMAL_COLOR)
+                    else:
+                        label_item.setBackground(EditTagsDialog.NORMAL_COLOR)
+                        symbol_item.setBackground(EditTagsDialog.NORMAL_COLOR)
+            elif index == 1:
+                for i in range(self._tags_table.rowCount()):
+                    label_item = self._tags_table.item(i, 1)
+                    if label_item.text() == text:
+                        self._tags_table.setFocus()
+                        self._tags_table.scrollToItem(label_item)
+                        label_item.setBackground(EditTagsDialog.FETCH_COLOR)
+                    else:
+                        label_item.setBackground(EditTagsDialog.NORMAL_COLOR)
 
     def _is_valid(self):
         return self._valid
