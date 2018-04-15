@@ -1,4 +1,4 @@
-# ImageDatabase
+# Image Library
 An application to manage images with a tag system.
 
 - Add images and associate tags to it
