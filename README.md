@@ -21,6 +21,9 @@ Run `ImageLibrary_cmd.py` to start an SQLite command line to interact directly w
 **Important: Do not use non-ASCII letters in tag names as the query analyser currently doesn't recognize them.**
 I'll try to fix that in a future version.
 
+If you encounter an error, check the error log located in `logs/error.log` and see if there's an error.
+You can send me a message with the error and a description of how you got this error, that would be really appreciated!
+
 ## Updating
 Delete all files except `library.sqlite3`, which is the database file. Follow installation instructions (cf. Usage).
 
