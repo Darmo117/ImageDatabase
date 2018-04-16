@@ -47,7 +47,7 @@ class EditTagsDialog(Dialog):
         buttons.addStretch(1)
 
         self._add_type_btn = QtW.QPushButton()
-        self._add_type_btn.setIcon(QtG.QIcon("icons/plus.png"))
+        self._add_type_btn.setIcon(QtG.QIcon("app/icons/plus.png"))
         self._add_type_btn.setToolTip("Add type")
         self._add_type_btn.setFixedSize(24, 24)
         self._add_type_btn.setFocusPolicy(Qt.NoFocus)
@@ -55,7 +55,7 @@ class EditTagsDialog(Dialog):
         buttons.addWidget(self._add_type_btn)
 
         self._delete_btn = QtW.QPushButton()
-        self._delete_btn.setIcon(QtG.QIcon("icons/cross.png"))
+        self._delete_btn.setIcon(QtG.QIcon("app/icons/cross.png"))
         self._delete_btn.setToolTip("Delete rows")
         self._delete_btn.setFixedSize(24, 24)
         self._delete_btn.clicked.connect(self._delete_selected_row)

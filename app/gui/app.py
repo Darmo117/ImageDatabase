@@ -28,7 +28,7 @@ class Application(QtW.QMainWindow):
     # noinspection PyUnresolvedReferences
     def _init_ui(self):
         self.setWindowTitle("Image Library v" + config.VERSION)
-        self.setWindowIcon(QtG.QIcon("icons/app_icon.png"))
+        self.setWindowIcon(QtG.QIcon("app/icons/app_icon.png"))
         self.setGeometry(0, 0, 800, 600)
         self.setMinimumSize(400, 200)
 
