@@ -51,19 +51,25 @@ create table if not exists image_tag (
 
 cursor = v1_connection.execute("SELECT id, path FROM images")
 for entry in cursor.fetchall():
-    v2_connection.execute("INSERT INTO images (id, path) VALUES(?, ?)", entry)
+    v2_connection.execute("INSERT INTO images (id, path) VALUES (?, ?)", entry)
 v2_connection.commit()
 cursor.close()
 
-cursor = v1_connection.execute("SELECT id, label FROM tags")
+cursor = v1_connection.execute("SELECT id, label, symbol FROM tag_types")
 for entry in cursor.fetchall():
-    v2_connection.execute("INSERT INTO tags (id, label) VALUES(?, ?)", entry)
+    v2_connection.execute("INSERT INTO tag_types (id, label, symbol) VALUES (?, ?, ?)", entry)
+v2_connection.commit()
+cursor.close()
+
+cursor = v1_connection.execute("SELECT id, label, type_id FROM tags")
+for entry in cursor.fetchall():
+    v2_connection.execute("INSERT INTO tags (id, label, type_id) VALUES (?, ?, ?)", entry)
 v2_connection.commit()
 cursor.close()
 
 cursor = v1_connection.execute("SELECT image_id, tag_id FROM image_tag")
 for entry in cursor.fetchall():
-    v2_connection.execute("INSERT INTO image_tag (image_id, tag_id) VALUES(?, ?)", entry)
+    v2_connection.execute("INSERT INTO image_tag (image_id, tag_id) VALUES (?, ?)", entry)
 v2_connection.commit()
 cursor.close()
 
