@@ -4,6 +4,7 @@ import sqlite3
 
 from sympy import Not, And, Or, Symbol, true, false
 
+import config
 from app.model import Image, Tag, TagType
 from .dao import DAO
 
@@ -101,16 +102,21 @@ class ImageDao(DAO):
 
     @staticmethod
     def _get_query(sympy_expr) -> str or None:
-        base_query = """
-        SELECT I.id, I.path
-        FROM images AS I, tags AS T, image_tag AS IT
-        WHERE T.label = '{}'
-          AND T.id = IT.tag_id
-          AND IT.image_id = I.id
-        """
-
         if isinstance(sympy_expr, Symbol):
-            return base_query.format(str(sympy_expr))
+            s = str(sympy_expr)
+            if ":" in s:
+                metatag, value = s.split(":")
+                if not ImageDao.metatag_exists(metatag):
+                    raise ValueError("Unknown metatag '{}'!".format(metatag))
+                return ImageDao._metatag_query(metatag, value)
+            else:
+                return """
+                SELECT I.id, I.path
+                FROM images AS I, tags AS T, image_tag AS IT
+                WHERE T.label = "{}"
+                  AND T.id = IT.tag_id
+                  AND IT.image_id = I.id
+                """.format(s)
         elif isinstance(sympy_expr, Or):
             subs = [ImageDao._get_query(arg) for arg in sympy_expr.args]
             return "\nSELECT id, path FROM (" + "UNION".join(subs) + ")"
@@ -124,7 +130,26 @@ class ImageDao(DAO):
         elif sympy_expr == false:
             return None
 
-        raise ValueError("Illegal symbol type " + type(sympy_expr))
+        raise Exception("Invalid symbol type '{}'!".format(type(sympy_expr)))
+
+    @staticmethod
+    def metatag_exists(type):
+        return type in ImageDao._METATAGS
+
+    @staticmethod
+    def check_metatag_value(type, value):
+        if not ImageDao.metatag_exists(type):
+            raise ValueError("Unknown metatag '{}'!".format(type))
+        return ImageDao._METATAGS[type][0](value)
+
+    @staticmethod
+    def _metatag_query(metatag, value):
+        return ImageDao._METATAGS[metatag][1].format(value)
+
+    # Declared metatags with their value-checking function and database query.
+    _METATAGS = {
+        "type": (lambda v: v.lower() in config.EXTENSIONS, "\nSELECT id, path FROM images WHERE path regexp '.{}$'\n")
+    }
 
 
 if __name__ == '__main__':

@@ -250,18 +250,18 @@ class Application(QtW.QMainWindow):
         self._tag_tree.refresh(TagType.SYMBOL_TYPES.values(), self._tags_dao.get_all_tags())
 
     class SearchThread(QThread):
-        def __init__(self, tags, parent):
+        def __init__(self, tags):
             super().__init__()
             self._tags = tags
-            self._parent = parent
             self._images = []
             self._error = None
 
         def run(self):
             dao = ImageDao(config.DATABASE)
-            expr = query_to_sympy(self._tags)
-            if expr is None:
-                self._error = "Syntax error!"
+            try:
+                expr = query_to_sympy(self._tags)
+            except ValueError as e:
+                self._error = str(e)
                 return
             self._images = dao.get_images(expr)
             dao.close()
@@ -284,7 +284,7 @@ class Application(QtW.QMainWindow):
         if len(tags) > 0:
             self._ok_btn.setEnabled(False)
             self._input_field.setEnabled(False)
-            self._thread = Application.SearchThread(tags, self)
+            self._thread = Application.SearchThread(tags)
             # noinspection PyUnresolvedReferences
             self._thread.finished.connect(self._on_fetch_done)
             self._thread.start()
