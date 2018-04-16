@@ -85,8 +85,10 @@ class TagTree(QtW.QTreeWidget):
         nodes = {}
         for type in types:
             node = QtW.QTreeWidgetItem(self, [type.label + " (" + type.symbol + ")"])
-            node.setBackground(0, type.color)
-            node.setForeground(0, utils.negate(type.color))
+            node.setForeground(0, type.color)
+            font = QtG.QFont()
+            font.setWeight(QtG.QFont.Bold)
+            node.setFont(0, font)
             nodes[type.id] = node
         default_node = QtW.QTreeWidgetItem(self, ["Other"])
 
