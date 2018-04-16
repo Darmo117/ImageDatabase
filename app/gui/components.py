@@ -4,8 +4,8 @@ import PyQt5.QtCore as QtC
 import PyQt5.QtGui as QtG
 import PyQt5.QtWidgets as QtW
 
-from app import utils
 import config
+from app import utils
 
 
 class ImageItem(QtW.QListWidgetItem):
@@ -70,6 +70,32 @@ class ImageList(QtW.QListWidget):
                 raise ValueError("URL is not local")
             urls.append(url.toLocalFile())
         return urls
+
+
+class TagTree(QtW.QTreeWidget):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setHeaderLabel("Tags")
+
+    def refresh(self, types, tags):
+        self.clear()
+        types = sorted(types, key=lambda t: t.label)
+        tags = sorted(tags, key=lambda t: t.label)
+
+        nodes = {}
+        for type in types:
+            node = QtW.QTreeWidgetItem(self, [type.label + " (" + type.symbol + ")"])
+            node.setBackground(0, type.color)
+            node.setForeground(0, utils.negate(type.color))
+            nodes[type.id] = node
+        default_node = QtW.QTreeWidgetItem(self, ["Other"])
+
+        for tag in tags:
+            if tag.type is None:
+                item = QtW.QTreeWidgetItem(default_node, [tag.label])
+            else:
+                item = QtW.QTreeWidgetItem(nodes[tag.type.id], [tag.label])
+            item.setWhatsThis(0, "tag")
 
 
 class Canvas(QtW.QGraphicsView):

@@ -11,15 +11,15 @@ from app.data_access import ImageDao, TagsDao, write_playlist
 from app.gui.dialogs import EditImageDialog, EditTagsDialog, AboutDialog
 from app.model import Image, TagType
 from app.queries import query_to_sympy
-from .components import ImageList
+from .components import ImageList, TagTree
 
 
-# TODO liste latérale pour les tags (rangés par type)
 class Application(QtW.QMainWindow):
     def __init__(self):
         super().__init__()
 
         self._dao = ImageDao(config.DATABASE)
+        self._tags_dao = TagsDao(config.DATABASE)
 
         self._init_ui()
         utils.center(self)
@@ -36,6 +36,10 @@ class Application(QtW.QMainWindow):
 
         self.setCentralWidget(QtW.QWidget())
 
+        self._tag_tree = TagTree()
+        self._tag_tree.itemDoubleClicked.connect(self._tree_item_clicked)
+        self._refresh_tree()
+
         self._list = ImageList(drop_action=self._add_images)
         self._list.selectionModel().selectionChanged.connect(self._list_selection_changed)
         self._list.model().rowsInserted.connect(self._list_changed)
@@ -49,6 +53,12 @@ class Application(QtW.QMainWindow):
         self._input_field.setPlaceholderText("Search tags…")
         self._input_field.returnPressed.connect(self._fetch_images)
 
+        splitter = QtW.QSplitter()
+
+        left_layout = QtW.QHBoxLayout()
+        left_layout.addWidget(self._tag_tree)
+        left_layout.setContentsMargins(5, 5, 0, 5)
+
         h_box = QtW.QHBoxLayout()
         h_box.addWidget(self._input_field)
         h_box.addWidget(self._ok_btn)
@@ -56,8 +66,18 @@ class Application(QtW.QMainWindow):
         v_box = QtW.QVBoxLayout()
         v_box.addWidget(self._list)
         v_box.addLayout(h_box)
+        v_box.setContentsMargins(0, 5, 5, 5)
 
-        self.centralWidget().setLayout(v_box)
+        left = QtW.QWidget()
+        left.setLayout(left_layout)
+        right = QtW.QWidget()
+        right.setLayout(v_box)
+
+        splitter.addWidget(left)
+        splitter.addWidget(right)
+        splitter.setSizes([100, 500])
+
+        self.setCentralWidget(splitter)
 
         self._input_field.setFocus()
 
@@ -215,7 +235,15 @@ class Application(QtW.QMainWindow):
 
     def _edit_tags(self):
         dialog = EditTagsDialog(self)
+        dialog.set_on_close_action(self._refresh_tree)
         dialog.show()
+
+    def _tree_item_clicked(self, item):
+        if item.whatsThis(0) == "tag":
+            self._input_field.setText((self._input_field.text() + " " + item.text(0)).lstrip())
+
+    def _refresh_tree(self):
+        self._tag_tree.refresh(TagType.SYMBOL_TYPES.values(), self._tags_dao.get_all_tags())
 
     class SearchThread(QThread):
         def __init__(self, tags, parent):
