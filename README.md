@@ -8,7 +8,7 @@ Image Library let's you manage images by associating tags to them.
 - Associate types to tags
 
 ## Installation
-Image Library is *not* available on PyPI. Might be some day… I dunno…
+Image Library is *not* available on PyPI. Might be some day… I dunno… When I take the time to look into it…
 
 You need to build the application in order to use it. To do so, run `build.py` and wait for it to complete.
 Once it is done, go into `build/` and copy the application directory (`Image-Library/`) where you want to.
@@ -16,16 +16,39 @@ Once it is done, go into `build/` and copy the application directory (`Image-Lib
 ## Usage
 To launch the application, simply run `ImageLibrary.py`.
 
+You can search for images by typing queries in the search field.
+Syntax is as follow:
+- `a` will return images with tag `a`
+- `a b` will return images with both tags `a` and `b`
+- `a + b` will return images with tags `a` or `b` or both
+- `-a` will return images *without* tag `a`
+- `type:png` will return images that are PNG files
+More complex queries can be written by using parentheses.
+
+Example:
+```
+a (b + c) + -(d e) type:jpg
+```
+Let's explain it:
+- `a (b + c)` returns the set of images with tags `a` and `b` or tags `a` and `c`
+- `-(d + e) type:jpg` = `-d -e type:jpg` returns the set of JPEG images without tags `d` and `e`
+
+The result is the union of both image sets.
+
 Run `ImageLibrary_cmd.py` to start an SQLite command line to interact directly with the database.
 
 **Important: Do not use non-ASCII letters in tag names as the query analyser currently doesn't recognize them.**
-I'll try to fix that in a future version.
+It'll be fixed in version 3.0 (hopefully).
 
-If you encounter an error, check the error log located in `logs/error.log` and see if there's an error.
+If you encounter an unexpected error, check the error log located in `logs/error.log` and see if there's an error.
 You can send me a message with the error and a description of how you got this error, that would be really appreciated!
 
+Don't mind the "Export As Playlist…" menu. It generates a playlist of the currently listed images.
+These playlists are used by an application I haven't released yet.
+
 ## Updating
-Delete all files except `library.sqlite3`, which is the database file. Follow installation instructions (cf. Usage).
+Delete all files except `library.sqlite3`, which is the database file.
+Once done, follow installation instructions (cf. Usage section).
 
 Check in `db_converter/` directory if a file named `v#_to_v§.py`, where `§` is the
 current version and `#` the previous one.
