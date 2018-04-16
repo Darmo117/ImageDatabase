@@ -55,7 +55,7 @@ class ImageList(QtW.QListWidget):
             except ValueError:
                 event.ignore()
             else:
-                if all(map(lambda f: os.path.splitext(f)[1].lower()[1:] in config.EXTENSIONS, urls)):
+                if all(map(lambda f: os.path.splitext(f)[1].lower()[1:] in config.FILE_EXTENSIONS, urls)):
                     event.accept()
                 else:
                     event.ignore()

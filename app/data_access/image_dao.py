@@ -5,6 +5,7 @@ import sqlite3
 from sympy import Not, And, Or, Symbol, true, false
 
 import config
+from app.logging import logger
 from app.model import Image, Tag, TagType
 from .dao import DAO
 
@@ -17,7 +18,8 @@ class ImageDao(DAO):
                 return []
             results = self._connection.execute(query).fetchall()
             return list(map(lambda r: Image(int(r[0]), r[1]), results))
-        except sqlite3.OperationalError:
+        except sqlite3.OperationalError as e:
+            logger.exception(e)
             return None
 
     def get_image_tags(self, image_id) -> list or None:
@@ -34,7 +36,8 @@ class ImageDao(DAO):
                 return Tag(t[0], t[1], type)
 
             return list(map(f, cursor.fetchall()))
-        except sqlite3.OperationalError:
+        except sqlite3.OperationalError as e:
+            logger.exception(e)
             return None
 
     def image_registered(self, image_path) -> bool or None:
@@ -42,7 +45,8 @@ class ImageDao(DAO):
             filename = re.escape("/" + os.path.basename(image_path))
             cursor = self._connection.execute("SELECT COUNT(*) FROM images WHERE path regexp ?", (filename,))
             return cursor.fetchall()[0][0] > 0
-        except sqlite3.OperationalError:
+        except sqlite3.OperationalError as e:
+            logger.exception(e)
             return None
 
     def add_image(self, image_path, tags) -> bool:
@@ -56,16 +60,18 @@ class ImageDao(DAO):
                                          (image_cursor.lastrowid, tag_id))
             self._connection.commit()
             return True
-        except (sqlite3.OperationalError, sqlite3.IntegrityError):
+        except (sqlite3.OperationalError, sqlite3.IntegrityError) as e:
             self._connection.rollback()
+            logger.exception(e)
             return False
 
     def update_image_path(self, image_id, new_path) -> bool:
         try:
             self._connection.execute("UPDATE images SET path = ? WHERE id = ?", (new_path, image_id))
             return True
-        except (sqlite3.OperationalError, sqlite3.IntegrityError):
+        except (sqlite3.OperationalError, sqlite3.IntegrityError) as e:
             self._connection.rollback()
+            logger.exception(e)
             return False
 
     def update_image_tags(self, image_id, tags) -> bool:
@@ -77,15 +83,17 @@ class ImageDao(DAO):
                 self._connection.execute("INSERT INTO image_tag(image_id, tag_id) VALUES(?, ?)", (image_id, tag_id))
             self._connection.commit()
             return True
-        except (sqlite3.OperationalError, sqlite3.IntegrityError):
+        except (sqlite3.OperationalError, sqlite3.IntegrityError) as e:
             self._connection.rollback()
+            logger.exception(e)
             return False
 
     def delete_image(self, image_id) -> bool:
         try:
             self._connection.execute("DELETE FROM images WHERE id = ?", (image_id,))
             return True
-        except sqlite3.OperationalError:
+        except sqlite3.OperationalError as e:
+            logger.exception(e)
             return False
 
     def _insert_tag_if_not_exists(self, tag: Tag) -> int:
@@ -148,7 +156,8 @@ class ImageDao(DAO):
 
     # Declared metatags with their value-checking function and database query.
     _METATAGS = {
-        "type": (lambda v: v.lower() in config.EXTENSIONS, "\nSELECT id, path FROM images WHERE path regexp '.{}$'\n")
+        "type": (
+            lambda v: v.lower() in config.FILE_EXTENSIONS, "\nSELECT id, path FROM images WHERE path regexp '.{}$'\n")
     }
 
 

@@ -9,6 +9,7 @@ import config
 from app import utils
 from app.data_access import ImageDao, TagsDao, write_playlist
 from app.gui.dialogs import EditImageDialog, EditTagsDialog, AboutDialog
+from app.logging import logger
 from app.model import Image, TagType
 from app.queries import query_to_sympy
 from .components import ImageList, TagTree
@@ -23,7 +24,6 @@ class Application(QtW.QMainWindow):
 
         self._init_ui()
         utils.center(self)
-        self.show()
 
     # noinspection PyUnresolvedReferences
     def _init_ui(self):
@@ -234,6 +234,7 @@ class Application(QtW.QMainWindow):
                         try:
                             os.remove(item.path)
                         except FileNotFoundError as e:
+                            logger.exception(e)
                             utils.show_error("Could not delete file!\n" + e.filename, parent=self)
                 self._fetch_images()
 
@@ -318,17 +319,20 @@ class Application(QtW.QMainWindow):
 
     @classmethod
     def run(cls):
-        app = QtW.QApplication(sys.argv)
+        try:
+            app = QtW.QApplication(sys.argv)
 
-        # Initialize tag types
-        tags_dao = TagsDao(config.DATABASE)
-        types = tags_dao.get_all_types()
-        if types is None:
-            utils.show_error("Could not load tag types! Shutting down.")
-            sys.exit(-1)
-        TagType.init(types)
-        tags_dao.close()
+            # Initialize tag types
+            tags_dao = TagsDao(config.DATABASE)
+            types = tags_dao.get_all_types()
+            if types is None:
+                utils.show_error("Could not load tag types! Shutting down.")
+                sys.exit(1)
+            TagType.init(types)
+            tags_dao.close()
 
-        # noinspection PyUnusedLocal
-        ex = cls()
-        sys.exit(app.exec_())
+            cls().show()
+        except BaseException as e:
+            logger.exception(e)
+        else:
+            sys.exit(app.exec_())

@@ -1,5 +1,8 @@
 import sqlite3
+
 from PyQt5.QtGui import QColor
+
+from app.logging import logger
 from app.model import Tag, TagType
 from .dao import DAO
 
@@ -9,7 +12,8 @@ class TagsDao(DAO):
         try:
             cursor = self._connection.execute("SELECT id, label, symbol, color FROM tag_types")
             return [TagType(t[0], t[1], t[2], QColor.fromRgb(t[3])) for t in cursor.fetchall()]
-        except sqlite3.OperationalError:
+        except sqlite3.OperationalError as e:
+            logger.exception(e)
             return None
 
     def get_all_tags(self, sort_by_label=False, get_count=False) -> list or None:
@@ -28,7 +32,8 @@ class TagsDao(DAO):
                 return (tag, int(t[3])) if get_count else tag
 
             return list(map(f, cursor.fetchall()))
-        except sqlite3.OperationalError:
+        except sqlite3.OperationalError as e:
+            logger.exception(e)
             return None
 
     def add_type(self, tag_type: TagType) -> bool:
@@ -36,7 +41,8 @@ class TagsDao(DAO):
             self._connection.execute("INSERT INTO tag_types (label, symbol, color) VALUES (?, ?, ?)",
                                      (tag_type.label, tag_type.symbol, tag_type.color.rgb()))
             return True
-        except (sqlite3.OperationalError, sqlite3.IntegrityError):
+        except (sqlite3.OperationalError, sqlite3.IntegrityError) as e:
+            logger.exception(e)
             return False
 
     def update_type(self, tag_type: TagType) -> bool:
@@ -44,14 +50,16 @@ class TagsDao(DAO):
             self._connection.execute("UPDATE tag_types SET label = ?, symbol = ?, color = ? WHERE id = ?",
                                      (tag_type.label, tag_type.symbol, tag_type.color.rgb(), tag_type.id))
             return True
-        except (sqlite3.OperationalError, sqlite3.IntegrityError):
+        except (sqlite3.OperationalError, sqlite3.IntegrityError) as e:
+            logger.exception(e)
             return False
 
     def delete_type(self, type_id) -> bool:
         try:
             self._connection.execute("DELETE FROM tag_types WHERE id = ?", (type_id,))
             return True
-        except sqlite3.OperationalError:
+        except sqlite3.OperationalError as e:
+            logger.exception(e)
             return False
 
     def update_tag(self, tag: Tag) -> bool:
@@ -59,12 +67,14 @@ class TagsDao(DAO):
             type = tag.type.id if tag.type is not None else None
             self._connection.execute("UPDATE tags SET label = ?, type_id = ? WHERE id = ?", (tag.label, type, tag.id))
             return True
-        except (sqlite3.OperationalError, sqlite3.IntegrityError):
+        except (sqlite3.OperationalError, sqlite3.IntegrityError) as e:
+            logger.exception(e)
             return False
 
     def delete_tag(self, tag_id) -> bool:
         try:
             self._connection.execute("DELETE FROM tags WHERE id = ?", (tag_id,))
             return True
-        except sqlite3.OperationalError:
+        except sqlite3.OperationalError as e:
+            logger.exception(e)
             return False

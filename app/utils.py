@@ -29,7 +29,7 @@ REJECTED = 1
 
 
 def open_image_chooser(parent=None):
-    exts = "; ".join(map(lambda e: "*." + e, config.EXTENSIONS))
+    exts = "; ".join(map(lambda e: "*." + e, config.FILE_EXTENSIONS))
     file, _ = QFileDialog.getOpenFileName(caption="Open Image", filter="Image file (" + exts + ")", parent=parent)
     return file if file != "" else REJECTED
 
@@ -48,7 +48,7 @@ NO_IMAGES = 2
 def open_directory_chooser(parent=None):
     directory = QFileDialog.getExistingDirectory(caption="Open Directory", parent=parent)
     if directory != "":
-        files = filter(lambda f: os.path.splitext(f)[1].lower()[1:] in config.EXTENSIONS, os.listdir(directory))
+        files = filter(lambda f: os.path.splitext(f)[1].lower()[1:] in config.FILE_EXTENSIONS, os.listdir(directory))
         files = list(map(lambda f: slashed(os.path.join(directory, f)), files))
         return files if len(files) > 0 else NO_IMAGES
     return REJECTED
