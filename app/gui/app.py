@@ -9,9 +9,10 @@ import config
 from app import utils
 from app.data_access import ImageDao, TagsDao, write_playlist
 from app.gui.dialogs import EditImageDialog, EditTagsDialog, AboutDialog
+from app.logging import logger
 from app.model import Image, TagType
 from app.queries import query_to_sympy
-from .components import ImageList
+from .components import ImageList, TagTree
 
 
 class Application(QtW.QMainWindow):
@@ -19,10 +20,10 @@ class Application(QtW.QMainWindow):
         super().__init__()
 
         self._dao = ImageDao(config.DATABASE)
+        self._tags_dao = TagsDao(config.DATABASE)
 
         self._init_ui()
         utils.center(self)
-        self.show()
 
     # noinspection PyUnresolvedReferences
     def _init_ui(self):
@@ -34,6 +35,10 @@ class Application(QtW.QMainWindow):
         self._init_menu()
 
         self.setCentralWidget(QtW.QWidget())
+
+        self._tag_tree = TagTree()
+        self._tag_tree.itemDoubleClicked.connect(self._tree_item_clicked)
+        self._refresh_tree()
 
         self._list = ImageList(drop_action=self._add_images)
         self._list.selectionModel().selectionChanged.connect(self._list_selection_changed)
@@ -48,6 +53,12 @@ class Application(QtW.QMainWindow):
         self._input_field.setPlaceholderText("Search tags…")
         self._input_field.returnPressed.connect(self._fetch_images)
 
+        splitter = QtW.QSplitter()
+
+        left_layout = QtW.QHBoxLayout()
+        left_layout.addWidget(self._tag_tree)
+        left_layout.setContentsMargins(5, 5, 0, 5)
+
         h_box = QtW.QHBoxLayout()
         h_box.addWidget(self._input_field)
         h_box.addWidget(self._ok_btn)
@@ -55,8 +66,18 @@ class Application(QtW.QMainWindow):
         v_box = QtW.QVBoxLayout()
         v_box.addWidget(self._list)
         v_box.addLayout(h_box)
+        v_box.setContentsMargins(0, 5, 5, 5)
 
-        self.centralWidget().setLayout(v_box)
+        left = QtW.QWidget()
+        left.setLayout(left_layout)
+        right = QtW.QWidget()
+        right.setLayout(v_box)
+
+        splitter.addWidget(left)
+        splitter.addWidget(right)
+        splitter.setSizes([100, 500])
+
+        self.setCentralWidget(splitter)
 
         self._input_field.setFocus()
 
@@ -157,7 +178,7 @@ class Application(QtW.QMainWindow):
                 utils.show_info(text, parent=self)
             else:
                 dialog = EditImageDialog(self, show_skip=len(images_to_add) > 1, mode=EditImageDialog.ADD)
-                dialog.set_on_close_action(self._fetch_images)
+                dialog.set_on_close_action(self._fetch_and_refresh)
                 dialog.set_images([Image(0, i) for i in images_to_add], {})
                 dialog.show()
 
@@ -180,10 +201,14 @@ class Application(QtW.QMainWindow):
             if file != utils.REJECTED:
                 write_playlist(file, images)
 
+    def _fetch_and_refresh(self):
+        self._fetch_images()
+        self._refresh_tree()
+
     def _edit_images(self, images):
         if len(images) > 0:
             dialog = EditImageDialog(self, show_skip=len(images) > 1)
-            dialog.set_on_close_action(self._fetch_images)
+            dialog.set_on_close_action(self._fetch_and_refresh)
             tags = {}
             for image in images:
                 t = self._dao.get_image_tags(image.id)
@@ -209,26 +234,35 @@ class Application(QtW.QMainWindow):
                         try:
                             os.remove(item.path)
                         except FileNotFoundError as e:
+                            logger.exception(e)
                             utils.show_error("Could not delete file!\n" + e.filename, parent=self)
                 self._fetch_images()
 
     def _edit_tags(self):
         dialog = EditTagsDialog(self)
+        dialog.set_on_close_action(self._refresh_tree)
         dialog.show()
 
+    def _tree_item_clicked(self, item):
+        if item.whatsThis(0) == "tag":
+            self._input_field.setText((self._input_field.text() + " " + item.text(0)).lstrip())
+
+    def _refresh_tree(self):
+        self._tag_tree.refresh(TagType.SYMBOL_TYPES.values(), self._tags_dao.get_all_tags())
+
     class SearchThread(QThread):
-        def __init__(self, tags, parent):
+        def __init__(self, tags):
             super().__init__()
             self._tags = tags
-            self._parent = parent
             self._images = []
             self._error = None
 
         def run(self):
             dao = ImageDao(config.DATABASE)
-            expr = query_to_sympy(self._tags)
-            if expr is None:
-                self._error = "Syntax error!"
+            try:
+                expr = query_to_sympy(self._tags)
+            except ValueError as e:
+                self._error = str(e)
                 return
             self._images = dao.get_images(expr)
             dao.close()
@@ -251,7 +285,7 @@ class Application(QtW.QMainWindow):
         if len(tags) > 0:
             self._ok_btn.setEnabled(False)
             self._input_field.setEnabled(False)
-            self._thread = Application.SearchThread(tags, self)
+            self._thread = Application.SearchThread(tags)
             # noinspection PyUnresolvedReferences
             self._thread.finished.connect(self._on_fetch_done)
             self._thread.start()
@@ -269,6 +303,7 @@ class Application(QtW.QMainWindow):
             self._list.add_image(image)
         self._ok_btn.setEnabled(True)
         self._input_field.setEnabled(True)
+        self._input_field.setFocus()
 
     def _list_changed(self, _):
         self._export_item.setEnabled(self._list.count() > 0)
@@ -284,17 +319,20 @@ class Application(QtW.QMainWindow):
 
     @classmethod
     def run(cls):
-        app = QtW.QApplication(sys.argv)
+        try:
+            app = QtW.QApplication(sys.argv)
 
-        # Initialize tag types
-        tags_dao = TagsDao(config.DATABASE)
-        types = tags_dao.get_all_types()
-        TagType.init(types)
-        if types is None:
-            utils.show_error("Could not load tag types! Shutting down.")
-            sys.exit(-1)
-        tags_dao.close()
+            # Initialize tag types
+            tags_dao = TagsDao(config.DATABASE)
+            types = tags_dao.get_all_types()
+            if types is None:
+                utils.show_error("Could not load tag types! Shutting down.")
+                sys.exit(1)
+            TagType.init(types)
+            tags_dao.close()
 
-        # noinspection PyUnusedLocal
-        ex = cls()
-        sys.exit(app.exec_())
+            cls().show()
+        except BaseException as e:
+            logger.exception(e)
+        else:
+            sys.exit(app.exec_())

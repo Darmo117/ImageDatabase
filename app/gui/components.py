@@ -4,8 +4,8 @@ import PyQt5.QtCore as QtC
 import PyQt5.QtGui as QtG
 import PyQt5.QtWidgets as QtW
 
-from app import utils
 import config
+from app import utils
 
 
 class ImageItem(QtW.QListWidgetItem):
@@ -55,7 +55,7 @@ class ImageList(QtW.QListWidget):
             except ValueError:
                 event.ignore()
             else:
-                if all(map(lambda f: os.path.splitext(f)[1].lower()[1:] in config.EXTENSIONS, urls)):
+                if all(map(lambda f: os.path.splitext(f)[1].lower()[1:] in config.FILE_EXTENSIONS, urls)):
                     event.accept()
                 else:
                     event.ignore()
@@ -70,6 +70,34 @@ class ImageList(QtW.QListWidget):
                 raise ValueError("URL is not local")
             urls.append(url.toLocalFile())
         return urls
+
+
+class TagTree(QtW.QTreeWidget):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setHeaderLabel("Tags")
+
+    def refresh(self, types, tags):
+        self.clear()
+        types = sorted(types, key=lambda t: t.label)
+        tags = sorted(tags, key=lambda t: t.label)
+
+        nodes = {}
+        for type in types:
+            node = QtW.QTreeWidgetItem(self, [type.label + " (" + type.symbol + ")"])
+            node.setForeground(0, type.color)
+            font = QtG.QFont()
+            font.setWeight(QtG.QFont.Bold)
+            node.setFont(0, font)
+            nodes[type.id] = node
+        default_node = QtW.QTreeWidgetItem(self, ["Other"])
+
+        for tag in tags:
+            if tag.type is None:
+                item = QtW.QTreeWidgetItem(default_node, [tag.label])
+            else:
+                item = QtW.QTreeWidgetItem(nodes[tag.type.id], [tag.label])
+            item.setWhatsThis(0, "tag")
 
 
 class Canvas(QtW.QGraphicsView):

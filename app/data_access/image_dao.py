@@ -4,6 +4,8 @@ import sqlite3
 
 from sympy import Not, And, Or, Symbol, true, false
 
+import config
+from app.logging import logger
 from app.model import Image, Tag, TagType
 from .dao import DAO
 
@@ -16,7 +18,8 @@ class ImageDao(DAO):
                 return []
             results = self._connection.execute(query).fetchall()
             return list(map(lambda r: Image(int(r[0]), r[1]), results))
-        except sqlite3.OperationalError:
+        except sqlite3.OperationalError as e:
+            logger.exception(e)
             return None
 
     def get_image_tags(self, image_id) -> list or None:
@@ -33,16 +36,17 @@ class ImageDao(DAO):
                 return Tag(t[0], t[1], type)
 
             return list(map(f, cursor.fetchall()))
-        except sqlite3.OperationalError:
+        except sqlite3.OperationalError as e:
+            logger.exception(e)
             return None
 
     def image_registered(self, image_path) -> bool or None:
         try:
             filename = re.escape("/" + os.path.basename(image_path))
-            print(filename)
             cursor = self._connection.execute("SELECT COUNT(*) FROM images WHERE path regexp ?", (filename,))
             return cursor.fetchall()[0][0] > 0
-        except sqlite3.OperationalError:
+        except sqlite3.OperationalError as e:
+            logger.exception(e)
             return None
 
     def add_image(self, image_path, tags) -> bool:
@@ -56,16 +60,18 @@ class ImageDao(DAO):
                                          (image_cursor.lastrowid, tag_id))
             self._connection.commit()
             return True
-        except (sqlite3.OperationalError, sqlite3.IntegrityError):
+        except (sqlite3.OperationalError, sqlite3.IntegrityError) as e:
             self._connection.rollback()
+            logger.exception(e)
             return False
 
     def update_image_path(self, image_id, new_path) -> bool:
         try:
             self._connection.execute("UPDATE images SET path = ? WHERE id = ?", (new_path, image_id))
             return True
-        except (sqlite3.OperationalError, sqlite3.IntegrityError):
+        except (sqlite3.OperationalError, sqlite3.IntegrityError) as e:
             self._connection.rollback()
+            logger.exception(e)
             return False
 
     def update_image_tags(self, image_id, tags) -> bool:
@@ -77,15 +83,17 @@ class ImageDao(DAO):
                 self._connection.execute("INSERT INTO image_tag(image_id, tag_id) VALUES(?, ?)", (image_id, tag_id))
             self._connection.commit()
             return True
-        except (sqlite3.OperationalError, sqlite3.IntegrityError):
+        except (sqlite3.OperationalError, sqlite3.IntegrityError) as e:
             self._connection.rollback()
+            logger.exception(e)
             return False
 
     def delete_image(self, image_id) -> bool:
         try:
             self._connection.execute("DELETE FROM images WHERE id = ?", (image_id,))
             return True
-        except sqlite3.OperationalError:
+        except sqlite3.OperationalError as e:
+            logger.exception(e)
             return False
 
     def _insert_tag_if_not_exists(self, tag: Tag) -> int:
@@ -102,16 +110,21 @@ class ImageDao(DAO):
 
     @staticmethod
     def _get_query(sympy_expr) -> str or None:
-        base_query = """
-        SELECT I.id, I.path
-        FROM images AS I, tags AS T, image_tag AS IT
-        WHERE T.label = '{}'
-          AND T.id = IT.tag_id
-          AND IT.image_id = I.id
-        """
-
         if isinstance(sympy_expr, Symbol):
-            return base_query.format(str(sympy_expr))
+            s = str(sympy_expr)
+            if ":" in s:
+                metatag, value = s.split(":")
+                if not ImageDao.metatag_exists(metatag):
+                    raise ValueError("Unknown metatag '{}'!".format(metatag))
+                return ImageDao._metatag_query(metatag, value)
+            else:
+                return """
+                SELECT I.id, I.path
+                FROM images AS I, tags AS T, image_tag AS IT
+                WHERE T.label = "{}"
+                  AND T.id = IT.tag_id
+                  AND IT.image_id = I.id
+                """.format(s)
         elif isinstance(sympy_expr, Or):
             subs = [ImageDao._get_query(arg) for arg in sympy_expr.args]
             return "\nSELECT id, path FROM (" + "UNION".join(subs) + ")"
@@ -125,7 +138,27 @@ class ImageDao(DAO):
         elif sympy_expr == false:
             return None
 
-        raise ValueError("Illegal symbol type " + type(sympy_expr))
+        raise Exception("Invalid symbol type '{}'!".format(type(sympy_expr)))
+
+    @staticmethod
+    def metatag_exists(type):
+        return type in ImageDao._METATAGS
+
+    @staticmethod
+    def check_metatag_value(type, value):
+        if not ImageDao.metatag_exists(type):
+            raise ValueError("Unknown metatag '{}'!".format(type))
+        return ImageDao._METATAGS[type][0](value)
+
+    @staticmethod
+    def _metatag_query(metatag, value):
+        return ImageDao._METATAGS[metatag][1].format(value)
+
+    # Declared metatags with their value-checking function and database query.
+    _METATAGS = {
+        "type": (
+            lambda v: v.lower() in config.FILE_EXTENSIONS, "\nSELECT id, path FROM images WHERE path regexp '.{}$'\n")
+    }
 
 
 if __name__ == '__main__':

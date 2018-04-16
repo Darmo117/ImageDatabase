@@ -21,6 +21,7 @@ class Dialog(QtW.QDialog):
             raise ValueError("Unknown mode " + str(self._buttons_mode))
 
         self._close_action = None
+        self._applied = False
         # noinspection PyUnresolvedReferences
         self.rejected.connect(self.close)
 
@@ -79,8 +80,9 @@ class Dialog(QtW.QDialog):
         return True
 
     def _apply(self) -> bool:
+        self._applied = True
         return True
 
     def closeEvent(self, event):
-        if self._close_action is not None:
+        if self._close_action is not None and self._applied:
             self._close_action()

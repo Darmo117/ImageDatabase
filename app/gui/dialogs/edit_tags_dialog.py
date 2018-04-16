@@ -13,6 +13,8 @@ from .dialog_base import Dialog
 
 class EditTagsDialog(Dialog):
     DISABLED_COLOR = QtG.QColor(200, 200, 200)
+    FETCH_COLOR = QtG.QColor(140, 200, 255)
+    NORMAL_COLOR = QtG.QColor(255, 255, 255)
     COMBO_ITEM_PATTERN = re.compile(r"^(\d+) - (.+)$")
 
     def __init__(self, parent=None, editable=True):
@@ -20,8 +22,9 @@ class EditTagsDialog(Dialog):
         self._init = False
         self._editable = editable
 
-        super().__init__(parent=parent, title="Edit Tags", modal=self._editable,
-                         mode=Dialog.CLOSE if not self._editable else Dialog.OK_CANCEL)
+        title = "Edit Tags" if self._editable else "Tags"
+        mode = Dialog.CLOSE if not self._editable else Dialog.OK_CANCEL
+        super().__init__(parent=parent, title=title, modal=self._editable, mode=mode)
 
         self._types_changed_rows = set()
         self._types_added_rows = set()
@@ -47,6 +50,7 @@ class EditTagsDialog(Dialog):
         self._add_type_btn.setIcon(QtG.QIcon("icons/plus.png"))
         self._add_type_btn.setToolTip("Add type")
         self._add_type_btn.setFixedSize(24, 24)
+        self._add_type_btn.setFocusPolicy(Qt.NoFocus)
         self._add_type_btn.clicked.connect(self._add_type)
         buttons.addWidget(self._add_type_btn)
 
@@ -66,6 +70,18 @@ class EditTagsDialog(Dialog):
         self._tabbed_pane.addTab(self._init_tags_tab(), "All Tags")
         layout.addWidget(self._tabbed_pane)
 
+        search_layout = QtW.QHBoxLayout()
+        self._search_field = QtW.QLineEdit()
+        self._search_field.setPlaceholderText("Search tag or type…")
+        self._search_field.returnPressed.connect(self._search)
+        search_layout.addWidget(self._search_field)
+
+        search_btn = QtW.QPushButton("Search")
+        search_btn.clicked.connect(self._search)
+        search_layout.addWidget(search_btn)
+
+        layout.addLayout(search_layout)
+
         return layout
 
     def _init_buttons(self):
@@ -81,7 +97,7 @@ class EditTagsDialog(Dialog):
     # noinspection PyUnresolvedReferences
     def _init_types_tab(self):
         self._types_table = QtW.QTableWidget()
-        self._types_table.setColumnCount(3)
+        self._types_table.setColumnCount(4)
         self._types_table.setRowCount(len(TagType.SYMBOL_TYPES))
         self._types_table.setColumnWidth(0, 30)
         self._types_table.verticalHeader().setDefaultSectionSize(20)
@@ -167,7 +183,7 @@ class EditTagsDialog(Dialog):
 
         return self._tags_table
 
-    # noinspection PyTypeChecker
+    # noinspection PyTypeChecker,PyUnresolvedReferences
     def _add_type_item(self, type, row):
         defined = type is not None
         id_item = QtW.QTableWidgetItem(str(type.id) if defined else str(self._dummy_type_id))
@@ -187,6 +203,18 @@ class EditTagsDialog(Dialog):
         if not self._editable:
             symbol_item.setFlags(symbol_item.flags() & ~Qt.ItemIsEditable & ~Qt.ItemIsSelectable)
         self._types_table.setItem(row, 2, symbol_item)
+
+        default_color = QtG.QColor(0, 0, 0)
+        bg_color = type.color if defined else default_color
+        color = utils.negate(bg_color)
+        color_btn = QtW.QPushButton(type.color.name() if defined else default_color.name())
+        color_btn.setWhatsThis("color")
+        color_btn.setStyleSheet("background-color: " + bg_color.name() + "; color: " + color.name())
+        color_btn.clicked.connect(self._show_color_picker)
+        color_btn.setProperty("row", row)
+        if not self._editable:
+            color_btn.setEnabled(False)
+        self._types_table.setCellWidget(row, 3, color_btn)
 
     def _add_type(self):
         row = self._types_table.rowCount()
@@ -245,15 +273,16 @@ class EditTagsDialog(Dialog):
         self._update_delete_btn(self._tabbed_pane.currentIndex())
 
     def _types_changed(self, row, col):
-        if self._init:
-            result = EditTagsDialog._check_column(self._types_table, col)
-            if result == EditTagsDialog.DUPLICATE:
-                utils.show_error("Value already used! Please choose another.", parent=self)
-            if result == EditTagsDialog.EMPTY:
-                utils.show_error("Cell is empty!", parent=self)
-            if result == EditTagsDialog.OK and col == 2 and self._check_type_symbol(row) == EditTagsDialog.FORMAT:
-                utils.show_error("Symbol should only be one character long and any character "
-                                 "except letters, digits, \"_\", \"+\" and \"-\"!")
+        if self._init and self._editable:
+            if col != 3:
+                result = EditTagsDialog._check_column(self._types_table, col)
+                if result == EditTagsDialog.DUPLICATE:
+                    utils.show_error("Value already used! Please choose another.", parent=self)
+                if result == EditTagsDialog.EMPTY:
+                    utils.show_error("Cell is empty!", parent=self)
+                if result == EditTagsDialog.OK and col == 2 and self._check_type_symbol(row) == EditTagsDialog.FORMAT:
+                    utils.show_error("Symbol should only be one character long and any character "
+                                     "except letters, digits, \"_\", \"+\" and \"-\"!")
 
             type = self._get_type(row)
             if row not in self._types_added_rows:
@@ -261,17 +290,18 @@ class EditTagsDialog(Dialog):
                     self._types_changed_rows.add(row)
                 elif row in self._types_changed_rows:
                     self._types_changed_rows.remove(row)
-            for row in range(self._tags_table.rowCount()):
-                if not self._tags_table.isRowHidden(row):
-                    combo = self._tags_table.cellWidget(row, 2)
-                    for i in range(combo.count()):
-                        if combo.itemText(i).startswith(str(type.id) + " "):
-                            combo.setItemText(i, EditTagsDialog._to_combo_text(type.id, type.label))
-                            break
+            if col == 1:
+                for row in range(self._tags_table.rowCount()):
+                    if not self._tags_table.isRowHidden(row):
+                        combo = self._tags_table.cellWidget(row, 2)
+                        for i in range(combo.count()):
+                            if combo.itemText(i).startswith(str(type.id) + " "):
+                                combo.setItemText(i, EditTagsDialog._to_combo_text(type.id, type.label))
+                                break
             self._check_integrity()
 
     def _tags_changed(self, row, col):
-        if self._init:
+        if self._init and self._editable:
             if col != 2:
                 result = EditTagsDialog._check_column(self._tags_table, col)
                 if result == EditTagsDialog.DUPLICATE:
@@ -292,14 +322,62 @@ class EditTagsDialog(Dialog):
         combo = self.sender()
         self._tags_changed(combo.property("row"), 2)
 
+    def _show_color_picker(self):
+        color = QtW.QColorDialog.getColor()
+        if color.isValid():
+            button = self.sender()
+            row = button.property("row")
+            button.setText(color.name())
+            button.setStyleSheet("background-color: " + color.name() + "; color: " + utils.negate(color).name())
+            self._types_changed(row, 3)
+
     def _update_delete_btn(self, index):
         self._delete_btn.setEnabled(index == 0 and len(self._types_table.selectionModel().selectedRows()) != 0 or
                                     index == 1 and len(self._tags_table.selectionModel().selectedRows()) != 0)
+
+    def _search(self):
+        index = self._tabbed_pane.currentIndex()
+        text = self._search_field.text().strip()
+        if len(text) > 0:
+            found = False
+            if index == 0:
+                for i in range(self._types_table.rowCount()):
+                    label_item = self._types_table.item(i, 1)
+                    symbol_item = self._types_table.item(i, 2)
+                    if label_item.text() == text:
+                        self._types_table.setFocus()
+                        self._types_table.scrollToItem(label_item)
+                        label_item.setBackground(EditTagsDialog.FETCH_COLOR)
+                        symbol_item.setBackground(EditTagsDialog.NORMAL_COLOR)
+                        found = True
+                    elif symbol_item.text() == text:
+                        self._types_table.setFocus()
+                        self._types_table.scrollToItem(symbol_item)
+                        symbol_item.setBackground(EditTagsDialog.FETCH_COLOR)
+                        label_item.setBackground(EditTagsDialog.NORMAL_COLOR)
+                        found = True
+                    else:
+                        label_item.setBackground(EditTagsDialog.NORMAL_COLOR)
+                        symbol_item.setBackground(EditTagsDialog.NORMAL_COLOR)
+            elif index == 1:
+                for i in range(self._tags_table.rowCount()):
+                    label_item = self._tags_table.item(i, 1)
+                    if label_item.text() == text:
+                        self._tags_table.setFocus()
+                        self._tags_table.scrollToItem(label_item)
+                        label_item.setBackground(EditTagsDialog.FETCH_COLOR)
+                        found = True
+                    else:
+                        label_item.setBackground(EditTagsDialog.NORMAL_COLOR)
+            if not found:
+                utils.show_info("No match found.", parent=self)
 
     def _is_valid(self):
         return self._valid
 
     def _apply(self):
+        super()._apply()
+
         ok = True
         update_types = False
 
@@ -361,10 +439,15 @@ class EditTagsDialog(Dialog):
 
         for i in range(self._types_table.columnCount()):
             cell = self._types_table.item(row, i)
+            if cell is None:
+                cell = self._types_table.cellWidget(row, i)
             arg = cell.whatsThis()
             if arg == "":
                 continue
-            args[arg] = cell.text() if arg != "id" else int(cell.text())
+            if arg == "color":
+                args[arg] = cell.palette().button().color()
+            else:
+                args[arg] = cell.text() if arg != "id" else int(cell.text())
 
         return TagType(**args)
 

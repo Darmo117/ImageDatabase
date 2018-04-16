@@ -162,6 +162,8 @@ class EditImageDialog(Dialog):
             return False
 
     def _apply(self):
+        super()._apply()
+
         tags = self._get_tags()
         if len(tags) == 0:
             question = "This image has no tags, you will not be able to request it later. Do you want to continue?"

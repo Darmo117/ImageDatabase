@@ -8,7 +8,8 @@ create table if not exists images (
 create table if not exists tag_types (
   id integer primary key autoincrement,
   label text unique not null,
-  symbol text unique not null
+  symbol text unique not null,
+  color integer default 0
 );
 
 create table if not exists tags (
