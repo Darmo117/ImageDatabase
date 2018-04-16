@@ -14,6 +14,7 @@ You need to build the application in order to use it. To do so, run `build.py` a
 Once it is done, go into `build/` and copy the application directory (`Image-Library/`) where you want to.
 
 ## Usage
+### Main application
 To launch the application, simply run `ImageLibrary.py`.
 
 You can search for images by typing queries in the search field.
@@ -23,19 +24,23 @@ Syntax is as follow:
 - `a + b` will return images with tags `a` or `b` or both
 - `-a` will return images *without* tag `a`
 - `type:png` will return images that are PNG files
-More complex queries can be written by using parentheses.
+
+More complex queries can be written using parentheses.
 
 Example:
 ```
 a (b + c) + -(d e) type:jpg
 ```
 Let's explain it:
-- `a (b + c)` returns the set of images with tags `a` and `b` or tags `a` and `c`
+- `a (b + c)` returns the set of images with both tags `a` and `b` or both tags `a` and `c`
 - `-(d + e) type:jpg` = `-d -e type:jpg` returns the set of JPEG images without tags `d` and `e`
 
 The result is the union of both image sets.
 
+### Command Line
 Run `ImageLibrary_cmd.py` to start an SQLite command line to interact directly with the database.
+
+---
 
 **Important: Do not use non-ASCII letters in tag names as the query analyser currently doesn't recognize them.**
 It'll be fixed in version 3.0 (hopefully).
@@ -50,7 +55,7 @@ These playlists are used by an application I haven't released yet.
 Delete all files except `library.sqlite3`, which is the database file.
 Once done, follow installation instructions (cf. Usage section).
 
-Check in `db_converter/` directory if a file named `v#_to_v§.py`, where `§` is the
+Check in `db_converter/` directory if there's a file named `v#_to_v§.py`, where `§` is the
 current version and `#` the previous one.
 If there is such file it means the database structure has changed between the two versions.
 You need to run the following command to update your database:
@@ -58,6 +63,8 @@ You need to run the following command to update your database:
 python ./db_converters/v#_to_v§.py library.sqlite3
 ```
 A backup of the old version will be created under the name `library-old_#.sqlite3`.
+
+One day I'll try to find a way to automate this step.
 
 ## Documentation
 To come…
