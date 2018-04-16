@@ -370,6 +370,8 @@ class EditTagsDialog(Dialog):
         return self._valid
 
     def _apply(self):
+        super()._apply()
+
         ok = True
         update_types = False
 

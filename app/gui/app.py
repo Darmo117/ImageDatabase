@@ -178,7 +178,7 @@ class Application(QtW.QMainWindow):
                 utils.show_info(text, parent=self)
             else:
                 dialog = EditImageDialog(self, show_skip=len(images_to_add) > 1, mode=EditImageDialog.ADD)
-                dialog.set_on_close_action(self._fetch_images)
+                dialog.set_on_close_action(self._fetch_and_refresh)
                 dialog.set_images([Image(0, i) for i in images_to_add], {})
                 dialog.show()
 
@@ -201,10 +201,14 @@ class Application(QtW.QMainWindow):
             if file != utils.REJECTED:
                 write_playlist(file, images)
 
+    def _fetch_and_refresh(self):
+        self._fetch_images()
+        self._refresh_tree()
+
     def _edit_images(self, images):
         if len(images) > 0:
             dialog = EditImageDialog(self, show_skip=len(images) > 1)
-            dialog.set_on_close_action(self._fetch_images)
+            dialog.set_on_close_action(self._fetch_and_refresh)
             tags = {}
             for image in images:
                 t = self._dao.get_image_tags(image.id)
