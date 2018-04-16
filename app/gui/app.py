@@ -302,6 +302,7 @@ class Application(QtW.QMainWindow):
             self._list.add_image(image)
         self._ok_btn.setEnabled(True)
         self._input_field.setEnabled(True)
+        self._input_field.setFocus()
 
     def _list_changed(self, _):
         self._export_item.setEnabled(self._list.count() > 0)
