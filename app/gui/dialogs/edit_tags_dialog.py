@@ -339,6 +339,7 @@ class EditTagsDialog(Dialog):
         index = self._tabbed_pane.currentIndex()
         text = self._search_field.text().strip()
         if len(text) > 0:
+            found = False
             if index == 0:
                 for i in range(self._types_table.rowCount()):
                     label_item = self._types_table.item(i, 1)
@@ -348,11 +349,13 @@ class EditTagsDialog(Dialog):
                         self._types_table.scrollToItem(label_item)
                         label_item.setBackground(EditTagsDialog.FETCH_COLOR)
                         symbol_item.setBackground(EditTagsDialog.NORMAL_COLOR)
+                        found = True
                     elif symbol_item.text() == text:
                         self._types_table.setFocus()
                         self._types_table.scrollToItem(symbol_item)
                         symbol_item.setBackground(EditTagsDialog.FETCH_COLOR)
                         label_item.setBackground(EditTagsDialog.NORMAL_COLOR)
+                        found = True
                     else:
                         label_item.setBackground(EditTagsDialog.NORMAL_COLOR)
                         symbol_item.setBackground(EditTagsDialog.NORMAL_COLOR)
@@ -363,8 +366,11 @@ class EditTagsDialog(Dialog):
                         self._tags_table.setFocus()
                         self._tags_table.scrollToItem(label_item)
                         label_item.setBackground(EditTagsDialog.FETCH_COLOR)
+                        found = True
                     else:
                         label_item.setBackground(EditTagsDialog.NORMAL_COLOR)
+            if not found:
+                utils.show_info("No match found.", parent=self)
 
     def _is_valid(self):
         return self._valid
