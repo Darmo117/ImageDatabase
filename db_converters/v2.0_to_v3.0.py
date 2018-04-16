@@ -10,7 +10,7 @@ if len(sys.argv) != 2:
 
 file = sys.argv[1]
 name, ext = os.path.splitext(file)
-old_file = name + "-old" + ext
+old_file = name + "-old_2.0" + ext
 os.rename(file, old_file)
 if os.path.exists(file):
     os.remove(file)
