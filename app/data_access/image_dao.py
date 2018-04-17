@@ -158,7 +158,7 @@ class ImageDao(DAO):
     # Declared metatags with their value-checking function and database query.
     _METATAGS = {
         "type": (lambda v: ImageDao._METAVALUE_PATTERN.match(v),
-                 "SELECT id, path FROM images WHERE path regexp '.{}$'"),
+                 "SELECT id, path FROM images WHERE path regexp '\.{}$'"),
         "name": (lambda v: ImageDao._METAVALUE_PATTERN.match(v),
                  "SELECT id, path FROM images WHERE path regexp '/{}\.\w+$'"),
     }
