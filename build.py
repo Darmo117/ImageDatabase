@@ -3,7 +3,7 @@
 import os
 import shutil
 
-TO_COPY = ["ImageLibrary.py", "ImageLibrary_cmd.py", "config.py", "app/", "icons/", "db_converters/"]
+TO_COPY = ["ImageLibrary.py", "ImageLibrary_cmd.py", "config.py", "app/", "db_converters/"]
 BUILD_DIR = "build/Image-Library/"
 
 if os.path.exists(BUILD_DIR):
