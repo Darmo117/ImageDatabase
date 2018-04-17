@@ -7,6 +7,8 @@ Image Library let's you manage images by associating tags to them.
 - Modify/remove tags of added images
 - Associate types to tags
 
+*GIFs are not animated because I don't know how to do that. Any help would be really appreciated!*
+
 ## Installation
 Image Library is *not* available on PyPI. Might be some day… I dunno… When I take the time to look into it…
 
@@ -42,9 +44,6 @@ Run `ImageLibrary_cmd.py` to start an SQLite command line to interact directly w
 
 ---
 
-**Important: Do not use non-ASCII letters in tag names as the query analyser currently doesn't recognize them.**
-It'll be fixed in version 3.0 (hopefully).
-
 If you encounter an unexpected error, check the error log located in `logs/error.log` and see if there's an error.
 You can send me a message with the error and a description of how you got this error, that would be really appreciated!
 
@@ -70,7 +69,7 @@ One day I'll try to find a way to automate this step.
 To come…
 
 ## Requirements
-- Python 3.6+ (That's the version I'm using, might work with older versions, never tested it)
+- Python 3.6+ (That's the version I'm using, might work with older 3.x versions, never tested it)
 - [PyQt5](http://pyqt.sourceforge.net/Docs/PyQt5/) (GUI)
 - sqlite3 (Database; generally installed with Python)
 - [Lark](https://github.com/erezsh/lark) (Queries analysis)
