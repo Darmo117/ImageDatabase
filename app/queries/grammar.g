@@ -1,9 +1,7 @@
-%import common.LETTER
-%import common.DIGIT
 %import common.WS_INLINE
 
-TAG: (LETTER | DIGIT | "_")+
-TYPE: LETTER+
+TAG: /\w+/
+META_VALUE: /\w+/
 
 ?query: tag
       | metatag
@@ -21,5 +19,5 @@ and: (tag | metatag | p_query) (WS_INLINE+ (tag | metatag | p_query))+ -> conjun
 tag: TAG -> tag
    | "-" tag -> negation
 
-metatag: TAG ":" TYPE -> metatag
-        | "-" metatag -> negation
+metatag: TAG ":" META_VALUE -> metatag
+        | "-" metatag       -> negation
