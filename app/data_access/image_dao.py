@@ -13,7 +13,6 @@ class ImageDao(DAO):
     def get_images(self, tags) -> list or None:
         try:
             query = ImageDao._get_query(tags)
-            print(query)
             if query is None:
                 return []
             results = self._connection.execute(query).fetchall()
