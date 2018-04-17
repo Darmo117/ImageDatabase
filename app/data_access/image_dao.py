@@ -4,7 +4,6 @@ import sqlite3
 
 from sympy import Not, And, Or, Symbol, true, false
 
-import config
 from app.logging import logger
 from app.model import Image, Tag, TagType
 from .dao import DAO
@@ -14,6 +13,7 @@ class ImageDao(DAO):
     def get_images(self, tags) -> list or None:
         try:
             query = ImageDao._get_query(tags)
+            print(query)
             if query is None:
                 return []
             results = self._connection.execute(query).fetchall()
@@ -114,8 +114,8 @@ class ImageDao(DAO):
             s = str(sympy_expr)
             if ":" in s:
                 metatag, value = s.split(":")
-                if not ImageDao.metatag_exists(metatag):
-                    raise ValueError("Unknown metatag '{}'!".format(metatag))
+                if not ImageDao.check_metatag_value(metatag, value):
+                    raise ValueError("Invalid value '{}' for metatag '{}'!".format(value, metatag))
                 return ImageDao._metatag_query(metatag, value)
             else:
                 return """
@@ -127,37 +127,41 @@ class ImageDao(DAO):
                 """.format(s)
         elif isinstance(sympy_expr, Or):
             subs = [ImageDao._get_query(arg) for arg in sympy_expr.args]
-            return "\nSELECT id, path FROM (" + "UNION".join(subs) + ")"
+            return "SELECT id, path FROM (" + "\nUNION\n".join(subs) + ")"
         elif isinstance(sympy_expr, And):
             subs = [ImageDao._get_query(arg) for arg in sympy_expr.args]
-            return "\nSELECT id, path FROM (" + "INTERSECT".join(subs) + ")"
+            return "SELECT id, path FROM (" + "\nINTERSECT\n".join(subs) + ")"
         elif isinstance(sympy_expr, Not):
-            return "\nSELECT id, path FROM images EXCEPT " + ImageDao._get_query(sympy_expr.args[0])
+            return "SELECT id, path FROM images EXCEPT\n" + ImageDao._get_query(sympy_expr.args[0])
         elif sympy_expr == true:
             return "SELECT id, path FROM images"
         elif sympy_expr == false:
             return None
 
-        raise Exception("Invalid symbol type '{}'!".format(type(sympy_expr)))
+        raise Exception("Invalid symbol type '{}'!".format(str(type(sympy_expr))))
 
     @staticmethod
-    def metatag_exists(type):
-        return type in ImageDao._METATAGS
+    def metatag_exists(metatag):
+        return metatag in ImageDao._METATAGS
 
     @staticmethod
-    def check_metatag_value(type, value):
-        if not ImageDao.metatag_exists(type):
-            raise ValueError("Unknown metatag '{}'!".format(type))
-        return ImageDao._METATAGS[type][0](value)
+    def check_metatag_value(metatag, value):
+        if not ImageDao.metatag_exists(metatag):
+            raise ValueError("Unknown metatag '{}'!".format(metatag))
+        return ImageDao._METATAGS[metatag][0](value)
 
     @staticmethod
     def _metatag_query(metatag, value):
-        return ImageDao._METATAGS[metatag][1].format(value)
+        return ImageDao._METATAGS[metatag][1].format(value.replace("*", "[^/]*"))
+
+    _METAVALUE_PATTERN = re.compile("^[\w.*-]+$")
 
     # Declared metatags with their value-checking function and database query.
     _METATAGS = {
-        "type": (
-            lambda v: v.lower() in config.FILE_EXTENSIONS, "\nSELECT id, path FROM images WHERE path regexp '.{}$'\n")
+        "type": (lambda v: ImageDao._METAVALUE_PATTERN.match(v),
+                 "SELECT id, path FROM images WHERE path regexp '.{}$'"),
+        "name": (lambda v: ImageDao._METAVALUE_PATTERN.match(v),
+                 "SELECT id, path FROM images WHERE path regexp '/{}\.\w+$'"),
     }
 
 

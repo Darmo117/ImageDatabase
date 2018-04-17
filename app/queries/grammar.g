@@ -1,7 +1,7 @@
 %import common.WS_INLINE
 
 TAG: /\w+/
-META_VALUE: /\w+/
+META_VALUE: /[\w.*-]+/
 
 ?query: tag
       | metatag

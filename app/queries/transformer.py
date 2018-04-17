@@ -1,5 +1,3 @@
-import re
-
 from lark import Lark, InlineTransformer, common, lexer
 from sympy import Not, And, Or, symbols, simplify_logic
 
@@ -29,23 +27,20 @@ class TreeToBoolean(InlineTransformer):
         # Filter out whitespace
         return [arg for arg in args if not isinstance(arg, lexer.Token)][0]
 
-    negation = Not
-
+    # noinspection PyMethodMayBeStatic
     def tag(self, tag):
-        return self._symbols[str(tag)]
+        return symbols(str(tag))
 
+    # noinspection PyMethodMayBeStatic
     def metatag(self, metatag, value):
         metatag = str(metatag)
-        if not ImageDao.metatag_exists(metatag):
-            raise common.ParseError("Unknown metatag '{}'!".format(metatag))
         if not ImageDao.check_metatag_value(metatag, value):
             raise ValueError("Invalid value '{}' for metatag '{}'!".format(value, metatag))
-        return self._symbols[metatag + ":" + str(value)]
+        return symbols(metatag + "\:" + str(value))
+
+    negation = Not
 
     def get_sympy(self, query, simplify=True):
-        # Escape ':' because of 'symbols' function.
-        tags = {t.replace(":", "\\:") for t in re.compile(r"[^\w:]+").split(query) if t != ""}
-        self._symbols = {s.name: s for s in symbols(tags)}
         tree = self.transform(self._parser.parse(query))
         if simplify:
             tree = simplify_logic(tree)
