@@ -1,4 +1,5 @@
 import os
+import shutil
 
 from PyQt5 import QtWidgets as QtW
 
@@ -218,27 +219,24 @@ class EditImageDialog(Dialog):
         return ok
 
     def _replace(self):
-        return self._replace_image(self._images[0].id, self._image_to_replace, self._destination)
-
-    def _move_image(self, path, new_path):
-        try:
-            os.rename(path, new_path)
-            return True
-        except FileExistsError:
-            utils.show_error("File already exists in destination!", parent=self)
-            return False
-
-    def _replace_image(self, id, image_to_replace, new_image):
         """
         Replaces an image by another one in the database. The old image is deleted. The new image will stay in its
         directory.
         :return: True if everything went well
         """
         try:
-            os.remove(image_to_replace)
+            os.remove(self._image_to_replace)
         except FileNotFoundError:
             return False
-        return self._dao.update_image_path(id, new_image)
+        return self._dao.update_image_path(self._images[0].id, self._destination)
+
+    def _move_image(self, path, new_path):
+        try:
+            shutil.move(path, new_path)
+            return True
+        except FileExistsError:
+            utils.show_error("File already exists in destination!", parent=self)
+            return False
 
     def closeEvent(self, event):
         self._tags_dialog.close()
