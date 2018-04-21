@@ -151,7 +151,7 @@ class ImageDao(DAO):
 
     @staticmethod
     def _metatag_query(metatag, value):
-        return ImageDao._METATAGS[metatag][1].format(value.replace("*", "[^/]*"))
+        return ImageDao._METATAGS[metatag][1].format(re.escape(value).replace(r"\*", "[^/]*"))
 
     _METAVALUE_PATTERN = re.compile("^[\w.*-]+$")
 
