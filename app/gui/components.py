@@ -108,7 +108,8 @@ class Canvas(QtW.QGraphicsView):
     def set_image(self, image_path):
         self.setScene(QtW.QGraphicsScene())
         if os.path.exists(image_path):
-            self._image = QtG.QPixmap(image_path)
+            ext = os.path.splitext(image_path)[1]
+            self._image = QtG.QPixmap(image_path, format=ext)
             self.scene().addPixmap(self._image)
             self.fit()
         else:
