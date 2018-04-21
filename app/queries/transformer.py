@@ -6,7 +6,7 @@ from app.data_access import ImageDao
 
 class TreeToBoolean(InlineTransformer):
     def __init__(self):
-        with open("app/queries/grammar.g") as f:
+        with open("app/queries/grammar.lark") as f:
             grammar = "\n".join(f.readlines())
 
         self._parser = Lark(grammar, start="query")
