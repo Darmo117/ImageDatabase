@@ -1,5 +1,7 @@
 import os
+import platform
 import shutil
+import subprocess
 import typing as typ
 
 import PyQt5.QtGui as QtG
@@ -41,7 +43,7 @@ class EditImageDialog(Dialog):
         super().__init__(parent=parent, title=EditImageDialog._TITLES[self._mode] + " Image", modal=True)
 
         self._index = -1
-        self._images = []
+        self._images: typ.List[model.Image] = []
         self._tags = {}
 
         self._destination = None
@@ -75,6 +77,10 @@ class EditImageDialog(Dialog):
         # noinspection PyUnresolvedReferences
         b.clicked.connect(self._show_tags_dialog)
         middle.addWidget(b)
+        b = QtW.QPushButton("Show in directory")
+        # noinspection PyUnresolvedReferences
+        b.clicked.connect(self._open_image_directory)
+        middle.addWidget(b)
 
         body.addLayout(middle)
 
@@ -103,6 +109,17 @@ class EditImageDialog(Dialog):
 
     def _show_tags_dialog(self):
         self._tags_dialog.show()
+
+    def _open_image_directory(self):
+        """Shows the current image in the system's file explorer."""
+        path = os.path.realpath(self._images[self._index].path)
+        os_name = platform.system().lower()
+        if os_name == "windows":
+            subprocess.Popen(f'explorer /select,"{path}"')
+        elif os_name == "linux":
+            subprocess.Popen(["xdg-open", path])
+        elif os_name == "darwin":  # OS-X
+            subprocess.Popen(["open", path])
 
     def set_images(self, images: typ.List[model.Image], tags: typ.Dict[int, typ.List[model.Tag]]):
         """
