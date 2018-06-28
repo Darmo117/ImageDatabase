@@ -1,57 +1,76 @@
-from lark import Lark, InlineTransformer, common, lexer
-from sympy import Not, And, Or, symbols, simplify_logic
+import typing as typ
 
-from app.data_access import ImageDao
+import lark
+import sympy as sp
+
+import app.data_access as da
 
 
-class TreeToBoolean(InlineTransformer):
+class TreeToBoolean(lark.InlineTransformer):
+    """
+    This class is the lexer for the tag query language.
+    It converts a string query into a SymPy expression.
+    """
+
     def __init__(self):
         with open("app/queries/grammar.lark") as f:
             grammar = "\n".join(f.readlines())
-
-        self._parser = Lark(grammar, start="query")
+        self._parser = lark.Lark(grammar, start="query")
         self._symbols = {}
 
     # noinspection PyMethodMayBeStatic
     def conjunction(self, *args):
         # Filter out whitespace
-        return And(*filter(lambda arg: not isinstance(arg, lexer.Token), args))
+        return sp.And(*filter(lambda arg: not isinstance(arg, lark.lexer.Token), args))
 
     # noinspection PyMethodMayBeStatic
     def disjunction(self, *args):
         # Filter out whitespace
-        return Or(*filter(lambda arg: not isinstance(arg, lexer.Token), args))
+        return sp.Or(*filter(lambda arg: not isinstance(arg, lark.lexer.Token), args))
 
     # noinspection PyMethodMayBeStatic
     def group(self, *args):
         # Filter out whitespace
-        return [arg for arg in args if not isinstance(arg, lexer.Token)][0]
+        return [arg for arg in args if not isinstance(arg, lark.lexer.Token)][0]
 
     # noinspection PyMethodMayBeStatic
     def tag(self, tag):
-        return symbols(str(tag))
+        return sp.symbols(str(tag))
 
     # noinspection PyMethodMayBeStatic
     def metatag(self, metatag, value):
         metatag = str(metatag)
-        if not ImageDao.check_metatag_value(metatag, value):
+        if not da.ImageDao.check_metatag_value(metatag, value):
             raise ValueError("Invalid value '{}' for metatag '{}'!".format(value, metatag))
-        return symbols(metatag + "\:" + str(value))
+        return sp.symbols(metatag + "\:" + str(value))
 
-    negation = Not
+    negation = sp.Not
 
-    def get_sympy(self, query, simplify=True):
+    def get_sympy(self, query: str, simplify=True) \
+            -> typ.Union[sp.Symbol, sp.Or, sp.And, sp.Not, sp.boolalg.BooleanAtom]:
+        """
+        Converts the given string query into a SymPy expression.
+
+        :param query: The query to convert.
+        :param simplify: If true (default) the result will be simplified using boolean logic.
+        :return: The SymPy expression.
+        """
         tree = self.transform(self._parser.parse(query))
         if simplify:
-            tree = simplify_logic(tree)
+            tree = sp.simplify_logic(tree)
         return tree
 
 
 transformer = None
 
 
-def query_to_sympy(query):
-    """Converts a query to a SymPy boolean expression."""
+def query_to_sympy(query: str) -> typ.Union[sp.Symbol, sp.Or, sp.And, sp.Not, sp.boolalg.BooleanAtom]:
+    """
+    Converts a query into a simplified SymPy boolean expression.
+
+    :param query: The query to convert.
+    :return: The simplified SymPy expression.
+    """
     global transformer
 
     if transformer is None:
@@ -59,9 +78,9 @@ def query_to_sympy(query):
 
     try:
         return transformer.get_sympy(query)
-    except common.ParseError as e:
+    except lark.common.ParseError as e:
         if "[" in e.args[0]:  # Lark parse errors are not very readable, just send a simple error message.
             raise ValueError("Syntax error!")
         raise ValueError(e)
-    except lexer.UnexpectedInput as e:
+    except lark.lexer.UnexpectedInput as e:
         raise ValueError("Illegal character '{}'!".format(e.context[0]))

@@ -1,25 +1,35 @@
 import os
 import shutil
+import typing as typ
 
-from PyQt5 import QtWidgets as QtW
+import PyQt5.QtGui as QtG
+import PyQt5.QtWidgets as QtW
 
+import app.data_access as da
+import app.model as model
+import app.utils as utils
 import config
-from app import utils
-from app.data_access import ImageDao
-from app.gui.components import Canvas, EllipsisLabel
-from app.gui.dialogs.dialog_base import Dialog
-from app.model import Image, Tag
+from .dialog_base import Dialog
 from .edit_tags_dialog import EditTagsDialog
+from ..components import Canvas, EllipsisLabel
 
 
 class EditImageDialog(Dialog):
+    """This dialog is used to edit information on an image."""
     EDIT = 0
     ADD = 1
     REPLACE = 2
 
     _TITLES = ["Edit", "Add", "Replace"]
 
-    def __init__(self, parent=None, mode=EDIT, show_skip=False):
+    def __init__(self, parent: QtW.QWidget = None, mode: int = EDIT, show_skip: bool = False):
+        """
+        Creates an edition dialog.
+
+        :param parent: The widget this dialog is attached to.
+        :param mode: Either EDIT, ADD or REPLACE.
+        :param show_skip: If true a 'Skip' button will be added.
+        """
         if mode != EditImageDialog.EDIT and mode != EditImageDialog.ADD and mode != EditImageDialog.REPLACE:
             raise ValueError("Unknown mode " + str(mode))
         if show_skip and mode == EditImageDialog.REPLACE:
@@ -38,11 +48,10 @@ class EditImageDialog(Dialog):
         self._tags_changed = False
         self._image_to_replace = None
 
-        self._dao = ImageDao(config.DATABASE)
+        self._dao = da.ImageDao(config.DATABASE)
         self._tags_dialog = EditTagsDialog(parent=self, editable=False)
 
-    # noinspection PyUnresolvedReferences
-    def _init_body(self):
+    def _init_body(self) -> typ.Optional[QtW.QLayout]:
         self.setGeometry(0, 0, 400, 400)
 
         body = QtW.QVBoxLayout()
@@ -59,15 +68,18 @@ class EditImageDialog(Dialog):
 
         text = "Replace with…" if self._mode == EditImageDialog.REPLACE else "Move to…"
         self._dest_btn = QtW.QPushButton(text)
+        # noinspection PyUnresolvedReferences
         self._dest_btn.clicked.connect(self._on_dest_button_clicked)
         middle.addWidget(self._dest_btn)
         b = QtW.QPushButton("Tags")
+        # noinspection PyUnresolvedReferences
         b.clicked.connect(self._show_tags_dialog)
         middle.addWidget(b)
 
         body.addLayout(middle)
 
         self._tags_input = QtW.QTextEdit()
+        # noinspection PyUnresolvedReferences
         self._tags_input.textChanged.connect(self._text_changed)
         if self._mode == EditImageDialog.REPLACE:
             self._tags_input.setDisabled(True)
@@ -77,7 +89,7 @@ class EditImageDialog(Dialog):
 
         return body
 
-    def _init_buttons(self):
+    def _init_buttons(self) -> typ.List[QtW.QAbstractButton]:
         if self._mode == EditImageDialog.REPLACE:
             self._ok_btn.setDisabled(True)
 
@@ -92,19 +104,30 @@ class EditImageDialog(Dialog):
     def _show_tags_dialog(self):
         self._tags_dialog.show()
 
-    def set_images(self, images, tags):
+    def set_images(self, images: typ.List[model.Image], tags: typ.Dict[int, typ.List[model.Tag]]):
+        """
+        Sets the images to display. If more than one image are given, they will be displayed one after another when the
+        user clicks on 'OK' or 'Skip'.
+
+        :param images: The images to display.
+        :param tags: The tags for each image.
+        """
         self._index = 0
         self._images = images
         self._tags = tags
         self._set(self._index)
 
     def set_image(self, image, tags):
-        self._index = 0
-        self._images = [image]
-        self._tags = {image.id: tags}
-        self._set(self._index)
+        """
+        Sets the image to display.
 
-    def _set(self, index):
+        :param image: The image to display.
+        :param tags: The image's tags.
+        """
+        self.set_images([image], {image.id: tags})
+
+    def _set(self, index: int):
+        """Sets the current image."""
         image = self._images[index]
 
         if self._mode == EditImageDialog.REPLACE:
@@ -125,10 +148,12 @@ class EditImageDialog(Dialog):
             self._skip_btn.setDisabled(True)
 
     def _next(self):
+        """Goes to the next image."""
         self._index += 1
         self._set(self._index)
 
     def _on_dest_button_clicked(self):
+        """Opens a directory chooser then sets the destionation path to the one selected if any."""
         if self._mode == EditImageDialog.REPLACE:
             destination = utils.open_image_chooser(self)
         else:
@@ -143,7 +168,7 @@ class EditImageDialog(Dialog):
                     return
                 self._destination = destination
                 self._ok_btn.setDisabled(False)
-                self._images[0] = Image(img.id, self._destination)
+                self._images[0] = model.Image(img.id, self._destination)
                 self._set(0)
             else:
                 self._destination = destination
@@ -152,17 +177,17 @@ class EditImageDialog(Dialog):
     def _text_changed(self):
         self._tags_changed = True
 
-    def _get_tags(self):
-        return [Tag.from_string(t) for t in self._tags_input.toPlainText().split()]
+    def _get_tags(self) -> typ.List[model.Tag]:
+        return [model.Tag.from_string(t) for t in self._tags_input.toPlainText().split()]
 
-    def _is_valid(self):
+    def _is_valid(self) -> bool:
         try:
             self._get_tags()
             return True
         except ValueError:
             return False
 
-    def _apply(self):
+    def _apply(self) -> bool:
         super()._apply()
 
         tags = self._get_tags()
@@ -193,14 +218,28 @@ class EditImageDialog(Dialog):
 
         return close
 
-    def _get_new_path(self, image):
+    def _get_new_path(self, image: model.Image) -> typ.Optional[str]:
+        """
+        Returns the new image path. It is obtained by appending the image name to the destination path.
+
+        :param image: The image to move.
+        :return: The new path.
+        """
         if self._mode != EditImageDialog.REPLACE and self._destination is not None \
                 and os.path.dirname(image.path) != self._destination:
             return utils.slashed(os.path.join(self._destination, os.path.basename(image.path)))
         else:
             return None
 
-    def _add(self, image, tags, new_path):
+    def _add(self, image: model.Image, tags: typ.List[model.Tag], new_path: typ.Optional[str]) -> bool:
+        """
+        Adds an image to the database.
+
+        :param image: The image to add.
+        :param tags: Image's tags.
+        :param new_path: If present the image will be moved in this directory.
+        :return: True if everything went well.
+        """
         ok = True
         if new_path is not None:
             ok = self._move_image(image.path, new_path)
@@ -208,7 +247,15 @@ class EditImageDialog(Dialog):
             ok = self._dao.add_image(image.path if new_path is None else new_path, tags)
         return ok
 
-    def _edit(self, image, tags, new_path):
+    def _edit(self, image: model.Image, tags: typ.List[model.Tag], new_path: typ.Optional[str]) -> bool:
+        """
+        Edits an image from the database.
+
+        :param image: The image to edit.
+        :param tags: Image's tags.
+        :param new_path: If present the image will be moved in this directory.
+        :return: True if everything went well.
+        """
         ok = True
         if new_path is not None:
             ok = self._move_image(image.path, new_path)
@@ -218,11 +265,11 @@ class EditImageDialog(Dialog):
             ok = self._dao.update_image_tags(image.id, tags)
         return ok
 
-    def _replace(self):
+    def _replace(self) -> bool:
         """
-        Replaces an image by another one in the database. The old image is deleted. The new image will stay in its
-        directory.
-        :return: True if everything went well
+        Replaces an image by another one. The old image is deleted. The new image will stay in its directory.
+
+        :return: True if everything went well.
         """
         try:
             os.remove(self._image_to_replace)
@@ -230,7 +277,14 @@ class EditImageDialog(Dialog):
             return False
         return self._dao.update_image_path(self._images[0].id, self._destination)
 
-    def _move_image(self, path, new_path):
+    def _move_image(self, path: str, new_path: str) -> bool:
+        """
+        Moves an image to a specific directory.
+
+        :param path: Image's path.
+        :param new_path: Path to the new directory.
+        :return: True if the image was moved.
+        """
         try:
             shutil.move(path, new_path)
             return True
@@ -238,6 +292,6 @@ class EditImageDialog(Dialog):
             utils.show_error("File already exists in destination!", parent=self)
             return False
 
-    def closeEvent(self, event):
+    def closeEvent(self, event: QtG.QCloseEvent):
         self._tags_dialog.close()
         super().closeEvent(event)

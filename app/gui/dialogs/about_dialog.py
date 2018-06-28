@@ -1,3 +1,4 @@
+import typing as typ
 from datetime import datetime
 
 import PyQt5.QtWidgets as QtW
@@ -7,10 +8,17 @@ from .dialog_base import Dialog
 
 
 class AboutDialog(Dialog):
-    def __init__(self, parent=None):
+    """This dialog shows information about the application."""
+
+    def __init__(self, parent: QtW.QWidget = None):
+        """
+        Creates an 'About' dialog.
+
+        :param parent: The widget this dialog is attached to.
+        """
         super().__init__(parent=parent, title="About", mode=Dialog.CLOSE)
 
-    def _init_body(self):
+    def _init_body(self) -> typ.Optional[QtW.QLayout]:
         self.setFixedSize(220, 200)
 
         body = QtW.QHBoxLayout()

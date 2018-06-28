@@ -6,7 +6,14 @@ import config
 
 
 class DAO(ABC):
-    def __init__(self, database=':memory:'):
+    """Base class for DAO objects."""
+
+    def __init__(self, database=":memory:"):
+        """
+        Initializes this DAO using the given database. If nothing is specified, special ':memory:' will be used.
+
+        :param database: The database to connect to.
+        """
         self._connection = sqlite3.connect(database)
         # Disable autocommit when BEGIN has been called.
         self._connection.isolation_level = None
@@ -16,4 +23,5 @@ class DAO(ABC):
         self._connection.create_function("regexp", 2, lambda x, y: re.search(x, y) is not None)
 
     def close(self):
+        """Closes database connection."""
         self._connection.close()

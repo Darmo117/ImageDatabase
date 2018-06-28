@@ -1,24 +1,32 @@
 import re
+import typing as typ
 
 import PyQt5.QtGui as QtG
 import PyQt5.QtWidgets as QtW
 from PyQt5.QtCore import Qt
 
+import app.data_access as da
+import app.utils as utils
 import config
-from app import utils
-from app.data_access import TagsDao
-from app.model import TagType, Tag
+import app.model as model
 from .dialog_base import Dialog
 
 
 class EditTagsDialog(Dialog):
+    """This dialog is used to edit tags and tag types."""
     DISABLED_COLOR = QtG.QColor(200, 200, 200)
     FETCH_COLOR = QtG.QColor(140, 200, 255)
     NORMAL_COLOR = QtG.QColor(255, 255, 255)
     COMBO_ITEM_PATTERN = re.compile(r"^(\d+) - (.+)$")
 
-    def __init__(self, parent=None, editable=True):
-        self._dao = TagsDao(config.DATABASE)
+    def __init__(self, parent: QtW.QWidget = None, editable: bool = True):
+        """
+        Creates a dialog.
+
+        :param parent: The widget this dialog is attached to.
+        :param editable: If true tags and types will be editable.
+        """
+        self._dao = da.TagsDao(config.DATABASE)
         self._init = False
         self._editable = editable
 
@@ -38,7 +46,7 @@ class EditTagsDialog(Dialog):
         self._valid = True
 
     # noinspection PyUnresolvedReferences
-    def _init_body(self):
+    def _init_body(self) -> typ.Optional[QtW.QLayout]:
         self.setGeometry(0, 0, 400, 400)
 
         layout = QtW.QVBoxLayout()
@@ -98,7 +106,7 @@ class EditTagsDialog(Dialog):
     def _init_types_tab(self):
         self._types_table = QtW.QTableWidget()
         self._types_table.setColumnCount(4)
-        self._types_table.setRowCount(len(TagType.SYMBOL_TYPES))
+        self._types_table.setRowCount(len(model.TagType.SYMBOL_TYPES))
         self._types_table.setColumnWidth(0, 30)
         self._types_table.verticalHeader().setDefaultSectionSize(20)
         self._types_table.horizontalHeader().setStretchLastSection(True)
@@ -113,7 +121,7 @@ class EditTagsDialog(Dialog):
             delete_action.triggered.connect(self._delete_selected_row)
             self._types_table.addAction(delete_action)
 
-        self._types = sorted(TagType.SYMBOL_TYPES.values(), key=lambda t: t.label)
+        self._types = sorted(model.TagType.SYMBOL_TYPES.values(), key=lambda t: t.label)
 
         for i, type in enumerate(self._types):
             self._add_type_item(type, i)
@@ -140,7 +148,7 @@ class EditTagsDialog(Dialog):
 
         self._tags = self._dao.get_all_tags(sort_by_label=True, get_count=True)
         self._tags_table.setRowCount(len(self._tags))
-        types = sorted(TagType.SYMBOL_TYPES.values(), key=lambda t: t.label)
+        types = sorted(model.TagType.SYMBOL_TYPES.values(), key=lambda t: t.label)
 
         if self._tags is not None:
             for i, (tag, count) in enumerate(self._tags):
@@ -425,7 +433,7 @@ class EditTagsDialog(Dialog):
         self._tags_changed_rows = to_keep
 
         if update_types:
-            TagType.init(self._dao.get_all_types())
+            model.TagType.init(self._dao.get_all_types())
 
         if not ok:
             utils.show_error("An error occured! Some changes may not have been saved.")
@@ -449,7 +457,7 @@ class EditTagsDialog(Dialog):
             else:
                 args[arg] = cell.text() if arg != "id" else int(cell.text())
 
-        return TagType(**args)
+        return model.TagType(**args)
 
     def _get_tag(self, row):
         args = {}
@@ -465,11 +473,11 @@ class EditTagsDialog(Dialog):
                 if cell.currentIndex() != 0:
                     id = EditTagsDialog._id_from_combo(cell.currentText())
                     if id is not None:
-                        args[arg] = TagType.from_id(id)
+                        args[arg] = model.TagType.from_id(id)
             else:
                 args[arg] = cell.text() if arg != "id" else int(cell.text())
 
-        return Tag(**args)
+        return model.Tag(**args)
 
     OK = 0
     DUPLICATE = 1
@@ -478,11 +486,11 @@ class EditTagsDialog(Dialog):
 
     def _check_tag_format(self, row):
         text = self._tags_table.item(row, 1).text()
-        return EditTagsDialog.OK if Tag.TAG_PATTERN.match(text) else EditTagsDialog.FORMAT
+        return EditTagsDialog.OK if model.Tag.TAG_PATTERN.match(text) else EditTagsDialog.FORMAT
 
     def _check_type_symbol(self, row):
         text = self._types_table.item(row, 2).text()
-        return EditTagsDialog.OK if TagType.SYMBOL_PATTERN.match(text) else EditTagsDialog.FORMAT
+        return EditTagsDialog.OK if model.TagType.SYMBOL_PATTERN.match(text) else EditTagsDialog.FORMAT
 
     def _check_integrity(self):
         result = EditTagsDialog._check_table_integrity(self._types_table, [1, 2])

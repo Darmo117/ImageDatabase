@@ -8,11 +8,11 @@ from PyQt5.QtCore import QThread
 import config
 from app import utils
 from app.data_access import ImageDao, TagsDao, write_playlist
-from app.gui.dialogs import EditImageDialog, EditTagsDialog, AboutDialog
 from app.logging import logger
 from app.model import Image, TagType
 from app.queries import query_to_sympy
 from .components import ImageList, TagTree
+from .dialogs import EditImageDialog, EditTagsDialog, AboutDialog
 
 
 class Application(QtW.QMainWindow):

@@ -1,3 +1,5 @@
+"""This module declares a global Logger object."""
+
 import logging.handlers
 import os
 
