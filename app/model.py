@@ -6,14 +6,14 @@ import PyQt5.QtGui as QtG
 class Image:
     """This class represents an image."""
 
-    def __init__(self, id: int, path: str):
+    def __init__(self, ident: int, path: str):
         """
         Creates an image.
 
-        :param id: Image's SQLite ID.
+        :param ident: Image's SQLite ID.
         :param path: Image's path.
         """
-        self._id = id
+        self._id = ident
         self._path = path
 
     @property
@@ -41,16 +41,16 @@ class TagType:
     SYMBOL_TYPES = {}
     ID_TYPES = {}
 
-    def __init__(self, id: int, label: str, symbol: str, color: QtG.QColor = QtG.QColor(0, 0, 0)):
+    def __init__(self, ident: int, label: str, symbol: str, color: QtG.QColor = QtG.QColor(0, 0, 0)):
         """
         Creates a tag type.
 
-        :param id: Type's SQLite ID.
+        :param ident: Type's SQLite ID.
         :param label: Type's label.
         :param symbol: Type's symbol.
         :param color: Type's color.
         """
-        self._id = id
+        self._id = ident
         self._label = label
         self._symbol = symbol
         self._color = color
@@ -90,9 +90,9 @@ class TagType:
         """
         TagType.SYMBOL_TYPES.clear()
         TagType.ID_TYPES.clear()
-        for type in types:
-            TagType.SYMBOL_TYPES[type.symbol] = type
-            TagType.ID_TYPES[type.id] = type
+        for tag_type in types:
+            TagType.SYMBOL_TYPES[tag_type.symbol] = tag_type
+            TagType.ID_TYPES[tag_type.id] = tag_type
 
     @staticmethod
     def is_special_char(c: str) -> bool:
@@ -116,35 +116,35 @@ class TagType:
         return TagType.SYMBOL_TYPES[symbol]
 
     @staticmethod
-    def from_id(id: int):
+    def from_id(ident: int):
         """
         Returns the type with the given ID.
 
-        :param id: The SQLite ID.
+        :param ident: The SQLite ID.
         :return: The corresponding type.
         :rtype: TagType
         """
-        return TagType.ID_TYPES[id]
+        return TagType.ID_TYPES[ident]
 
 
 class Tag:
     """This class represents an image tag. Tags can be associated to a type."""
     TAG_PATTERN = re.compile(r"^\w+$")
 
-    def __init__(self, id: int, label: str, type: TagType = None):
+    def __init__(self, ident: int, label: str, tag_type: TagType = None):
         """
         Creates a tag with an optional type.
 
-        :param id: Tag's SQLite ID.
+        :param ident: Tag's SQLite ID.
         :param label: Tag's label.
-        :param type: Tag's type?
+        :param tag_type: Tag's type?
         """
         if not Tag.TAG_PATTERN.match(label):
             raise ValueError("Illegal tag format!")
 
-        self._id = id
+        self._id = ident
         self._label = label
-        self._type = type
+        self._type = tag_type
 
     def raw_label(self) -> str:
         """Returns the raw label, i.e. the name prefixed with its type symbol."""
@@ -185,5 +185,5 @@ class Tag:
         """
         has_type = TagType.is_special_char(s[0])
         label = s[1:] if has_type else s
-        type = TagType.from_symbol(s[0]) if has_type else None
-        return cls(0, label, type)
+        tag_type = TagType.from_symbol(s[0]) if has_type else None
+        return cls(0, label, tag_type)

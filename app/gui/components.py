@@ -139,13 +139,13 @@ class TagTree(QtW.QTreeWidget):
         tags = sorted(tags, key=lambda t: t.label)
 
         type_nodes = {}
-        for type in types:
-            node = QtW.QTreeWidgetItem(self, [type.label + " (" + type.symbol + ")"])
-            node.setForeground(0, type.color)
+        for tag_type in types:
+            node = QtW.QTreeWidgetItem(self, [tag_type.label + " (" + tag_type.symbol + ")"])
+            node.setForeground(0, tag_type.color)
             font = QtG.QFont()
             font.setWeight(QtG.QFont.Bold)
             node.setFont(0, font)
-            type_nodes[type.id] = node
+            type_nodes[tag_type.id] = node
         default_type_node = QtW.QTreeWidgetItem(self, ["Other"])
 
         for tag in tags:

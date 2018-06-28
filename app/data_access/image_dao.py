@@ -47,8 +47,8 @@ class ImageDao(DAO):
             """, (image_id,))
 
             def row_to_tag(row: tuple) -> model.Tag:
-                type = model.TagType.from_id(row[2]) if row[2] is not None else None
-                return model.Tag(row[0], row[1], type)
+                tag_type = model.TagType.from_id(row[2]) if row[2] is not None else None
+                return model.Tag(row[0], row[1], tag_type)
 
             return list(map(row_to_tag, cursor.fetchall()))
         except sqlite3.OperationalError as e:
@@ -155,13 +155,14 @@ class ImageDao(DAO):
         cursor.close()
         if result is None:
             cursor = self._connection.cursor()
-            type = tag.type.id if tag.type is not None else None
-            cursor.execute("INSERT INTO tags(label, type_id) VALUES(?, ?)", (tag.label, type))
+            tag_type = tag.type.id if tag.type is not None else None
+            cursor.execute("INSERT INTO tags(label, type_id) VALUES(?, ?)", (tag.label, tag_type))
             return cursor.lastrowid
         return result[0]
 
     @staticmethod
-    def _get_query(sympy_expr: typ.Union[sp.Symbol, sp.Or, sp.And, sp.Not, sp.boolalg.BooleanAtom]) -> typ.Optional[str]:
+    def _get_query(sympy_expr: typ.Union[sp.Symbol, sp.Or, sp.And, sp.Not, sp.boolalg.BooleanAtom]) \
+            -> typ.Optional[str]:
         """
         Transforms a SymPy expression into an SQL query.
 

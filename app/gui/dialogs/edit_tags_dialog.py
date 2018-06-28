@@ -123,8 +123,8 @@ class EditTagsDialog(Dialog):
 
         self._types = sorted(model.TagType.SYMBOL_TYPES.values(), key=lambda t: t.label)
 
-        for i, type in enumerate(self._types):
-            self._add_type_item(type, i)
+        for i, tag_type in enumerate(self._types):
+            self._add_type_item(tag_type, i)
 
         return self._types_table
 
@@ -170,8 +170,8 @@ class EditTagsDialog(Dialog):
                     combo.setWhatsThis("type")
                     combo.setProperty("row", i)
                     combo.addItem("None")
-                    for type in types:
-                        combo.addItem(EditTagsDialog._to_combo_text(type.id, type.label))
+                    for tag_type in types:
+                        combo.addItem(EditTagsDialog._to_combo_text(tag_type.id, tag_type.label))
                     if tag.type is not None:
                         combo.setCurrentIndex(
                             combo.findText(EditTagsDialog._to_combo_text(tag.type.id, tag.type.label)))
@@ -192,30 +192,30 @@ class EditTagsDialog(Dialog):
         return self._tags_table
 
     # noinspection PyTypeChecker,PyUnresolvedReferences
-    def _add_type_item(self, type, row):
-        defined = type is not None
-        id_item = QtW.QTableWidgetItem(str(type.id) if defined else str(self._dummy_type_id))
+    def _add_type_item(self, tag_type, row):
+        defined = tag_type is not None
+        id_item = QtW.QTableWidgetItem(str(tag_type.id) if defined else str(self._dummy_type_id))
         id_item.setWhatsThis("id")
         id_item.setFlags(id_item.flags() & ~Qt.ItemIsEditable & ~Qt.ItemIsSelectable)
         id_item.setBackground(EditTagsDialog.DISABLED_COLOR)
         self._types_table.setItem(row, 0, id_item)
 
-        label_item = QtW.QTableWidgetItem(type.label if defined else "New Type")
+        label_item = QtW.QTableWidgetItem(tag_type.label if defined else "New Type")
         label_item.setWhatsThis("label")
         if not self._editable:
             label_item.setFlags(label_item.flags() & ~Qt.ItemIsEditable & ~Qt.ItemIsSelectable)
         self._types_table.setItem(row, 1, label_item)
 
-        symbol_item = QtW.QTableWidgetItem(type.symbol if defined else "§")
+        symbol_item = QtW.QTableWidgetItem(tag_type.symbol if defined else "§")
         symbol_item.setWhatsThis("symbol")
         if not self._editable:
             symbol_item.setFlags(symbol_item.flags() & ~Qt.ItemIsEditable & ~Qt.ItemIsSelectable)
         self._types_table.setItem(row, 2, symbol_item)
 
         default_color = QtG.QColor(0, 0, 0)
-        bg_color = type.color if defined else default_color
+        bg_color = tag_type.color if defined else default_color
         color = utils.negate(bg_color)
-        color_btn = QtW.QPushButton(type.color.name() if defined else default_color.name())
+        color_btn = QtW.QPushButton(tag_type.color.name() if defined else default_color.name())
         color_btn.setWhatsThis("color")
         color_btn.setStyleSheet("background-color: " + bg_color.name() + "; color: " + color.name())
         color_btn.clicked.connect(self._show_color_picker)
@@ -254,12 +254,12 @@ class EditTagsDialog(Dialog):
                 self._types_added_rows -= selected_rows
                 for row in selected_rows:
                     self._types_table.setRowHidden(row, True)
-                    id = self._types_table.item(row, 0).text()
+                    ident = self._types_table.item(row, 0).text()
                     label = self._types_table.item(row, 1).text()
                     for tag_row in range(self._tags_table.rowCount()):
                         combo = self._tags_table.cellWidget(tag_row, 2)
                         current_type = EditTagsDialog._label_from_combo(combo.currentText())
-                        combo.removeItem(combo.findText(EditTagsDialog._to_combo_text(id, label)))
+                        combo.removeItem(combo.findText(EditTagsDialog._to_combo_text(ident, label)))
                         if current_type == label:
                             combo.setCurrentIndex(0)
 
@@ -292,9 +292,9 @@ class EditTagsDialog(Dialog):
                     utils.show_error("Symbol should only be one character long and any character "
                                      "except letters, digits, \"_\", \"+\" and \"-\"!")
 
-            type = self._get_type(row)
+            tag_type = self._get_type(row)
             if row not in self._types_added_rows:
-                if type != self._types[row]:
+                if tag_type != self._types[row]:
                     self._types_changed_rows.add(row)
                 elif row in self._types_changed_rows:
                     self._types_changed_rows.remove(row)
@@ -303,8 +303,8 @@ class EditTagsDialog(Dialog):
                     if not self._tags_table.isRowHidden(row):
                         combo = self._tags_table.cellWidget(row, 2)
                         for i in range(combo.count()):
-                            if combo.itemText(i).startswith(str(type.id) + " "):
-                                combo.setItemText(i, EditTagsDialog._to_combo_text(type.id, type.label))
+                            if combo.itemText(i).startswith(str(tag_type.id) + " "):
+                                combo.setItemText(i, EditTagsDialog._to_combo_text(tag_type.id, tag_type.label))
                                 break
             self._check_integrity()
 
@@ -471,9 +471,9 @@ class EditTagsDialog(Dialog):
                 continue
             if arg == "type":
                 if cell.currentIndex() != 0:
-                    id = EditTagsDialog._id_from_combo(cell.currentText())
-                    if id is not None:
-                        args[arg] = model.TagType.from_id(id)
+                    ident = EditTagsDialog._id_from_combo(cell.currentText())
+                    if ident is not None:
+                        args[arg] = model.TagType.from_id(ident)
             else:
                 args[arg] = cell.text() if arg != "id" else int(cell.text())
 
@@ -527,8 +527,8 @@ class EditTagsDialog(Dialog):
         return EditTagsDialog.OK
 
     @staticmethod
-    def _to_combo_text(id, label):
-        return str(id) + " - " + label
+    def _to_combo_text(ident, label):
+        return str(ident) + " - " + label
 
     @staticmethod
     def _label_from_combo(text):

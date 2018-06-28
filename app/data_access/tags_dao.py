@@ -43,8 +43,8 @@ class TagsDao(DAO):
             cursor = self._connection.execute(query)
 
             def row_to_tag(row: tuple) -> typ.Union[typ.Tuple[model.Tag, int], model.Tag]:
-                type = model.TagType.from_id(row[2]) if row[2] is not None else None
-                tag = model.Tag(row[0], row[1], type)
+                tag_type = model.TagType.from_id(row[2]) if row[2] is not None else None
+                tag = model.Tag(row[0], row[1], tag_type)
                 return (tag, int(row[3])) if get_count else tag
 
             return list(map(row_to_tag, cursor.fetchall()))
@@ -104,8 +104,9 @@ class TagsDao(DAO):
         :return: True if the tag was updated.
         """
         try:
-            type = tag.type.id if tag.type is not None else None
-            self._connection.execute("UPDATE tags SET label = ?, type_id = ? WHERE id = ?", (tag.label, type, tag.id))
+            tag_type = tag.type.id if tag.type is not None else None
+            self._connection.execute("UPDATE tags SET label = ?, type_id = ? WHERE id = ?",
+                                     (tag.label, tag_type, tag.id))
             return True
         except (sqlite3.OperationalError, sqlite3.IntegrityError) as e:
             logger.exception(e)
