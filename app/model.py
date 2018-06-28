@@ -1,4 +1,5 @@
 import re
+import typing as typ
 
 import PyQt5.QtGui as QtG
 
@@ -131,7 +132,7 @@ class Tag:
     """This class represents an image tag. Tags can be associated to a type."""
     TAG_PATTERN = re.compile(r"^\w+$")
 
-    def __init__(self, ident: int, label: str, tag_type: TagType = None):
+    def __init__(self, ident: int, label: str, tag_type: typ.Optional[TagType] = None):
         """
         Creates a tag with an optional type.
 
