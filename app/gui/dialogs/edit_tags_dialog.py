@@ -153,7 +153,7 @@ class EditTagsDialog(Dialog):
         if self._tags is not None:
             for i, (tag, count) in enumerate(self._tags):
                 id_item = QtW.QTableWidgetItem(str(tag.id))
-                id_item.setWhatsThis("id")
+                id_item.setWhatsThis("ident")
                 id_item.setFlags(id_item.flags() & ~Qt.ItemIsEditable & ~Qt.ItemIsSelectable)
                 id_item.setBackground(self.DISABLED_COLOR)
                 self._tags_table.setItem(i, 0, id_item)
@@ -167,7 +167,7 @@ class EditTagsDialog(Dialog):
                 if self._editable:
                     combo = QtW.QComboBox()
                     combo.currentIndexChanged.connect(self._combo_changed)
-                    combo.setWhatsThis("type")
+                    combo.setWhatsThis("tag_type")
                     combo.setProperty("row", i)
                     combo.addItem("None")
                     for tag_type in types:
@@ -195,7 +195,7 @@ class EditTagsDialog(Dialog):
     def _add_type_item(self, tag_type: typ.Optional[model.TagType], row: int):
         defined = tag_type is not None
         id_item = QtW.QTableWidgetItem(str(tag_type.id) if defined else str(self._dummy_type_id))
-        id_item.setWhatsThis("id")
+        id_item.setWhatsThis("ident")
         id_item.setFlags(id_item.flags() & ~Qt.ItemIsEditable & ~Qt.ItemIsSelectable)
         id_item.setBackground(self.DISABLED_COLOR)
         self._types_table.setItem(row, 0, id_item)
@@ -455,7 +455,7 @@ class EditTagsDialog(Dialog):
             if arg == "color":
                 args[arg] = cell.palette().button().color()
             else:
-                args[arg] = cell.text() if arg != "id" else int(cell.text())
+                args[arg] = cell.text() if arg != "ident" else int(cell.text())
 
         return model.TagType(**args)
 
@@ -469,13 +469,13 @@ class EditTagsDialog(Dialog):
             arg = cell.whatsThis()
             if arg == "":
                 continue
-            if arg == "type":
+            if arg == "tag_type":
                 if cell.currentIndex() != 0:
                     ident = self._id_from_combo(cell.currentText())
                     if ident is not None:
                         args[arg] = model.TagType.from_id(ident)
             else:
-                args[arg] = cell.text() if arg != "id" else int(cell.text())
+                args[arg] = cell.text() if arg != "ident" else int(cell.text())
 
         return model.Tag(**args)
 
