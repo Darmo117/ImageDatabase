@@ -25,13 +25,14 @@ class AboutDialog(Dialog):
 
         label = QtW.QTextEdit()
         year = datetime.now().year
-        label.setText("""
+        copyright_year = "" if year == 2018 else " - " + str(year)
+        label.setText(f"""
         <html style="color: black; font-size: 12px">
-            <span style="font-size: 16px; font-weight: bold">Image Library v{}</span>
-            <p>&copy; {} Damien Vergnet.</p>
+            <span style="font-size: 16px; font-weight: bold">Image Library v{config.VERSION}</span>
+            <p>&copy; 2018{copyright_year} Damien Vergnet.</p>
             <p>Icons &copy; FatCow.</p>
         </html>
-        """.format(config.VERSION, "2018" + ("" if year == 2018 else " - " + str(year))))
+        """)
         label.setEnabled(False)
         body.addWidget(label)
 

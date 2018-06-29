@@ -6,7 +6,7 @@ import config
 
 
 class DAO(ABC):
-    """Base class for DAO objects."""
+    """Base class for DAO objects. It defines a 'regex' function to use in SQL queries."""
 
     def __init__(self, database=":memory:"):
         """

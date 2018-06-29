@@ -6,9 +6,9 @@ import PyQt5.QtWidgets as QtW
 from PyQt5.QtCore import Qt
 
 import app.data_access as da
+import app.model as model
 import app.utils as utils
 import config
-import app.model as model
 from .dialog_base import Dialog
 
 
@@ -217,7 +217,7 @@ class EditTagsDialog(Dialog):
         color = utils.negate(bg_color)
         color_btn = QtW.QPushButton(tag_type.color.name() if defined else default_color.name())
         color_btn.setWhatsThis("color")
-        color_btn.setStyleSheet("background-color: " + bg_color.name() + "; color: " + color.name())
+        color_btn.setStyleSheet(f"background-color: {bg_color.name()}; color: {color.name()}")
         color_btn.clicked.connect(self._show_color_picker)
         color_btn.setProperty("row", row)
         if not self._editable:
@@ -290,7 +290,7 @@ class EditTagsDialog(Dialog):
                     utils.show_error("Cell is empty!", parent=self)
                 if result == EditTagsDialog.OK and col == 2 and self._check_type_symbol(row) == EditTagsDialog.FORMAT:
                     utils.show_error("Symbol should only be one character long and any character "
-                                     "except letters, digits, \"_\", \"+\" and \"-\"!")
+                                     'except letters, digits, "_", "+" and "-"!')
 
             tag_type = self._get_type(row)
             if row not in self._types_added_rows:
@@ -317,7 +317,7 @@ class EditTagsDialog(Dialog):
                 if result == EditTagsDialog.EMPTY:
                     utils.show_error("Cell is empty!", parent=self)
                 if result == EditTagsDialog.OK and col == 1 and self._check_tag_format(row) == EditTagsDialog.FORMAT:
-                    utils.show_error("Tag label should only be letters, digits or \"_\"!")
+                    utils.show_error('Tag label should only be letters, digits or "_"!')
 
             if row not in self._tags_deleted_rows:
                 if self._get_tag(row) != self._tags[row][0]:
@@ -336,7 +336,7 @@ class EditTagsDialog(Dialog):
             button = self.sender()
             row = button.property("row")
             button.setText(color.name())
-            button.setStyleSheet("background-color: " + color.name() + "; color: " + utils.negate(color).name())
+            button.setStyleSheet(f"background-color: {color.name()}; color: {utils.negate(color).name()}")
             self._types_changed(row, 3)
 
     def _update_delete_btn(self, index):
@@ -528,7 +528,7 @@ class EditTagsDialog(Dialog):
 
     @staticmethod
     def _to_combo_text(ident, label):
-        return str(ident) + " - " + label
+        return f"{ident} - {label}"
 
     @staticmethod
     def _label_from_combo(text):

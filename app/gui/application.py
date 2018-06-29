@@ -183,11 +183,11 @@ class Application(QtW.QMainWindow):
         if len(images) > 0:
             images_to_add = [i for i in images if not self._dao.image_registered(i)]
             if len(images_to_add) == 0:
-                text = "Image" + ("s" if len(images) > 1 else "") + " already registered!"
+                plural = "s" if len(images) > 1 else ""
+                text = f"Image{plural} already registered!"
                 utils.show_info(text, parent=self)
             else:
-                dialog = EditImageDialog(self, show_skip=len(images_to_add) > 1,
-                                         mode=EditImageDialog.ADD)
+                dialog = EditImageDialog(self, show_skip=len(images_to_add) > 1, mode=EditImageDialog.ADD)
                 dialog.set_on_close_action(self._fetch_and_refresh)
                 dialog.set_images([model.Image(0, i) for i in images_to_add], {})
                 dialog.show()

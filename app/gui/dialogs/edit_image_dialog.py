@@ -33,7 +33,7 @@ class EditImageDialog(Dialog):
         :param show_skip: If true a 'Skip' button will be added.
         """
         if mode != EditImageDialog.EDIT and mode != EditImageDialog.ADD and mode != EditImageDialog.REPLACE:
-            raise ValueError("Unknown mode " + str(mode))
+            raise ValueError(f"Unknown mode '{mode}'!")
         if show_skip and mode == EditImageDialog.REPLACE:
             raise ValueError("Cannot show skip button while on replace mode!")
 

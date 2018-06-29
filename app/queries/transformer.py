@@ -41,7 +41,7 @@ class TreeToBoolean(lark.InlineTransformer):
     def metatag(self, metatag, value):
         metatag = str(metatag)
         if not da.ImageDao.check_metatag_value(metatag, value):
-            raise ValueError("Invalid value '{}' for metatag '{}'!".format(value, metatag))
+            raise ValueError(f"Invalid value '{value}' for metatag '{metatag}'!")
         return sp.symbols(metatag + "\:" + str(value))
 
     negation = sp.Not
@@ -83,4 +83,4 @@ def query_to_sympy(query: str) -> typ.Union[sp.Symbol, sp.Or, sp.And, sp.Not, sp
             raise ValueError("Syntax error!")
         raise ValueError(e)
     except lark.lexer.UnexpectedInput as e:
-        raise ValueError("Illegal character '{}'!".format(e.context[0]))
+        raise ValueError(f"Illegal character '{e.context[0]}'!")

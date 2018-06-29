@@ -18,7 +18,7 @@ def show_info(message: str, title="Information", parent: QtW.QWidget = None):
     QtW.QMessageBox.information(parent, title, message)
 
 
-def show_warning(message: str, title="Warning", parent: QtW.QWidget = None):
+def show_warning(message: str, title: str = "Warning", parent: QtW.QWidget = None):
     """
     Show a warning popup.
 
@@ -29,7 +29,7 @@ def show_warning(message: str, title="Warning", parent: QtW.QWidget = None):
     QtW.QMessageBox.warning(parent, title, message)
 
 
-def show_error(message: str, title="Error", parent: QtW.QWidget = None):
+def show_error(message: str, title: str = "Error", parent: QtW.QWidget = None):
     """
     Show an error popup.
 
@@ -40,7 +40,7 @@ def show_error(message: str, title="Error", parent: QtW.QWidget = None):
     QtW.QMessageBox.critical(parent, title, message)
 
 
-def show_question(message: str, title="Question", cancel=False, parent: QtW.QWidget = None) \
+def show_question(message: str, title: str = "Question", cancel: bool = False, parent: QtW.QWidget = None) \
         -> QtW.QMessageBox.StandardButton:
     """
     Show an question popup.
@@ -68,11 +68,11 @@ def open_image_chooser(parent: QtW.QWidget = None) -> typ.Union[str, int]:
     :return: The selected file or REJECTED if the chooser was cancelled.
     """
     exts = "; ".join(map(lambda e: "*." + e, config.FILE_EXTENSIONS))
-    file, _ = QtW.QFileDialog.getOpenFileName(caption="Open Image", filter="Image file (" + exts + ")", parent=parent)
+    file, _ = QtW.QFileDialog.getOpenFileName(caption="Open Image", filter=f"Image file ({exts})", parent=parent)
     return file if file != "" else REJECTED
 
 
-def open_playlist_saver(parent: QtW.QWidget = None) -> typ.Union[str, int]:
+def open_playlist_saver(parent: typ.Optional[QtW.QWidget] = None) -> typ.Union[str, int]:
     """
     Opens a file saver for playlists.
 
@@ -80,7 +80,7 @@ def open_playlist_saver(parent: QtW.QWidget = None) -> typ.Union[str, int]:
     :return: The selected file or REJECTED if the saver was cancelled.
     """
     ext = ".play"
-    file, _ = QtW.QFileDialog.getSaveFileName(caption="Save Playlist", filter="Playlist (*" + ext + ")", parent=parent)
+    file, _ = QtW.QFileDialog.getSaveFileName(caption="Save Playlist", filter=f"Playlist (*{ext})", parent=parent)
     if file != "" and not file.endswith(ext):
         file += ext
     return file if file != "" else REJECTED

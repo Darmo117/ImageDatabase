@@ -31,7 +31,7 @@ class Dialog(QtW.QDialog):
         self._buttons_mode = mode
 
         if self._buttons_mode != Dialog.OK_CANCEL and self._buttons_mode != Dialog.CLOSE:
-            raise ValueError("Unknown mode " + str(self._buttons_mode))
+            raise ValueError(f"Unknown mode '{self._buttons_mode}'!")
 
         self._close_action = None
         self._applied = False

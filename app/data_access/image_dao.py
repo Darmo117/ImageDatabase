@@ -174,7 +174,7 @@ class ImageDao(DAO):
             if ":" in s:
                 metatag, value = s.split(":")
                 if not ImageDao.check_metatag_value(metatag, value):
-                    raise ValueError("Invalid value '{}' for metatag '{}'!".format(value, metatag))
+                    raise ValueError(f"Invalid value '{value}' for metatag '{metatag}'!")
                 return ImageDao._metatag_query(metatag, value)
             else:
                 return """
@@ -197,7 +197,7 @@ class ImageDao(DAO):
         elif sympy_expr == sp.false:
             return None
 
-        raise Exception("Invalid symbol type '{}'!".format(str(type(sympy_expr))))
+        raise Exception(f"Invalid symbol type '{type(sympy_expr)}'!")
 
     @staticmethod
     def metatag_exists(metatag: str) -> bool:
@@ -220,7 +220,7 @@ class ImageDao(DAO):
         :exception: ValueError if the given metatag doesn't exist.
         """
         if not ImageDao.metatag_exists(metatag):
-            raise ValueError("Unknown metatag '{}'!".format(metatag))
+            raise ValueError(f"Unknown metatag '{metatag}'!")
         return ImageDao._METATAGS[metatag][0](value)
 
     @staticmethod

@@ -106,7 +106,7 @@ class ImageList(QtW.QListWidget):
         urls = []
         for url in event.mimeData().urls():
             if not url.isLocalFile():
-                raise ValueError("URL is not local")
+                raise ValueError("URL is not local!")
             urls.append(url.toLocalFile())
         return urls
 
