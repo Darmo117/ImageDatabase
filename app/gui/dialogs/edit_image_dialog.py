@@ -24,7 +24,7 @@ class EditImageDialog(Dialog):
 
     _TITLES = ["Edit", "Add", "Replace"]
 
-    def __init__(self, parent: QtW.QWidget = None, mode: int = EDIT, show_skip: bool = False):
+    def __init__(self, parent: typ.Optional[QtW.QWidget] = None, mode: int = EDIT, show_skip: bool = False):
         """
         Creates an edition dialog.
 
@@ -53,7 +53,7 @@ class EditImageDialog(Dialog):
         self._dao = da.ImageDao(config.DATABASE)
         self._tags_dialog = EditTagsDialog(parent=self, editable=False)
 
-    def _init_body(self) -> typ.Optional[QtW.QLayout]:
+    def _init_body(self) -> QtW.QLayout:
         self.setGeometry(0, 0, 400, 400)
 
         body = QtW.QVBoxLayout()

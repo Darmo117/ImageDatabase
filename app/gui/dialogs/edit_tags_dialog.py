@@ -19,7 +19,7 @@ class EditTagsDialog(Dialog):
     NORMAL_COLOR = QtG.QColor(255, 255, 255)
     COMBO_ITEM_PATTERN = re.compile(r"^(\d+) - (.+)$")
 
-    def __init__(self, parent: QtW.QWidget = None, editable: bool = True):
+    def __init__(self, parent: typ.Optional[QtW.QWidget] = None, editable: bool = True):
         """
         Creates a dialog.
 
@@ -46,7 +46,7 @@ class EditTagsDialog(Dialog):
         self._valid = True
 
     # noinspection PyUnresolvedReferences
-    def _init_body(self) -> typ.Optional[QtW.QLayout]:
+    def _init_body(self) -> QtW.QLayout:
         self.setGeometry(0, 0, 400, 400)
 
         layout = QtW.QVBoxLayout()
@@ -92,7 +92,7 @@ class EditTagsDialog(Dialog):
 
         return layout
 
-    def _init_buttons(self):
+    def _init_buttons(self) -> typ.List[QtW.QAbstractButton]:
         if self._editable:
             self._apply_btn = QtW.QPushButton("Apply")
             # noinspection PyUnresolvedReferences
@@ -103,7 +103,7 @@ class EditTagsDialog(Dialog):
             return []
 
     # noinspection PyUnresolvedReferences
-    def _init_types_tab(self):
+    def _init_types_tab(self) -> QtW.QTableWidget:
         self._types_table = QtW.QTableWidget()
         self._types_table.setColumnCount(4)
         self._types_table.setRowCount(len(model.TagType.SYMBOL_TYPES))
@@ -129,7 +129,7 @@ class EditTagsDialog(Dialog):
         return self._types_table
 
     # noinspection PyTypeChecker,PyUnresolvedReferences
-    def _init_tags_tab(self):
+    def _init_tags_tab(self) -> QtW.QTableWidget:
         self._tags_table = QtW.QTableWidget()
         self._tags_table.setColumnCount(4)
         self._tags_table.setColumnWidth(0, 30)
@@ -155,7 +155,7 @@ class EditTagsDialog(Dialog):
                 id_item = QtW.QTableWidgetItem(str(tag.id))
                 id_item.setWhatsThis("id")
                 id_item.setFlags(id_item.flags() & ~Qt.ItemIsEditable & ~Qt.ItemIsSelectable)
-                id_item.setBackground(EditTagsDialog.DISABLED_COLOR)
+                id_item.setBackground(self.DISABLED_COLOR)
                 self._tags_table.setItem(i, 0, id_item)
 
                 label_item = QtW.QTableWidgetItem(tag.label)
@@ -171,10 +171,10 @@ class EditTagsDialog(Dialog):
                     combo.setProperty("row", i)
                     combo.addItem("None")
                     for tag_type in types:
-                        combo.addItem(EditTagsDialog._to_combo_text(tag_type.id, tag_type.label))
+                        combo.addItem(self._get_combo_text(tag_type.id, tag_type.label))
                     if tag.type is not None:
                         combo.setCurrentIndex(
-                            combo.findText(EditTagsDialog._to_combo_text(tag.type.id, tag.type.label)))
+                            combo.findText(self._get_combo_text(tag.type.id, tag.type.label)))
                     self._tags_table.setCellWidget(i, 2, combo)
                 else:
                     type_item = QtW.QTableWidgetItem(tag.type.label if tag.type is not None else "None")
@@ -183,7 +183,7 @@ class EditTagsDialog(Dialog):
 
                 number_item = QtW.QTableWidgetItem(str(count))
                 number_item.setFlags(number_item.flags() & ~Qt.ItemIsEditable & ~Qt.ItemIsSelectable)
-                number_item.setBackground(EditTagsDialog.DISABLED_COLOR)
+                number_item.setBackground(self.DISABLED_COLOR)
                 self._tags_table.setItem(i, 3, number_item)
         else:
             utils.show_error("Failed to load tags!")
@@ -192,12 +192,12 @@ class EditTagsDialog(Dialog):
         return self._tags_table
 
     # noinspection PyTypeChecker,PyUnresolvedReferences
-    def _add_type_item(self, tag_type, row):
+    def _add_type_item(self, tag_type: typ.Optional[model.TagType], row: int):
         defined = tag_type is not None
         id_item = QtW.QTableWidgetItem(str(tag_type.id) if defined else str(self._dummy_type_id))
         id_item.setWhatsThis("id")
         id_item.setFlags(id_item.flags() & ~Qt.ItemIsEditable & ~Qt.ItemIsSelectable)
-        id_item.setBackground(EditTagsDialog.DISABLED_COLOR)
+        id_item.setBackground(self.DISABLED_COLOR)
         self._types_table.setItem(row, 0, id_item)
 
         label_item = QtW.QTableWidgetItem(tag_type.label if defined else "New Type")
@@ -258,8 +258,8 @@ class EditTagsDialog(Dialog):
                     label = self._types_table.item(row, 1).text()
                     for tag_row in range(self._tags_table.rowCount()):
                         combo = self._tags_table.cellWidget(tag_row, 2)
-                        current_type = EditTagsDialog._label_from_combo(combo.currentText())
-                        combo.removeItem(combo.findText(EditTagsDialog._to_combo_text(ident, label)))
+                        current_type = self._label_from_combo(combo.currentText())
+                        combo.removeItem(combo.findText(self._get_combo_text(int(ident), label)))
                         if current_type == label:
                             combo.setCurrentIndex(0)
 
@@ -283,12 +283,12 @@ class EditTagsDialog(Dialog):
     def _types_changed(self, row, col):
         if self._init and self._editable:
             if col != 3:
-                result = EditTagsDialog._check_column(self._types_table, col)
-                if result == EditTagsDialog.DUPLICATE:
+                result = self._check_column(self._types_table, col)
+                if result == self.DUPLICATE:
                     utils.show_error("Value already used! Please choose another.", parent=self)
-                if result == EditTagsDialog.EMPTY:
+                if result == self.EMPTY:
                     utils.show_error("Cell is empty!", parent=self)
-                if result == EditTagsDialog.OK and col == 2 and self._check_type_symbol(row) == EditTagsDialog.FORMAT:
+                if result == self.OK and col == 2 and self._check_type_symbol(row) == self.FORMAT:
                     utils.show_error("Symbol should only be one character long and any character "
                                      'except letters, digits, "_", "+" and "-"!')
 
@@ -304,19 +304,19 @@ class EditTagsDialog(Dialog):
                         combo = self._tags_table.cellWidget(row, 2)
                         for i in range(combo.count()):
                             if combo.itemText(i).startswith(str(tag_type.id) + " "):
-                                combo.setItemText(i, EditTagsDialog._to_combo_text(tag_type.id, tag_type.label))
+                                combo.setItemText(i, self._get_combo_text(tag_type.id, tag_type.label))
                                 break
             self._check_integrity()
 
     def _tags_changed(self, row, col):
         if self._init and self._editable:
             if col != 2:
-                result = EditTagsDialog._check_column(self._tags_table, col)
-                if result == EditTagsDialog.DUPLICATE:
+                result = self._check_column(self._tags_table, col)
+                if result == self.DUPLICATE:
                     utils.show_error("Value already used! Please choose another.", parent=self)
-                if result == EditTagsDialog.EMPTY:
+                if result == self.EMPTY:
                     utils.show_error("Cell is empty!", parent=self)
-                if result == EditTagsDialog.OK and col == 1 and self._check_tag_format(row) == EditTagsDialog.FORMAT:
+                if result == self.OK and col == 1 and self._check_tag_format(row) == self.FORMAT:
                     utils.show_error('Tag label should only be letters, digits or "_"!')
 
             if row not in self._tags_deleted_rows:
@@ -355,35 +355,35 @@ class EditTagsDialog(Dialog):
                     if label_item.text() == text:
                         self._types_table.setFocus()
                         self._types_table.scrollToItem(label_item)
-                        label_item.setBackground(EditTagsDialog.FETCH_COLOR)
-                        symbol_item.setBackground(EditTagsDialog.NORMAL_COLOR)
+                        label_item.setBackground(self.FETCH_COLOR)
+                        symbol_item.setBackground(self.NORMAL_COLOR)
                         found = True
                     elif symbol_item.text() == text:
                         self._types_table.setFocus()
                         self._types_table.scrollToItem(symbol_item)
-                        symbol_item.setBackground(EditTagsDialog.FETCH_COLOR)
-                        label_item.setBackground(EditTagsDialog.NORMAL_COLOR)
+                        symbol_item.setBackground(self.FETCH_COLOR)
+                        label_item.setBackground(self.NORMAL_COLOR)
                         found = True
                     else:
-                        label_item.setBackground(EditTagsDialog.NORMAL_COLOR)
-                        symbol_item.setBackground(EditTagsDialog.NORMAL_COLOR)
+                        label_item.setBackground(self.NORMAL_COLOR)
+                        symbol_item.setBackground(self.NORMAL_COLOR)
             elif index == 1:
                 for i in range(self._tags_table.rowCount()):
                     label_item = self._tags_table.item(i, 1)
                     if label_item.text() == text:
                         self._tags_table.setFocus()
                         self._tags_table.scrollToItem(label_item)
-                        label_item.setBackground(EditTagsDialog.FETCH_COLOR)
+                        label_item.setBackground(self.FETCH_COLOR)
                         found = True
                     else:
-                        label_item.setBackground(EditTagsDialog.NORMAL_COLOR)
+                        label_item.setBackground(self.NORMAL_COLOR)
             if not found:
                 utils.show_info("No match found.", parent=self)
 
-    def _is_valid(self):
+    def _is_valid(self) -> bool:
         return self._valid
 
-    def _apply(self):
+    def _apply(self) -> bool:
         super()._apply()
 
         ok = True
@@ -442,7 +442,7 @@ class EditTagsDialog(Dialog):
 
         return True
 
-    def _get_type(self, row):
+    def _get_type(self, row: int) -> model.TagType:
         args = {}
 
         for i in range(self._types_table.columnCount()):
@@ -459,7 +459,7 @@ class EditTagsDialog(Dialog):
 
         return model.TagType(**args)
 
-    def _get_tag(self, row):
+    def _get_tag(self, row: int) -> model.Tag:
         args = {}
 
         for i in range(self._tags_table.columnCount()):
@@ -471,7 +471,7 @@ class EditTagsDialog(Dialog):
                 continue
             if arg == "type":
                 if cell.currentIndex() != 0:
-                    ident = EditTagsDialog._id_from_combo(cell.currentText())
+                    ident = self._id_from_combo(cell.currentText())
                     if ident is not None:
                         args[arg] = model.TagType.from_id(ident)
             else:
@@ -484,31 +484,29 @@ class EditTagsDialog(Dialog):
     EMPTY = 2
     FORMAT = 3
 
-    def _check_tag_format(self, row):
+    def _check_tag_format(self, row: int) -> int:
         text = self._tags_table.item(row, 1).text()
-        return EditTagsDialog.OK if model.Tag.TAG_PATTERN.match(text) else EditTagsDialog.FORMAT
+        return self.OK if model.Tag.TAG_PATTERN.match(text) else self.FORMAT
 
-    def _check_type_symbol(self, row):
+    def _check_type_symbol(self, row: int) -> int:
         text = self._types_table.item(row, 2).text()
-        return EditTagsDialog.OK if model.TagType.SYMBOL_PATTERN.match(text) else EditTagsDialog.FORMAT
+        return self.OK if model.TagType.SYMBOL_PATTERN.match(text) else self.FORMAT
 
     def _check_integrity(self):
-        result = EditTagsDialog._check_table_integrity(self._types_table, [1, 2])
-        result |= EditTagsDialog._check_table_integrity(self._tags_table, [1])
-        self._valid = result == EditTagsDialog.OK
+        result = self._check_table_integrity(self._types_table, [1, 2])
+        result |= self._check_table_integrity(self._tags_table, [1])
+        self._valid = result == self.OK
         i = len(self._types_changed_rows) + len(self._types_added_rows) + len(self._types_deleted_rows) + \
             len(self._tags_changed_rows) + len(self._tags_deleted_rows)
         self._apply_btn.setEnabled(i > 0 and self._valid)
 
-    @staticmethod
-    def _check_table_integrity(table, columns):
-        result = EditTagsDialog.OK
+    def _check_table_integrity(self, table: QtW.QTableWidget, columns: typ.List[int]) -> int:
+        result = self.OK
         for col in columns:
-            result |= EditTagsDialog._check_column(table, col)
+            result |= self._check_column(table, col)
         return result
 
-    @staticmethod
-    def _check_column(table, column):
+    def _check_column(self, table: QtW.QTableWidget, column: int) -> int:
         """
         Checks column's integrity. If a duplicate value is present or a cell is empty, the corresponding error is
         returned.
@@ -517,29 +515,27 @@ class EditTagsDialog(Dialog):
             if table.isRowHidden(row):
                 continue
             if table.item(row, column).text().strip() == "":
-                return EditTagsDialog.EMPTY
+                return self.EMPTY
             label = table.item(row, column).text()
             for r in range(table.rowCount()):
                 if table.isRowHidden(r):
                     continue
                 if r != row and table.item(r, column).text() == label:
-                    return EditTagsDialog.DUPLICATE
-        return EditTagsDialog.OK
+                    return self.DUPLICATE
+        return self.OK
 
     @staticmethod
-    def _to_combo_text(ident, label):
+    def _get_combo_text(ident: int, label: str) -> str:
         return f"{ident} - {label}"
 
-    @staticmethod
-    def _label_from_combo(text):
-        match = EditTagsDialog.COMBO_ITEM_PATTERN.search(text)
+    def _label_from_combo(self, text: str) -> str:
+        match = self.COMBO_ITEM_PATTERN.search(text)
         if match is not None:
             return match.group(2)
         return text
 
-    @staticmethod
-    def _id_from_combo(text):
-        match = EditTagsDialog.COMBO_ITEM_PATTERN.search(text)
+    def _id_from_combo(self, text: str) -> typ.Optional[int]:
+        match = self.COMBO_ITEM_PATTERN.search(text)
         if match is not None:
             return int(match.group(1))
-        return text
+        return None

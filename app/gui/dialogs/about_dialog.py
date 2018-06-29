@@ -10,7 +10,7 @@ from .dialog_base import Dialog
 class AboutDialog(Dialog):
     """This dialog shows information about the application."""
 
-    def __init__(self, parent: QtW.QWidget = None):
+    def __init__(self, parent: typ.Optional[QtW.QWidget] = None):
         """
         Creates an 'About' dialog.
 
@@ -18,7 +18,7 @@ class AboutDialog(Dialog):
         """
         super().__init__(parent=parent, title="About", mode=Dialog.CLOSE)
 
-    def _init_body(self) -> typ.Optional[QtW.QLayout]:
+    def _init_body(self) -> QtW.QLayout:
         self.setFixedSize(220, 200)
 
         body = QtW.QHBoxLayout()
