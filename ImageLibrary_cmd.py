@@ -3,25 +3,23 @@
 """Command-line application to interact with the database."""
 
 import sqlite3
-import sys
 
+import app.data_access as da
 import config
-from app.data_access import ImageDao
 
 print("Image Library v" + config.VERSION)
-print("SQLite v" + sqlite3.sqlite_version + " - PySQLite v" + sqlite3.version)
-print()
+print(f"SQLite v{sqlite3.sqlite_version} - PySQLite v{sqlite3.version}")
+print("Type 'exit' to terminate the command-line.\n")
 
-dao = ImageDao(config.DATABASE)
+dao = da.ImageDao(config.DATABASE)
 # noinspection PyProtectedMember
 connection = dao._connection
 
-while True:
-    sys.stdout.write("SQL> ")
-    sys.stdout.flush()
+while "User hasn't type 'exit'":
+    print("SQL>", end=" ")
     cmd = input().strip()
 
-    if cmd == "exit":
+    if cmd.lower() == "exit":
         break
 
     try:
@@ -32,18 +30,26 @@ while True:
                 print("No results")
             else:
                 results_nb = len(results)
-                print(str(results_nb) + " result" + ("s" if results_nb > 1 else ""))
+                plural = "s" if results_nb > 1 else ""
+                print(f"{results_nb} result{plural}")
                 for result in results:
                     if i == 20:
-                        print("Display more? (Y/N)")
-                        sys.stdout.write("?> ")
-                        sys.stdout.flush()
-                        if input().upper() != "Y":
+                        while "User enters neither Y or N":
+                            print("Display more? (Y / N)")
+                            print("?>", end=" ")
+                            choice = input().upper()
+                            if choice == "Y":
+                                proceed = True
+                                break
+                            elif choice != "N":
+                                proceed = False
+                                break
+                        if not proceed:
                             break
                     print("|".join(map(str, result)))
                     i += 1
     except (sqlite3.OperationalError, sqlite3.IntegrityError) as e:
         print("\033[31mError:")
-        print(str(e) + "\033[0m")
+        print(f"{e}\033[0m")
 
 dao.close()
