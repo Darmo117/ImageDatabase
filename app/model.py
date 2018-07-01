@@ -38,6 +38,7 @@ class Image:
 
 class TagType:
     """This class represents a tag type."""
+    LABEL_PATTERN = re.compile(r"^\S.*$")
     SYMBOL_PATTERN = re.compile(r"^[^\w+()-]$")
     SYMBOL_TYPES = {}
     ID_TYPES = {}
@@ -51,6 +52,10 @@ class TagType:
         :param symbol: Type's symbol.
         :param color: Type's color.
         """
+        if not self.LABEL_PATTERN.match(label):
+            raise ValueError("Illegal type label format!")
+        if not self.SYMBOL_PATTERN.match(symbol):
+            raise ValueError("Illegal type symbol format!")
         self._id = ident
         self._label = label
         self._symbol = symbol
@@ -133,7 +138,7 @@ class TagType:
 
 class Tag:
     """This class represents an image tag. Tags can be associated to a type."""
-    TAG_PATTERN = re.compile(r"^\w+$")
+    LABEL_PATTERN = re.compile(r"^\w+$")
 
     def __init__(self, ident: int, label: str, tag_type: typ.Optional[TagType] = None):
         """
@@ -143,8 +148,8 @@ class Tag:
         :param label: Tag's label.
         :param tag_type: Tag's type?
         """
-        if not Tag.TAG_PATTERN.match(label):
-            raise ValueError("Illegal tag format!")
+        if not self.LABEL_PATTERN.match(label):
+            raise ValueError("Illegal tag label format!")
 
         self._id = ident
         self._label = label

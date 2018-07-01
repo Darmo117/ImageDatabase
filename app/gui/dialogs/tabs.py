@@ -379,7 +379,7 @@ class TagTypesTab(_Tab[model.TagType]):
     def _check_cell_format(self, row: int, col: int) -> bool:
         text = self._table.item(row, col).text()
         if col == 1:
-            return model.Tag.TAG_PATTERN.match(text) is not None
+            return text != "Other" and model.TagType.LABEL_PATTERN.match(text) is not None
         if col == 2:
             return model.TagType.SYMBOL_PATTERN.match(text) is not None
         return True
@@ -640,7 +640,7 @@ class TagsTab(_Tab[model.Tag]):
     def _check_cell_format(self, row: int, col: int) -> bool:
         text = self._table.item(row, col).text()
         if col == 1:
-            return model.Tag.TAG_PATTERN.match(text) is not None
+            return model.Tag.LABEL_PATTERN.match(text) is not None
         return True
 
     def _combo_changed(self, _):
