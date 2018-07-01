@@ -154,6 +154,8 @@ class TagTree(QtW.QTreeWidget):
             else:
                 item = QtW.QTreeWidgetItem(type_nodes[tag.type.id], [tag.label])
             item.setWhatsThis(0, "tag")
+        if default_type_node.childCount() == 0:
+            default_type_node.setHidden(True)
 
 
 class Canvas(QtW.QGraphicsView):

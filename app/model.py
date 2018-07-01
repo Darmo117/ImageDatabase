@@ -82,6 +82,9 @@ class TagType:
         return (self.id == other.id and self.label == other.label and self.symbol == other.symbol and
                 self._color == other.color)
 
+    def __repr__(self):
+        return f"TagType{{id={self.id}, label={self.label}, symbol={self.symbol}, color={self.color.name()}}}"
+
     @staticmethod
     def init(types):
         """
