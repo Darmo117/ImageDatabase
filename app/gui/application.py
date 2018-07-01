@@ -360,11 +360,13 @@ class Application(QtW.QMainWindow):
         try:
             app = QtW.QApplication(sys.argv)
 
+            da.update_if_needed()
+
             # Initialize tag types
             tags_dao = da.TagsDao(config.DATABASE)
             types = tags_dao.get_all_types()
             if types is None:
-                utils.show_error("Could not load tag types! Shutting down.")
+                utils.show_error("Could not load data! Shutting down.")
                 sys.exit(1)
             model.TagType.init(types)
             tags_dao.close()
