@@ -152,8 +152,7 @@ class EditTagsDialog(Dialog):
             utils.show_error("An error occured! Some changes may not have been saved.", parent=self)
         else:
             self._apply_btn.setEnabled(False)
-
-        super()._apply()
+            super()._apply()
 
         return True
 
