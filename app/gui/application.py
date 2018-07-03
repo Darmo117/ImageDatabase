@@ -1,5 +1,6 @@
 import os
 import sys
+import re
 import typing as typ
 
 import PyQt5.QtCore as QtC
@@ -288,14 +289,18 @@ class Application(QtW.QMainWindow):
             self._error = None
 
         def run(self):
-            dao = da.ImageDao(config.DATABASE)
+            images_dao = da.ImageDao(config.DATABASE)
+            tags_dao = da.TagsDao(config.DATABASE)
+            compound_tags: typ.List[model.CompoundTag] = tags_dao.get_all_tags(tag_class=model.CompoundTag)
+            for tag in compound_tags:
+                self._query = re.sub(f"(\W?){tag.label}(\W?)", fr"\1({tag.definition})\2", self._query)
             try:
                 expr = queries.query_to_sympy(self._query)
             except ValueError as e:
                 self._error = str(e)
                 return
-            self._images = dao.get_images(expr)
-            dao.close()
+            self._images = images_dao.get_images(expr)
+            images_dao.close()
             if self._images is None:
                 self._error = "Failed to load images!"
 

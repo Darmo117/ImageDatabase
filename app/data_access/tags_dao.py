@@ -10,6 +10,12 @@ from .dao import DAO
 
 class TagsDao(DAO):
     """This class manages tags and tag types."""
+    _INSTANCES = {}
+
+    def __new__(cls, database=DAO._DEFAULT):
+        if database not in cls._INSTANCES:
+            cls._INSTANCES[database] = super().__new__(cls)
+        return cls._INSTANCES[database]
 
     def get_all_types(self) -> typ.Optional[typ.List[model.TagType]]:
         """
@@ -24,17 +30,21 @@ class TagsDao(DAO):
             logger.exception(e)
             return None
 
-    def get_all_tags(self, sort_by_label=False, get_count=False) \
+    NORMAL = 0
+    COMPOUND = 1
+
+    def get_all_tags(self, tag_class: typ.Optional[type] = None, sort_by_label=False, get_count=False) \
             -> typ.Optional[typ.List[typ.Union[typ.Tuple[model.Tag, int], model.Tag]]]:
         """
         Returns all tags. Result can be sorted by label. You can also query use count for each tag.
 
+        :param tag_class: Sets type of tags to return. If None all tags wil be returned.
         :param sort_by_label: Result will be sorted by label using lexicographical ordering.
         :param get_count: If true, result will be a list of tuples containing the tag and its use count.
         :return: The list of tags or tag/count pairs or None if an exception occured.
         """
         try:
-            query = "SELECT id, label, type_id"
+            query = "SELECT id, label, type_id, definition"
             if get_count:
                 query += ", (SELECT COUNT(tag_id) FROM image_tag WHERE tags.id = tag_id) AS count"
             query += " FROM tags"
@@ -42,12 +52,18 @@ class TagsDao(DAO):
                 query += " ORDER BY label"
             cursor = self._connection.execute(query)
 
-            def row_to_tag(row: tuple) -> typ.Union[typ.Tuple[model.Tag, int], model.Tag]:
+            def row_to_tag(row: typ.Tuple[int, str, int, str, int]) \
+                    -> typ.Optional[typ.Union[typ.Tuple[model.Tag, int], model.Tag]]:
                 tag_type = model.TagType.from_id(row[2]) if row[2] is not None else None
-                tag = model.Tag(row[0], row[1], tag_type)
-                return (tag, int(row[3])) if get_count else tag
+                if row[3] is None and (tag_class == model.Tag or tag_class is None):
+                    tag = model.Tag(row[0], row[1], tag_type)
+                elif row[3] is not None and (tag_class == model.CompoundTag or tag_class is None):
+                    tag = model.CompoundTag(row[0], row[1], row[3], tag_type)
+                else:
+                    return None
+                return (tag, int(row[4])) if get_count else tag
 
-            return list(map(row_to_tag, cursor.fetchall()))
+            return list(filter(lambda t: t is not None, map(row_to_tag, cursor.fetchall())))
         except sqlite3.OperationalError as e:
             logger.exception(e)
             return None
@@ -96,6 +112,21 @@ class TagsDao(DAO):
             logger.exception(e)
             return False
 
+    def add_compound_tag(self, tag: model.CompoundTag) -> bool:
+        """
+        Adds a compound tag.
+
+        :param tag: The compound tag to add.
+        :return: True if the type was added or None if an exception occured.
+        """
+        try:
+            self._connection.execute("INSERT INTO tags (label, type_id, definition) VALUES (?, ?, ?)",
+                                     (tag.label, tag.type.id if tag.type is not None else None, tag.definition))
+            return True
+        except (sqlite3.OperationalError, sqlite3.IntegrityError) as e:
+            logger.exception(e)
+            return False
+
     def update_tag(self, tag: model.Tag) -> bool:
         """
         Updates the given tag.
@@ -105,8 +136,12 @@ class TagsDao(DAO):
         """
         try:
             tag_type = tag.type.id if tag.type is not None else None
-            self._connection.execute("UPDATE tags SET label = ?, type_id = ? WHERE id = ?",
-                                     (tag.label, tag_type, tag.id))
+            if isinstance(tag, model.CompoundTag):
+                self._connection.execute("UPDATE tags SET label = ?, type_id = ?, definition = ? WHERE id = ?",
+                                         (tag.label, tag_type, tag.definition, tag.id))
+            else:
+                self._connection.execute("UPDATE tags SET label = ?, type_id = ? WHERE id = ?",
+                                         (tag.label, tag_type, tag.id))
             return True
         except (sqlite3.OperationalError, sqlite3.IntegrityError) as e:
             logger.exception(e)

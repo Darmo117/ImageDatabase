@@ -153,6 +153,10 @@ class TagTree(QtW.QTreeWidget):
                 item = QtW.QTreeWidgetItem(default_type_node, [tag.label])
             else:
                 item = QtW.QTreeWidgetItem(type_nodes[tag.type.id], [tag.label])
+            if isinstance(tag, model.CompoundTag):
+                font = QtG.QFont()
+                font.setItalic(True)
+                item.setFont(0, font)
             item.setWhatsThis(0, "tag")
         if default_type_node.childCount() == 0:
             default_type_node.setHidden(True)

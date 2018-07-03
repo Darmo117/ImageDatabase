@@ -196,3 +196,32 @@ class Tag:
         label = s[1:] if has_type else s
         tag_type = TagType.from_symbol(s[0]) if has_type else None
         return cls(0, label, tag_type)
+
+
+class CompoundTag(Tag):
+    """
+    A compound tag is a tag defined by a tag query. This type of tags is only used in queries, they cannot be used to
+    tag images directly.
+    """
+
+    def __init__(self, ident: int, label: str, definition: str, tag_type: typ.Optional[TagType] = None):
+        """
+        Creates a compound tag.
+
+        :param ident: Tag's SQLite ID.
+        :param label: Tag's label.
+        :param definition: Tag's definition (tag expression).
+        :param tag_type: Tag's optional type.
+        """
+        super().__init__(ident, label, tag_type=tag_type)
+        self._definition = definition
+
+    @property
+    def definition(self) -> str:
+        """Returns the tag expression defining this tag."""
+        return self._definition
+
+    def __eq__(self, other):
+        if not super().__eq__(other) or not isinstance(other, CompoundTag):
+            return False
+        return self.definition == other.definition

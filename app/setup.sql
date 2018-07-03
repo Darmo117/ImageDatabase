@@ -20,6 +20,7 @@ create table tags (
   id integer primary key autoincrement,
   label text unique not null,
   type_id integer,
+  definition text,
   foreign key (type_id) references tag_types(id) on delete set null
 );
 

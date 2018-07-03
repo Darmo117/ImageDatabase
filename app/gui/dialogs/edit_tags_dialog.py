@@ -9,13 +9,14 @@ import app.model as model
 import app.utils as utils
 import config
 from .dialog_base import Dialog
-from .tabs import TagsTab, TagTypesTab
+from .tabs import TagsTab, TagTypesTab, CompoundTagsTab
 
 
 class EditTagsDialog(Dialog):
     """This dialog is used to edit tags and tag types."""
     _TAG_TYPES_TAB = 0
-    _TAGS_TAB = 1
+    _COMPOUND_TAGS_TAB = 1
+    _TAGS_TAB = 2
 
     def __init__(self, parent: typ.Optional[QtW.QWidget] = None, editable: bool = True):
         """
@@ -29,16 +30,20 @@ class EditTagsDialog(Dialog):
 
         def type_cell_changed(row: int, col: int, _):
             if col == 1:
-                self._tabs[self._TAGS_TAB].add_type(self._tabs[self._TAG_TYPES_TAB].get_value(row))
+                for tab in self._tabs[1:]:
+                    tab.add_type(self._tabs[self._TAG_TYPES_TAB].get_value(row))
             self._check_integrity()
 
         def types_deleted(deleted_types: typ.List[model.TagType]):
-            self._tabs[self._TAGS_TAB].delete_types(deleted_types)
+            for tab in self._tabs[1:]:
+                tab.delete_types(deleted_types)
 
         dao = da.TagsDao(config.DATABASE)
-        self._tabs = (TagTypesTab(self, dao, "Tag Types", self._editable, selection_changed=self._selection_changed,
+        self._tabs = (TagTypesTab(self, dao, self._editable, selection_changed=self._selection_changed,
                                   cell_changed=type_cell_changed, rows_deleted=types_deleted),
-                      TagsTab(self, dao, "All Tags", self._editable, selection_changed=self._selection_changed,
+                      CompoundTagsTab(self, dao, self._editable, selection_changed=self._selection_changed,
+                                      cell_changed=self._check_integrity),
+                      TagsTab(self, dao, self._editable, selection_changed=self._selection_changed,
                               cell_changed=self._check_integrity))
 
         title = "Edit Tags" if self._editable else "Tags"
@@ -152,7 +157,7 @@ class EditTagsDialog(Dialog):
 
     def _check_integrity(self, _1=None, _2=None, _3=None):
         """
-        Checks the integrity of all tables. Parameters are ignored, they are here only to conform to the _Tab class
+        Checks the integrity of all tables. Parameters are ignored, they are here only to conform to the Tab class
         constructor.
         """
         self._valid = all(map(lambda t: t.check_integrity(), self._tabs))
