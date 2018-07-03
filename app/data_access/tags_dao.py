@@ -33,41 +33,6 @@ class TagsDao(DAO):
     NORMAL = 0
     COMPOUND = 1
 
-    def get_all_tags(self, tag_class: typ.Optional[type] = None, sort_by_label=False, get_count=False) \
-            -> typ.Optional[typ.List[typ.Union[typ.Tuple[model.Tag, int], model.Tag]]]:
-        """
-        Returns all tags. Result can be sorted by label. You can also query use count for each tag.
-
-        :param tag_class: Sets type of tags to return. If None all tags wil be returned.
-        :param sort_by_label: Result will be sorted by label using lexicographical ordering.
-        :param get_count: If true, result will be a list of tuples containing the tag and its use count.
-        :return: The list of tags or tag/count pairs or None if an exception occured.
-        """
-        try:
-            query = "SELECT id, label, type_id, definition"
-            if get_count:
-                query += ", (SELECT COUNT(tag_id) FROM image_tag WHERE tags.id = tag_id) AS count"
-            query += " FROM tags"
-            if sort_by_label:
-                query += " ORDER BY label"
-            cursor = self._connection.execute(query)
-
-            def row_to_tag(row: typ.Tuple[int, str, int, str, int]) \
-                    -> typ.Optional[typ.Union[typ.Tuple[model.Tag, int], model.Tag]]:
-                tag_type = model.TagType.from_id(row[2]) if row[2] is not None else None
-                if row[3] is None and (tag_class == model.Tag or tag_class is None):
-                    tag = model.Tag(row[0], row[1], tag_type)
-                elif row[3] is not None and (tag_class == model.CompoundTag or tag_class is None):
-                    tag = model.CompoundTag(row[0], row[1], row[3], tag_type)
-                else:
-                    return None
-                return (tag, int(row[4])) if get_count else tag
-
-            return list(filter(lambda t: t is not None, map(row_to_tag, cursor.fetchall())))
-        except sqlite3.OperationalError as e:
-            logger.exception(e)
-            return None
-
     def add_type(self, tag_type: model.TagType) -> bool:
         """
         Adds a tag type.
@@ -111,6 +76,56 @@ class TagsDao(DAO):
         except sqlite3.OperationalError as e:
             logger.exception(e)
             return False
+
+    def get_all_tags(self, tag_class: typ.Optional[type] = None, sort_by_label=False, get_count=False) \
+            -> typ.Optional[typ.List[typ.Union[typ.Tuple[model.Tag, int], model.Tag]]]:
+        """
+        Returns all tags. Result can be sorted by label. You can also query use count for each tag.
+
+        :param tag_class: Sets type of tags to return. If None all tags wil be returned.
+        :param sort_by_label: Result will be sorted by label using lexicographical ordering.
+        :param get_count: If true, result will be a list of tuples containing the tag and its use count.
+        :return: The list of tags or tag/count pairs or None if an exception occured.
+        """
+        try:
+            query = "SELECT id, label, type_id, definition"
+            if get_count:
+                query += ", (SELECT COUNT(tag_id) FROM image_tag WHERE tags.id = tag_id) AS count"
+            query += " FROM tags"
+            if sort_by_label:
+                query += " ORDER BY label"
+            cursor = self._connection.execute(query)
+
+            def row_to_tag(row: typ.Tuple[int, str, int, str, int]) \
+                    -> typ.Optional[typ.Union[typ.Tuple[model.Tag, int], model.Tag]]:
+                tag_type = model.TagType.from_id(row[2]) if row[2] is not None else None
+                if row[3] is None and (tag_class == model.Tag or tag_class is None):
+                    tag = model.Tag(row[0], row[1], tag_type)
+                elif row[3] is not None and (tag_class == model.CompoundTag or tag_class is None):
+                    tag = model.CompoundTag(row[0], row[1], row[3], tag_type)
+                else:
+                    return None
+                return (tag, int(row[4])) if get_count else tag
+
+            return list(filter(lambda t: t is not None, map(row_to_tag, cursor.fetchall())))
+        except sqlite3.OperationalError as e:
+            logger.exception(e)
+            return None
+
+    def tag_exists(self, tag_id: int, tag_name: str) -> typ.Optional[bool]:
+        """
+        Checks wether a tag with the same name exists.
+
+        :param tag_id: Tag's ID.
+        :param tag_name: Tag's name.
+        :return: True if a tag with the same name already exists.
+        """
+        try:
+            return self._connection.execute("SELECT COUNT(*) FROM tags WHERE label = ? AND id != ?",
+                                            (tag_name, tag_id)).fetchall()[0][0] != 0
+        except sqlite3.OperationalError as e:
+            logger.exception(e)
+            return None
 
     def add_compound_tag(self, tag: model.CompoundTag) -> bool:
         """

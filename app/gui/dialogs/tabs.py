@@ -180,7 +180,7 @@ class Tab(abc.ABC, typ.Generic[_Type]):
         """
         ok = True
         for col in self._columns_to_check:
-            ok &= self._check_column(col)[0] == self._OK
+            ok &= self._check_column(col, True)[0] == self._OK
             if not ok:
                 break
         return ok
@@ -215,7 +215,7 @@ class Tab(abc.ABC, typ.Generic[_Type]):
         """
         pass
 
-    def _check_column(self, column: int) -> typ.Tuple[int, int, str]:
+    def _check_column(self, column: int, check_format: bool) -> typ.Tuple[int, int, str]:
         """
         Checks column's integrity. If a duplicate value is present or a cell is empty, the corresponding error is
         returned.
@@ -233,10 +233,11 @@ class Tab(abc.ABC, typ.Generic[_Type]):
                 continue
             if self._table.item(row, column).text().strip() == "":
                 return self._EMPTY, row, "Cell is empty!"
-            # noinspection PyTupleAssignmentBalance
-            ok, msg = self._check_cell_format(row, column)
-            if not ok:
-                return self._FORMAT, row, msg
+            if check_format:
+                # noinspection PyTupleAssignmentBalance
+                ok, message = self._check_cell_format(row, column)
+                if not ok:
+                    return self._FORMAT, False, message
             cell_value = self._table.item(row, column).text()
             for r in range(self._table.rowCount()):
                 if self._table.isRowHidden(r):
@@ -254,7 +255,6 @@ class Tab(abc.ABC, typ.Generic[_Type]):
         :param col: Cell's column.
         :return: True if the cell content's format is correct.
         """
-        print("ergthy")
         pass
 
 
@@ -355,9 +355,13 @@ class TagTypesTab(Tab[model.TagType]):
     def _cell_edited(self, row: int, col: int):
         if self._initialized and self._editable:
             if col != 3:
-                _, invalid_row, message = self._check_column(col)
+                _, invalid_row, message = self._check_column(col, False)
                 if invalid_row == row:
                     utils.show_error(message, parent=self._owner)
+                else:
+                    ok, message = self._check_cell_format(row, col)
+                    if not ok:
+                        utils.show_error(message, parent=self._owner)
 
             if row not in self._added_rows:
                 if self.get_value(row) != self._values[row]:
@@ -368,7 +372,7 @@ class TagTypesTab(Tab[model.TagType]):
                 cell = self._table.item(row, col)
                 if cell is None:
                     cell = self._table.cellWidget(row, col)
-                self._cell_changed(row, col, cell.text())  # FIXME plante si le label est vide
+                self._cell_changed(row, col, cell.text())
 
     def _check_cell_format(self, row: int, col: int) -> (bool, str):
         text = self._table.item(row, col).text()
@@ -489,7 +493,6 @@ class _TagsTab(Tab[_TagType], typ.Generic[_TagType], abc.ABC):
 
         to_keep = []
         for row in self._added_rows:
-            print(row, self.get_value(row))
             res = self._dao.add_compound_tag(self.get_value(row))
             if not res:
                 to_keep.append(row)
@@ -537,15 +540,15 @@ class _TagsTab(Tab[_TagType], typ.Generic[_TagType], abc.ABC):
         except ValueError:
             return None
 
-    def add_type(self, tag_type: model.TagType):
+    def update_type_label(self, tag_type: model.TagType):
         """
-        Adds a tag type to all comboboxes.
+        Updates the name of the given type in all comboboxes.
 
-        :param tag_type: The type to add.
+        :param tag_type: The type to update.
         """
         for tag_row in range(self._table.rowCount()):
             if not self._table.isRowHidden(tag_row):
-                combo = self._table.cellWidget(tag_row, 2)
+                combo = self._table.cellWidget(tag_row, self._type_column)
                 for i in range(combo.count()):
                     if combo.itemText(i).startswith(f"{tag_type.id} "):
                         combo.setItemText(i, self._get_combo_text(tag_type.id, tag_type.label))
@@ -628,9 +631,13 @@ class _TagsTab(Tab[_TagType], typ.Generic[_TagType], abc.ABC):
     def _cell_edited(self, row: int, col: int):
         if self._initialized and self._editable:
             if col != self._type_column:
-                _, invalid_row, message = self._check_column(col)
+                _, invalid_row, message = self._check_column(col, False)
                 if invalid_row == row:
                     utils.show_error(message, parent=self._owner)
+                else:
+                    ok, message = self._check_cell_format(row, col)
+                    if not ok:
+                        utils.show_error(message, parent=self._owner)
 
             if row not in self._added_rows:
                 if self.get_value(row) != self._values[row][0]:
@@ -645,7 +652,11 @@ class _TagsTab(Tab[_TagType], typ.Generic[_TagType], abc.ABC):
     def _check_cell_format(self, row: int, col: int) -> (bool, str):
         text = self._table.item(row, col).text()
         if col == 1:
-            return model.Tag.LABEL_PATTERN.match(text) is not None, 'Tag label should only be letters, digits or "_"!'
+            if model.Tag.LABEL_PATTERN.match(text) is None:
+                return False, 'Tag label should only be letters, digits or "_"!'
+            tag_id = int(self._table.item(row, 0).text())
+            if self._dao.tag_exists(tag_id, text):
+                return False, "A tag with this name already exists!"
         return True, ""
 
     def _combo_changed(self, _):
@@ -734,9 +745,10 @@ class CompoundTagsTab(_TagsTab[model.CompoundTag]):
         ok, message = super()._check_cell_format(row, col)
         if not ok:
             return False, message
-        text = self._table.item(row, col).text()
-        try:
-            queries.query_to_sympy(text)
-            return True, ""
-        except ValueError as e:
-            return False, str(e)
+        if col == 2:
+            tag_label = self._table.item(row, 2).text()
+            try:
+                queries.query_to_sympy(tag_label)
+            except ValueError as e:
+                return False, str(e)
+        return True, ""

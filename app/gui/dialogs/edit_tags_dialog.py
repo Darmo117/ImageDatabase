@@ -31,7 +31,9 @@ class EditTagsDialog(Dialog):
         def type_cell_changed(row: int, col: int, _):
             if col == 1:
                 for tab in self._tabs[1:]:
-                    tab.add_type(self._tabs[self._TAG_TYPES_TAB].get_value(row))
+                    tag_type = self._tabs[self._TAG_TYPES_TAB].get_value(row)
+                    if tag_type is not None:
+                        tab.update_type_label(tag_type)
             self._check_integrity()
 
         def types_deleted(deleted_types: typ.List[model.TagType]):
