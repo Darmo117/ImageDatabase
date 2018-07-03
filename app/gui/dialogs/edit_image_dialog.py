@@ -197,19 +197,32 @@ class EditImageDialog(Dialog):
     def _get_tags(self) -> typ.List[model.Tag]:
         return [model.Tag.from_string(t) for t in self._tags_input.toPlainText().split()]
 
-    def _is_valid(self) -> bool:
+    def _ensure_no_compound_tags(self) -> bool:
+        tags_dao = da.TagsDao(database=config.DATABASE)
+        for tag in self._tags_input.toPlainText().split():
+            t = tag if tag[0].isalnum() or tag[0] == "_" else tag[1:]
+            if tags_dao.get_tag_class(t) == model.CompoundTag:
+                return False
+        return True
+
+    def _get_error(self) -> typ.Optional[str]:
         try:
-            self._get_tags()
-            return True
+            tags = self._get_tags()
+            if len(tags) == 0:
+                return "No tags specified!"
+            if not self._ensure_no_compound_tags():
+                return "Compound tags are not allowed here!"
+            return None
         except ValueError:
-            return False
+            return "Invalid tag format!"
+
+    def _is_valid(self) -> bool:
+        return self._get_error() is None
 
     def _apply(self) -> bool:
-        super()._apply()
-
         tags = self._get_tags()
         if len(tags) == 0:
-            question = "This image has no tags, you will not be able to request it later. Do you want to continue?"
+            question = "This image has no tags, you will not be able to retreive it later. Do you want to continue?"
             choice = utils.show_question(question, title="No tags set", parent=self)
             if choice != QtW.QMessageBox.Yes:
                 return False
@@ -228,6 +241,7 @@ class EditImageDialog(Dialog):
             close = self._index == len(self._images) - 1
             if not close:
                 self._next()
+            super()._apply()
         else:
             text = "Could not apply changes!" if self._mode == EditImageDialog.EDIT else "Could not add image!"
             utils.show_error(text, parent=self)

@@ -127,6 +127,23 @@ class TagsDao(DAO):
             logger.exception(e)
             return None
 
+    def get_tag_class(self, tag_name: str) -> typ.Union[typ.Type[model.Tag], typ.Type[model.CompoundTag], None]:
+        """
+        Returns the type of the given tag if any.
+
+        :param tag_name: Tag's name.
+        :return: Tag's class or None if tag doesn't exist.
+        """
+        try:
+            cursor = self._connection.execute("SELECT definition FROM tags WHERE label = ?", (tag_name,))
+            results = cursor.fetchall()
+            if len(results) == 0:
+                return None
+            return model.Tag if results[0][0] is None else model.CompoundTag
+        except (sqlite3.OperationalError, sqlite3.IntegrityError) as e:
+            logger.exception(e)
+            return None
+
     def add_compound_tag(self, tag: model.CompoundTag) -> bool:
         """
         Adds a compound tag.

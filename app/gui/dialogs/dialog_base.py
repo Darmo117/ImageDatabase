@@ -107,7 +107,8 @@ class Dialog(QtW.QDialog):
             self.close()
         else:
             if not self._is_valid():
-                utils.show_error("Invalid data!", parent=self)
+                reason = self._get_error()
+                utils.show_error(reason if reason is not None else "Invalid data!", parent=self)
             elif self._apply():
                 self.close()
 
@@ -119,6 +120,10 @@ class Dialog(QtW.QDialog):
         :return: True if everything is fine; false otherwise.
         """
         return True
+
+    def _get_error(self) -> typ.Optional[str]:
+        """Returns the reason data is invalid. If data is valid, None is returned."""
+        return None
 
     def _apply(self) -> bool:
         """
