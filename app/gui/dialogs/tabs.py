@@ -466,7 +466,7 @@ class _TagsTab(Tab[_TagType], typ.Generic[_TagType], abc.ABC):
         self._tag_class = tag_class
         self._columns = ["ID", "Label", *additional_columns, "Type", "Times used"]
         self._type_column = 2 + len(additional_columns)
-        self._use_column = 1 + self._type_column
+        self._tag_use_count_column = 1 + self._type_column
 
     def init(self):
         super().init()
@@ -616,7 +616,7 @@ class _TagsTab(Tab[_TagType], typ.Generic[_TagType], abc.ABC):
         # noinspection PyTypeChecker
         number_item.setFlags(number_item.flags() & ~Qt.ItemIsEditable & ~Qt.ItemIsSelectable)
         number_item.setBackground(self._DISABLED_COLOR)
-        self._table.setItem(row, self._use_column, number_item)
+        self._table.setItem(row, self._tag_use_count_column, number_item)
 
     def _get_value_for_column(self, column_name: str, value: _TagType, default: bool) -> typ.Tuple[str, str]:
         """
@@ -737,6 +737,10 @@ class CompoundTagsTab(_TagsTab[model.CompoundTag]):
         """
         super().__init__(owner, dao, "Compound Tags", True, editable, model.CompoundTag, ["Definition"], [0],
                          selection_changed=selection_changed, cell_changed=cell_changed, rows_deleted=rows_deleted)
+
+    def init(self):
+        super().init()
+        self._table.setColumnHidden(self._tag_use_count_column, True)
 
     def _get_value_for_column(self, column_name: str, tag: model.CompoundTag, default: bool) -> typ.Tuple[str, str]:
         return (tag.definition if not default else ""), "definition"
