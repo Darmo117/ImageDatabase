@@ -293,7 +293,7 @@ class Application(QtW.QMainWindow):
             tags_dao = da.TagsDao(config.DATABASE)
             compound_tags: typ.List[model.CompoundTag] = tags_dao.get_all_tags(tag_class=model.CompoundTag)
             for tag in compound_tags:
-                self._query = re.sub(f"(\W?){tag.label}(\W?)", fr"\1({tag.definition})\2", self._query)
+                self._query = re.sub(f"(\W|^){tag.label}(\W|$)", fr"\1({tag.definition})\2", self._query)
             try:
                 expr = queries.query_to_sympy(self._query)
             except ValueError as e:
