@@ -221,11 +221,6 @@ class EditImageDialog(Dialog):
 
     def _apply(self) -> bool:
         tags = self._get_tags()
-        if len(tags) == 0:
-            question = "This image has no tags, you will not be able to retreive it later. Do you want to continue?"
-            choice = utils.show_question(question, title="No tags set", parent=self)
-            if choice != QtW.QMessageBox.Yes:
-                return False
 
         image = self._images[self._index]
         new_path = self._get_new_path(image)
