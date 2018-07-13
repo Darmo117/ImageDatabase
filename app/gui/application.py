@@ -1,6 +1,6 @@
 import os
-import sys
 import re
+import sys
 import typing as typ
 
 import PyQt5.QtCore as QtC
@@ -293,12 +293,16 @@ class Application(QtW.QMainWindow):
             tags_dao = da.TagsDao(config.DATABASE)
             compound_tags: typ.List[model.CompoundTag] = tags_dao.get_all_tags(tag_class=model.CompoundTag)
             previous_query = ""
+            depth = 0
             # Replace compound tags until none are present
             while self._query != previous_query:
                 for tag in compound_tags:
                     previous_query = self._query
                     self._query = re.sub(f"(\W|^){tag.label}(\W|$)", fr"\1({tag.definition})\2", self._query)
-            print(self._query)
+                depth += 1
+                if depth >= 20:
+                    self._error = "Maximum recursion depth reached!"
+                    return
             try:
                 expr = queries.query_to_sympy(self._query)
             except ValueError as e:
