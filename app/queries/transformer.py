@@ -58,7 +58,7 @@ class _TreeToBoolean(lark.InlineTransformer):
         """
         parsed_query = self._parser.parse(query)
         bool_expr = self.transform(parsed_query)
-        print(bool_expr)
+
         if simplify:
             if ba.is_dnf(bool_expr):
                 form = "dnf"
@@ -66,11 +66,8 @@ class _TreeToBoolean(lark.InlineTransformer):
                 form = "cnf"
             else:
                 form = None
-            import time  # DEBUG
-            start = time.time()
             bool_expr = sp.simplify_logic(bool_expr, form=form)
-            print("symplify:", time.time() - start)
-        print(bool_expr)
+
         return bool_expr
 
 

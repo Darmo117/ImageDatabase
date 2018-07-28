@@ -274,76 +274,20 @@ class Application(QtW.QMainWindow):
         """Refreshes the tags tree."""
         self._tag_tree.refresh(model.TagType.SYMBOL_TYPES.values(), self._tags_dao.get_all_tags())
 
-    class _SearchThread(QtC.QThread):
-        """This thread is used to search images from a query."""
-
-        _MAXIMUM_DEPTH = 20
-
-        def __init__(self, query: str):
-            """
-            Creates a search thread for a query.
-
-            :param query: The query.
-            """
-            super().__init__()
-            self._query = query
-            self._images = []
-            self._error = None
-
-        def run(self):
-            images_dao = da.ImageDao(config.DATABASE)
-            tags_dao = da.TagsDao(config.DATABASE)
-            compound_tags: typ.List[model.CompoundTag] = tags_dao.get_all_tags(tag_class=model.CompoundTag)
-            previous_query = ""
-            depth = 0
-            # Replace compound tags until none are present
-            while self._query != previous_query:
-                for tag in compound_tags:
-                    previous_query = self._query
-                    self._query = re.sub(f"(\W|^){tag.label}(\W|$)", fr"\1({tag.definition})\2", self._query)
-                depth += 1
-                if depth >= self._MAXIMUM_DEPTH:
-                    self._error = f"Maximum recursion depth of {self._MAXIMUM_DEPTH} reached!"
-                    return
-            try:
-                print(self._query)  # DEBUG
-                expr = queries.query_to_sympy(self._query, simplify=False)  # TEMP
-            except ValueError as e:
-                self._error = str(e)
-                return
-            self._images = images_dao.get_images(expr)
-            images_dao.close()
-            if self._images is None:
-                self._error = "Failed to load images!"
-
-        @property
-        def fetched_images(self) -> typ.List[model.Image]:
-            """Returns all fetched images."""
-            return self._images
-
-        def failed(self) -> bool:
-            """Returns true if the operation failed."""
-            return self._error is not None
-
-        @property
-        def error(self) -> typ.Optional[str]:
-            """If the operation failed, returns the reason; otherwise returns None."""
-            return self._error
-
     def _fetch_images(self):
         """Fetches images matching the typed query. Starts a search thread to avoid freezing the whole application."""
         tags = self._input_field.text().strip()
         if len(tags) > 0:
             self._ok_btn.setEnabled(False)
             self._input_field.setEnabled(False)
-            self._thread = self._SearchThread(tags)
+            self._thread = _SearchThread(tags)
             # noinspection PyUnresolvedReferences
             self._thread.finished.connect(self._on_fetch_done)
             self._thread.start()
 
     def _on_fetch_done(self):
         """Called when images searching is done."""
-        if self._thread.failed():
+        if self._thread.failed:
             utils.show_error(self._thread.error, parent=self)
             self._ok_btn.setEnabled(True)
             self._input_field.setEnabled(True)
@@ -393,3 +337,79 @@ class Application(QtW.QMainWindow):
             logger.exception(e)
         else:
             sys.exit(app.exec_())
+
+
+class _SearchThread(QtC.QThread):
+    """This thread is used to search images from a query."""
+
+    _MAXIMUM_DEPTH = 20
+
+    def __init__(self, query: str):
+        """
+        Creates a search thread for a query.
+
+        :param query: The query.
+        """
+        super().__init__()
+        self._query = query
+        self._images = []
+        self._error = None
+
+    def run(self):
+        images_dao = da.ImageDao(config.DATABASE)
+        self._preprocess()
+        try:
+            expr = queries.query_to_sympy(self._query, simplify=False)
+        except ValueError as e:
+            self._error = str(e)
+            return
+        self._images = images_dao.get_images(expr)
+        images_dao.close()
+        if self._images is None:
+            self._error = "Failed to load images!"
+
+    def _preprocess(self):
+        meta_tag_values = {}
+        index = 0
+        # Replace metatag values with placeholders to avoid them being altered in the next step
+        while "There are matches":
+            match = re.search(fr":\s*([\w.*-]+)", self._query)
+            if match is not None:
+                index += 1
+                meta_tag_values[index] = match[1]
+                self._query = re.sub(re.escape(match[1]), f"%%{index}%%", self._query, count=1)
+            else:
+                break
+
+        tags_dao = da.TagsDao(config.DATABASE)
+        compound_tags: typ.List[model.CompoundTag] = tags_dao.get_all_tags(tag_class=model.CompoundTag)
+        previous_query = ""
+        depth = 0
+        # Replace compound tags until none are present
+        while self._query != previous_query:
+            for tag in compound_tags:
+                previous_query = self._query
+                self._query = re.sub(f"(\W|^){tag.label}(\W|$)", fr"\1({tag.definition})\2", self._query)
+            depth += 1
+            if depth >= self._MAXIMUM_DEPTH:
+                self._error = f"Maximum recursion depth of {self._MAXIMUM_DEPTH} reached!"
+                return
+
+        # Restore placeholders' original values
+        for index, value in meta_tag_values.items():
+            self._query = self._query.replace(f"%%{index}%%", value, 1)
+
+    @property
+    def fetched_images(self) -> typ.List[model.Image]:
+        """Returns all fetched images."""
+        return self._images
+
+    @property
+    def failed(self) -> bool:
+        """Returns true if the operation failed."""
+        return self._error is not None
+
+    @property
+    def error(self) -> typ.Optional[str]:
+        """If the operation failed, returns the reason; otherwise returns None."""
+        return self._error
