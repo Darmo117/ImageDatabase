@@ -373,7 +373,7 @@ class _SearchThread(QtC.QThread):
         index = 0
         # Replace metatag values with placeholders to avoid them being altered in the next step
         while "There are matches":
-            match = re.search(fr":\s*([\w.*-]+)", self._query)
+            match = re.search(fr":\s*({da.ImageDao.METAVALUE_PATTERN})", self._query)
             if match is not None:
                 index += 1
                 meta_tag_values[index] = match[1]

@@ -42,9 +42,11 @@ class _TreeToBoolean(lark.InlineTransformer):
     # noinspection PyMethodMayBeStatic
     def metatag(self, metatag, value):
         metatag = str(metatag)
+        value = str(value)
         if not da.ImageDao.check_metatag_value(metatag, value):
             raise ValueError(f"Invalid value '{value}' for metatag '{metatag}'!")
-        return sp.symbols(metatag + "\:" + str(value))
+        # Double-escape backslash
+        return sp.symbols(metatag + r"\:" + value.replace("\\", r"\\"))
 
     negation = sp.Not
 
@@ -68,6 +70,7 @@ class _TreeToBoolean(lark.InlineTransformer):
                 form = None
             bool_expr = sp.simplify_logic(bool_expr, form=form)
 
+        print(bool_expr)  # DEBUG
         return bool_expr
 
 

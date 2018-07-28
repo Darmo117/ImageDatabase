@@ -3,14 +3,14 @@
 %ignore WS_INLINE
 
 NAME: /\w+/
-REGEX: /[\w.*-]+/
+REGEX: /([\w.*-]|\\ )+/
 
 ?query: tag | metatag | or | and | p_query
 
 p_query: "(" query ")" -> group
        | "-" p_query   -> negation
 
-or: query ("+" query)+ -> disjunction
+or: (tag | metatag | and | p_query) ("+" (tag | metatag | and | p_query))+ -> disjunction
 
 and: (tag | metatag | p_query) (tag | metatag | p_query)+ -> conjunction
 
