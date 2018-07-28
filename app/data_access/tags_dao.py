@@ -10,12 +10,6 @@ from .dao import DAO
 
 class TagsDao(DAO):
     """This class manages tags and tag types."""
-    _INSTANCES = {}
-
-    def __new__(cls, database=DAO._DEFAULT):
-        if database not in cls._INSTANCES:
-            cls._INSTANCES[database] = super().__new__(cls)
-        return cls._INSTANCES[database]
 
     def get_all_types(self) -> typ.Optional[typ.List[model.TagType]]:
         """

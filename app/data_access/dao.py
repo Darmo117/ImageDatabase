@@ -9,6 +9,14 @@ import config
 class DAO(ABC):
     """Base class for DAO objects. It defines a 'regex' function to use in SQL queries."""
     _DEFAULT = ":memory:"
+    _INSTANCES = {}
+
+    # Singleton implementation
+    def __new__(cls, database=_DEFAULT):
+        key = cls, database
+        if key not in cls._INSTANCES:
+            cls._INSTANCES[key] = super().__new__(cls)
+        return cls._INSTANCES[key]
 
     def __init__(self, database=_DEFAULT):
         """

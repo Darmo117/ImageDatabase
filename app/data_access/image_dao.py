@@ -12,15 +12,8 @@ from .dao import DAO
 
 class ImageDao(DAO):
     """This class manages images."""
-    _INSTANCES = {}
 
-    def __new__(cls, database=DAO._DEFAULT):
-        if database not in cls._INSTANCES:
-            cls._INSTANCES[database] = super().__new__(cls)
-        return cls._INSTANCES[database]
-
-    def get_images(self, tags: typ.Union[sp.Symbol, sp.Or, sp.And, sp.Not, sp.boolalg.BooleanAtom]) \
-            -> typ.Optional[typ.List[model.Image]]:
+    def get_images(self, tags: sp.Basic) -> typ.Optional[typ.List[model.Image]]:
         """
         Returns all images matching the given tags.
 
