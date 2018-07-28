@@ -68,6 +68,7 @@ class Tab(abc.ABC, typ.Generic[_Type]):
         self._deleted_rows = set()
 
         self._dummy_type_id = -1
+        self._active_row = -1
 
         self._valid = True
 
@@ -231,13 +232,14 @@ class Tab(abc.ABC, typ.Generic[_Type]):
         for row in range(self._table.rowCount()):
             if self._table.isRowHidden(row):
                 continue
-            if self._table.item(row, column).text().strip() == "":
-                return self._EMPTY, row, "Cell is empty!"
-            if check_format:
-                # noinspection PyTupleAssignmentBalance
-                ok, message = self._check_cell_format(row, column)
-                if not ok:
-                    return self._FORMAT, False, message
+            if row != self._active_row:
+                if self._table.item(row, column).text().strip() == "":
+                    return self._EMPTY, row, "Cell is empty!"
+                if check_format:
+                    # noinspection PyTupleAssignmentBalance
+                    ok, message = self._check_cell_format(row, column)
+                    if not ok:
+                        return self._FORMAT, False, message
             cell_value = self._table.item(row, column).text()
             for r in range(self._table.rowCount()):
                 if self._table.isRowHidden(r):
@@ -372,7 +374,9 @@ class TagTypesTab(Tab[model.TagType]):
                 cell = self._table.item(row, col)
                 if cell is None:
                     cell = self._table.cellWidget(row, col)
+                self._active_row = row
                 self._cell_changed(row, col, cell.text())
+                self._active_row = -1
 
     def _check_cell_format(self, row: int, col: int) -> (bool, str):
         text = self._table.item(row, col).text()
@@ -647,7 +651,9 @@ class _TagsTab(Tab[_TagType], typ.Generic[_TagType], abc.ABC):
             if self._cell_changed is not None:
                 text = self._table.item(row, col).text() if col != self._type_column else \
                     self._table.cellWidget(row, col).currentText()
+                self._active_row = row
                 self._cell_changed(row, col, text)
+                self._active_row = -1
 
     def _check_cell_format(self, row: int, col: int) -> (bool, str):
         text = self._table.item(row, col).text()
@@ -752,7 +758,7 @@ class CompoundTagsTab(_TagsTab[model.CompoundTag]):
         if col == 2:
             tag_label = self._table.item(row, 2).text()
             try:
-                queries.query_to_sympy(tag_label)
+                queries.query_to_sympy(tag_label, simplify=False)
             except ValueError as e:
                 return False, str(e)
         return True, ""

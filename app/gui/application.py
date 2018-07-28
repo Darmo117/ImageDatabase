@@ -277,6 +277,8 @@ class Application(QtW.QMainWindow):
     class _SearchThread(QtC.QThread):
         """This thread is used to search images from a query."""
 
+        _MAXIMUM_DEPTH = 20
+
         def __init__(self, query: str):
             """
             Creates a search thread for a query.
@@ -300,11 +302,12 @@ class Application(QtW.QMainWindow):
                     previous_query = self._query
                     self._query = re.sub(f"(\W|^){tag.label}(\W|$)", fr"\1({tag.definition})\2", self._query)
                 depth += 1
-                if depth >= 20:
-                    self._error = "Maximum recursion depth reached!"
+                if depth >= self._MAXIMUM_DEPTH:
+                    self._error = f"Maximum recursion depth of {self._MAXIMUM_DEPTH} reached!"
                     return
             try:
-                expr = queries.query_to_sympy(self._query)
+                print(self._query)  # DEBUG
+                expr = queries.query_to_sympy(self._query, simplify=False)  # TEMP
             except ValueError as e:
                 self._error = str(e)
                 return

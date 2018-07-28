@@ -1,23 +1,21 @@
 %import common.WS_INLINE
 
-TAG: /\w+/
-META_VALUE: /[\w.*-]+/
+%ignore WS_INLINE
 
-?query: tag
-      | metatag
-      | or
-      | and
-      | p_query
+NAME: /\w+/
+REGEX: /[\w.*-]+/
 
-p_query: "(" WS_INLINE* query WS_INLINE* ")" -> group
-       | "-" p_query -> negation
+?query: tag | metatag | or | and | p_query
 
-or: query (WS_INLINE* "+" WS_INLINE* query)+ -> disjunction
+p_query: "(" query ")" -> group
+       | "-" p_query   -> negation
 
-and: (tag | metatag | p_query) (WS_INLINE+ (tag | metatag | p_query))+ -> conjunction
+or: query ("+" query)+ -> disjunction
 
-tag: TAG -> tag
+and: (tag | metatag | p_query) (tag | metatag | p_query)+ -> conjunction
+
+tag: NAME    -> tag
    | "-" tag -> negation
 
-metatag: TAG ":" META_VALUE -> metatag
-        | "-" metatag       -> negation
+metatag: NAME ":" REGEX -> metatag
+        | "-" metatag   -> negation

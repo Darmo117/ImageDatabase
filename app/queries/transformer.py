@@ -1,12 +1,11 @@
-import typing as typ
-
 import lark
 import sympy as sp
+from sympy.logic import boolalg as ba
 
 import app.data_access as da
 
 
-class TreeToBoolean(lark.InlineTransformer):
+class _TreeToBoolean(lark.InlineTransformer):
     """
     This class is the lexer for the tag query language.
     It converts a string query into a SymPy expression.
@@ -15,23 +14,26 @@ class TreeToBoolean(lark.InlineTransformer):
     def __init__(self):
         with open("app/queries/grammar.lark") as f:
             grammar = "\n".join(f.readlines())
-        self._parser = lark.Lark(grammar, start="query")
-        self._symbols = {}
+        self._parser = lark.Lark(grammar, parser="lalr", lexer="contextual", start="query")
 
     # noinspection PyMethodMayBeStatic
     def conjunction(self, *args):
         # Filter out whitespace
-        return sp.And(*filter(lambda arg: not isinstance(arg, lark.lexer.Token), args))
+        return sp.And(*self._filter_whitespace(args))
 
     # noinspection PyMethodMayBeStatic
     def disjunction(self, *args):
         # Filter out whitespace
-        return sp.Or(*filter(lambda arg: not isinstance(arg, lark.lexer.Token), args))
+        return sp.Or(*self._filter_whitespace(args))
 
     # noinspection PyMethodMayBeStatic
     def group(self, *args):
         # Filter out whitespace
-        return [arg for arg in args if not isinstance(arg, lark.lexer.Token)][0]
+        return self._filter_whitespace(args)[0]
+
+    @staticmethod
+    def _filter_whitespace(args: tuple) -> list:
+        return [arg for arg in args if not isinstance(arg, lark.lexer.Token)]
 
     # noinspection PyMethodMayBeStatic
     def tag(self, tag):
@@ -46,8 +48,7 @@ class TreeToBoolean(lark.InlineTransformer):
 
     negation = sp.Not
 
-    def get_sympy(self, query: str, simplify=True) \
-            -> typ.Union[sp.Symbol, sp.Or, sp.And, sp.Not, sp.boolalg.BooleanAtom]:
+    def get_sympy(self, query: str, simplify: bool = True) -> sp.Basic:
         """
         Converts the given string query into a SymPy expression.
 
@@ -55,29 +56,42 @@ class TreeToBoolean(lark.InlineTransformer):
         :param simplify: If true (default) the result will be simplified using boolean logic.
         :return: The SymPy expression.
         """
-        tree = self.transform(self._parser.parse(query))
+        parsed_query = self._parser.parse(query)
+        bool_expr = self.transform(parsed_query)
+        print(bool_expr)
         if simplify:
-            tree = sp.simplify_logic(tree)
-        return tree
+            if ba.is_dnf(bool_expr):
+                form = "dnf"
+            elif ba.is_cnf(bool_expr):
+                form = "cnf"
+            else:
+                form = None
+            import time  # DEBUG
+            start = time.time()
+            bool_expr = sp.simplify_logic(bool_expr, form=form)
+            print("symplify:", time.time() - start)
+        print(bool_expr)
+        return bool_expr
 
 
-transformer = None
+_transformer = None
 
 
-def query_to_sympy(query: str) -> typ.Union[sp.Symbol, sp.Or, sp.And, sp.Not, sp.boolalg.BooleanAtom]:
+def query_to_sympy(query: str, simplify: bool = True) -> sp.Basic:
     """
     Converts a query into a simplified SymPy boolean expression.
 
     :param query: The query to convert.
+    :param simplify: If true the query will be simplified once it is converted into a SymPy expression.
     :return: The simplified SymPy expression.
     """
-    global transformer
+    global _transformer
 
-    if transformer is None:
-        transformer = TreeToBoolean()
+    if _transformer is None:
+        _transformer = _TreeToBoolean()
 
     try:
-        return transformer.get_sympy(query)
+        return _transformer.get_sympy(query, simplify=simplify)
     except lark.common.ParseError as e:
         if "[" in e.args[0]:  # Lark parse errors are not very readable, just send a simple error message.
             raise ValueError("Syntax error!")
