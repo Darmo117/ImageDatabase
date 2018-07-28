@@ -160,8 +160,7 @@ class ImageDao(DAO):
         return result[0]
 
     @staticmethod
-    def _get_query(sympy_expr: typ.Union[sp.Symbol, sp.Or, sp.And, sp.Not, sp.boolalg.BooleanAtom]) \
-            -> typ.Optional[str]:
+    def _get_query(sympy_expr: sp.Basic) -> typ.Optional[str]:
         """
         Transforms a SymPy expression into an SQL query.
 
@@ -176,13 +175,13 @@ class ImageDao(DAO):
                     raise ValueError(f"Invalid value '{value}' for metatag '{metatag}'!")
                 return ImageDao._metatag_query(metatag, value)
             else:
-                return """
+                return f"""
                 SELECT I.id, I.path
                 FROM images AS I, tags AS T, image_tag AS IT
-                WHERE T.label = "{}"
+                WHERE T.label = "{s}"
                   AND T.id = IT.tag_id
                   AND IT.image_id = I.id
-                """.format(s)
+                """
         elif isinstance(sympy_expr, sp.Or):
             subs = [ImageDao._get_query(arg) for arg in sympy_expr.args]
             return "SELECT id, path FROM (" + "\nUNION\n".join(subs) + ")"
