@@ -41,12 +41,13 @@ class EditTagsDialog(Dialog):
                 tab.delete_types(deleted_types)
 
         dao = da.TagsDao(config.DATABASE)
+        # noinspection PyTypeChecker
         self._tabs = (TagTypesTab(self, dao, self._editable, selection_changed=self._selection_changed,
                                   cell_changed=type_cell_changed, rows_deleted=types_deleted),
                       CompoundTagsTab(self, dao, self._editable, selection_changed=self._selection_changed,
-                                      cell_changed=self._check_integrity),
+                                      cell_changed=self._check_integrity, rows_deleted=self._check_integrity),
                       TagsTab(self, dao, self._editable, selection_changed=self._selection_changed,
-                              cell_changed=self._check_integrity))
+                              cell_changed=self._check_integrity, rows_deleted=self._check_integrity))
 
         title = "Edit Tags" if self._editable else "Tags"
         mode = self.CLOSE if not self._editable else self.OK_CANCEL
@@ -109,6 +110,7 @@ class EditTagsDialog(Dialog):
 
     def _init_buttons(self) -> typ.List[QtW.QAbstractButton]:
         if self._editable:
+            self._ok_btn.setEnabled(False)
             self._apply_btn = QtW.QPushButton("Apply")
             # noinspection PyUnresolvedReferences
             self._apply_btn.clicked.connect(self._apply)
@@ -152,15 +154,18 @@ class EditTagsDialog(Dialog):
             utils.show_error("An error occured! Some changes may not have been saved.", parent=self)
         else:
             self._apply_btn.setEnabled(False)
+            self._ok_btn.setEnabled(False)
             super()._apply()
 
         return True
 
-    def _check_integrity(self, _1=None, _2=None, _3=None):
+    def _check_integrity(self, *_):
         """
         Checks the integrity of all tables. Parameters are ignored, they are here only to conform to the Tab class
         constructor.
         """
         self._valid = all(map(lambda t: t.check_integrity(), self._tabs))
-        i = sum(map(lambda t: t.modified_rows_number, self._tabs))
-        self._apply_btn.setEnabled(i > 0 and self._valid)
+        edited_rows_nb = sum(map(lambda t: t.modified_rows_number, self._tabs))
+        enabled = edited_rows_nb > 0 and self._valid
+        self._apply_btn.setEnabled(enabled)
+        self._ok_btn.setEnabled(enabled)
