@@ -213,7 +213,7 @@ class Application(QtW.QMainWindow):
             file = utils.open_playlist_saver(self)
             if file != utils.REJECTED:
                 da.write_playlist(file, images)
-        utils.show_info("Exported playlist!", parent=self)
+                utils.show_info("Exported playlist!", parent=self)
 
     def _fetch_and_refresh(self):
         """Fetches images then refreshes the list."""
