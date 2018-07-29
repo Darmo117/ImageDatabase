@@ -154,7 +154,6 @@ class EditTagsDialog(Dialog):
             utils.show_error("An error occured! Some changes may not have been saved.", parent=self)
         else:
             self._apply_btn.setEnabled(False)
-            self._ok_btn.setEnabled(False)
             super()._apply()
 
         return True
@@ -166,6 +165,5 @@ class EditTagsDialog(Dialog):
         """
         self._valid = all(map(lambda t: t.check_integrity(), self._tabs))
         edited_rows_nb = sum(map(lambda t: t.modified_rows_number, self._tabs))
-        enabled = edited_rows_nb > 0 and self._valid
-        self._apply_btn.setEnabled(enabled)
-        self._ok_btn.setEnabled(enabled)
+        self._apply_btn.setEnabled(edited_rows_nb > 0 and self._valid)
+        self._ok_btn.setEnabled(self._valid)
