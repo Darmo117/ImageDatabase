@@ -77,6 +77,7 @@ class Tab(abc.ABC, typ.Generic[_Type]):
     def init(self):
         """Initializes the inner table."""
         self._table = QtW.QTableWidget()
+        self._table.setSelectionBehavior(QtW.QAbstractItemView.SelectRows)
         self._table.verticalHeader().setDefaultSectionSize(20)
         self._table.horizontalHeader().setStretchLastSection(True)
         # noinspection PyUnresolvedReferences
