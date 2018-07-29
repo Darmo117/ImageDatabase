@@ -32,7 +32,7 @@ class EditImageDialog(Dialog):
         :param mode: Either EDIT, ADD or REPLACE.
         :param show_skip: If true a 'Skip' button will be added.
         """
-        if mode != EditImageDialog.EDIT and mode != EditImageDialog.ADD and mode != EditImageDialog.REPLACE:
+        if mode not in (EditImageDialog.EDIT, EditImageDialog.ADD, EditImageDialog.REPLACE):
             raise ValueError(f"Unknown mode '{mode}'!")
         if show_skip and mode == EditImageDialog.REPLACE:
             raise ValueError("Cannot show skip button while on replace mode!")
@@ -161,8 +161,12 @@ class EditImageDialog(Dialog):
 
         self._canvas.set_image(image.path)
 
-        if self._skip_btn is not None and self._index == len(self._images) - 1:
-            self._skip_btn.setDisabled(True)
+        if self._skip_btn is not None:
+            if self._index == len(self._images) - 1:
+                self._skip_btn.setDisabled(True)
+                self._ok_btn.setText("Finish")
+            else:
+                self._ok_btn.setText("Next")
 
     def _next(self):
         """Goes to the next image."""
