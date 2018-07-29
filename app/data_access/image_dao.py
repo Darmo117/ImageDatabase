@@ -230,9 +230,9 @@ class ImageDao(DAO):
         :param value: Metatag's value.
         :return: The SQL query for the metatag.
         """
-        # Unescape space character and replace '*' placeholder by a regex
-        value = value.replace(r"\ ", " ").replace(r"\*", "[^/]*")
-        return ImageDao._METATAGS[metatag][1].format(re.escape(value))
+        # Unescape space character, escape dot and replace '*' wildcard by a regex
+        escaped_value = value.replace(r"\ ", " ").replace(".", r"\.").replace(r"*", "[^/]*")
+        return ImageDao._METATAGS[metatag][1].format(escaped_value)
 
     METAVALUE_PATTERN = r"(?:[\w.*-]|\\ )+"
     _METAVALUE_REGEX = re.compile(fr"^{METAVALUE_PATTERN}$")
@@ -240,7 +240,7 @@ class ImageDao(DAO):
     # Declared metatags with their value-checking function and database query template.
     _METATAGS: typ.Dict[str, typ.Tuple[typ.Callable[[str], bool], str]] = {
         "type": (lambda v: ImageDao._METAVALUE_REGEX.match(v) is not None,
-                 "SELECT id, path FROM images WHERE path regexp '\.{}$'"),
+                 r"SELECT id, path FROM images WHERE path regexp '\.{}$'"),
         "name": (lambda v: ImageDao._METAVALUE_REGEX.match(v) is not None,
-                 "SELECT id, path FROM images WHERE path regexp '/{}\.\w+$'"),
+                 r"SELECT id, path FROM images WHERE path regexp '/{}\.\w+$'"),
     }

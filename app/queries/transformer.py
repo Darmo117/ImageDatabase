@@ -70,7 +70,6 @@ class _TreeToBoolean(lark.InlineTransformer):
                 form = None
             bool_expr = sp.simplify_logic(bool_expr, form=form)
 
-        print(bool_expr)  # DEBUG
         return bool_expr
 
 
