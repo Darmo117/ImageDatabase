@@ -21,11 +21,12 @@ To launch the application, simply run `ImageLibrary.py`.
 
 You can search for images by typing queries in the search field.
 Syntax is as follow:
-- `a` will return images with tag `a`
-- `a b` will return images with both tags `a` and `b`
-- `a + b` will return images with tags `a` or `b` or both
-- `-a` will return images *without* tag `a`
-- `type:png` will return images that are PNG files
+- `a` will match images with tag `a`
+- `a b` will match images with both tags `a` and `b`
+- `a + b` will match images with tags `a` or `b` or both
+- `-a` will match images *without* tag `a`
+- `type:png` will match images that are PNG files
+- `name:*awesome\ pic*` will match images that contain the string `awesome pic` (note the `\ ` to escape the space character)
 
 More complex queries can be written using parentheses.
 
