@@ -62,6 +62,8 @@ class Tab(abc.ABC, typ.Generic[_Type]):
 
         self._table = None
 
+        self._highlighted_cell = None
+
         self._values = []
         self._changed_rows = set()
         self._added_rows = set()
@@ -150,18 +152,20 @@ class Tab(abc.ABC, typ.Generic[_Type]):
 
         :param query: The string to search for.
         """
-        found = False
-        for i in range(self._table.rowCount()):
-            for col in self._search_columns:
-                item = self._table.item(i, col)
+        if self._highlighted_cell is not None:
+            self._highlighted_cell.setBackground(self._NORMAL_COLOR)
+
+        row_count = self._table.rowCount()
+        for col in self._search_columns:
+            for row in range(row_count):
+                item = self._table.item(row, col)
                 if item.text() == query:
                     self._table.setFocus()
                     self._table.scrollToItem(item)
                     item.setBackground(self._FETCH_COLOR)
-                    found = True
-                else:
-                    item.setBackground(self._NORMAL_COLOR)
-        return found
+                    self._highlighted_cell = item
+                    return True
+        return False
 
     @abc.abstractmethod
     def apply(self) -> bool:
