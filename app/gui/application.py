@@ -387,9 +387,9 @@ class _SearchThread(QtC.QThread):
         depth = 0
         # Replace compound tags until none are present
         while self._query != previous_query:
+            previous_query = self._query
             for tag in compound_tags:
-                previous_query = self._query
-                self._query = re.sub(f"(\W|^){tag.label}(\W|$)", fr"\1({tag.definition})\2", self._query)
+                self._query = re.sub(fr"(\W|^){tag.label}(\W|$)", fr"\1({tag.definition})\2", self._query)
             depth += 1
             if depth >= self._MAXIMUM_DEPTH:
                 self._error = f"Maximum recursion depth of {self._MAXIMUM_DEPTH} reached!"
