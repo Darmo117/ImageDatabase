@@ -9,7 +9,7 @@ import config
 
 def show_info(message: str, title="Information", parent: QtW.QWidget = None):
     """
-    Show an information popup.
+    Shows an information popup.
 
     :param message: Popup's message.
     :param title: Popup's title.
@@ -20,7 +20,7 @@ def show_info(message: str, title="Information", parent: QtW.QWidget = None):
 
 def show_warning(message: str, title: str = "Warning", parent: QtW.QWidget = None):
     """
-    Show a warning popup.
+    Shows a warning popup.
 
     :param message: Popup's message.
     :param title: Popup's title.
@@ -31,7 +31,7 @@ def show_warning(message: str, title: str = "Warning", parent: QtW.QWidget = Non
 
 def show_error(message: str, title: str = "Error", parent: QtW.QWidget = None):
     """
-    Show an error popup.
+    Shows an error popup.
 
     :param message: Popup's message.
     :param title: Popup's title.
@@ -43,7 +43,7 @@ def show_error(message: str, title: str = "Error", parent: QtW.QWidget = None):
 def show_question(message: str, title: str = "Question", cancel: bool = False, parent: QtW.QWidget = None) \
         -> QtW.QMessageBox.StandardButton:
     """
-    Show an question popup.
+    Shows a question popup.
 
     :param message: Popup's message.
     :param title: Popup's title.
