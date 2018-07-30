@@ -131,8 +131,14 @@ class Application(QtW.QMainWindow):
 
         edit_menu.addSeparator()
 
+        self._rename_image_item = QtW.QAction("&Rename Image…", self)
+        self._rename_image_item.setShortcut("Ctrl+R")
+        self._rename_image_item.triggered.connect(self._rename_image)
+        self._rename_image_item.setEnabled(False)
+        edit_menu.addAction(self._rename_image_item)
+
         self._replace_image_item = QtW.QAction("&Replace Image…", self)
-        self._replace_image_item.setShortcut("Ctrl+R")
+        self._replace_image_item.setShortcut("Ctrl+Shift+R")
         self._replace_image_item.triggered.connect(self._replace_image)
         self._replace_image_item.setEnabled(False)
         edit_menu.addAction(self._replace_image_item)
@@ -192,6 +198,21 @@ class Application(QtW.QMainWindow):
                 dialog.set_on_close_action(self._fetch_and_refresh)
                 dialog.set_images([model.Image(0, i) for i in images_to_add], {})
                 dialog.show()
+
+    def _rename_image(self):
+        """Opens the 'Rename Image' dialog then renames the selected image."""
+        images = self._list.selected_images()
+        if len(images) == 1:
+            image = images[0]
+            file_name, ext = os.path.splitext(os.path.basename(image.path))
+            text = utils.show_input("Enter the new name", "New Name", text=file_name, parent=self)
+            if text != utils.REJECTED and file_name != text:
+                new_path = utils.slashed(os.path.join(os.path.dirname(image.path), text + ext))
+                if not self._dao.update_image_path(image.id, new_path):
+                    utils.show_error("Could not rename image!", parent=self)
+                else:
+                    os.rename(image.path, new_path)
+                    self._fetch_images()
 
     def _replace_image(self):
         """Opens the 'Replace Image' dialog then replaces the image with the selected one."""
@@ -311,9 +332,12 @@ class Application(QtW.QMainWindow):
 
         :param selection: The current selection.
         """
-        self._replace_image_item.setEnabled(len(selection) == 1)
-        self._edit_images_item.setEnabled(len(selection) > 0)
-        self._delete_images_item.setEnabled(len(selection) > 0)
+        one_element = len(selection) == 1
+        list_not_empty = len(selection) > 0
+        self._rename_image_item.setEnabled(one_element)
+        self._replace_image_item.setEnabled(one_element)
+        self._edit_images_item.setEnabled(list_not_empty)
+        self._delete_images_item.setEnabled(list_not_empty)
 
     @classmethod
     def run(cls):

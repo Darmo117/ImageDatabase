@@ -60,6 +60,20 @@ def show_question(message: str, title: str = "Question", cancel: bool = False, p
 REJECTED = 1
 
 
+def show_input(message: str, title: str, text: str = "", parent: QtW.QWidget = None) -> typ.Union[str, int]:
+    """
+    Shows an input popup.
+
+    :param message: Popup's message.
+    :param title: Popup's title.
+    :param text: Text to show in the input field.
+    :param parent: Popup's parent.
+    :return: The typed text or REJECTED if the popup was cancelled.
+    """
+    text, ok = QtW.QInputDialog.getText(parent, title, message, text=text)
+    return text if ok else REJECTED
+
+
 def open_image_chooser(parent: QtW.QWidget = None) -> typ.Union[str, int]:
     """
     Opens a file chooser for images.
