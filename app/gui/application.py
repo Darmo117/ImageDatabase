@@ -111,7 +111,7 @@ class Application(QtW.QMainWindow):
         self._export_item.setShortcut("Ctrl+Shift+E")
         self._export_item.triggered.connect(self._export_images)
         self._export_item.setEnabled(False)
-        file_menu.addAction(self._export_item)
+        # file_menu.addAction(self._export_item)  # TEMP Hidden from official release
 
         file_menu.addSeparator()
 
