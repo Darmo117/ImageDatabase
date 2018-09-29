@@ -18,7 +18,8 @@ class DAO(ABC):
         :param database: The database to connect to.
         """
         file_exists = os.path.exists(database) and database != self._DEFAULT
-        self._connection = sqlite3.connect(database)
+        self._database_path = database
+        self._connection = sqlite3.connect(self._database_path)
         # Disable autocommit when BEGIN has been called.
         self._connection.isolation_level = None
         if not file_exists:
@@ -26,6 +27,10 @@ class DAO(ABC):
                 self._connection.executescript(db_script_file.read())
 
         self._connection.create_function("regexp", 2, lambda x, y: re.search(x, y) is not None)
+
+    @property
+    def database_path(self):
+        return self._database_path
 
     def close(self):
         """Closes database connection."""
