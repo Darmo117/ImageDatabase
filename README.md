@@ -26,7 +26,8 @@ Syntax is as follow:
 - `a + b` will match images with tags `a` or `b` or both
 - `-a` will match images *without* tag `a`
 - `type:png` will match images that are PNG files
-- `name:*awesome\ pic*` will match images that contain the string `awesome pic` (note the `\ ` to escape the space character)
+- `name:*awesome\ pic*` will match images that contain the string `awesome pic` (note the `\ ` to escape the space
+character)
 
 More complex queries can be written using parentheses.
 
@@ -40,6 +41,9 @@ Let's explain it:
 
 The result is the union of both image sets.
 
+The application also supports compound tags, i.e. tags defined from tag queries (e.g.: tag `animal` could be defined as
+`cat + dog + bird`).
+
 ### Command Line
 Run `ImageLibrary_cmd.py` to start an SQLite command line to interact directly with the database.
 
@@ -48,23 +52,17 @@ Run `ImageLibrary_cmd.py` to start an SQLite command line to interact directly w
 If you encounter an unexpected error, check the error log located in `logs/error.log` and see if there's an error.
 You can send me a message with the error and a description of how you got this error, that would be really appreciated!
 
-Don't mind the "Export As Playlist…" menu. It generates a playlist of the currently listed images.
-These playlists are used by an application I haven't released yet.
-
 ## Updating
 Delete all files except `library.sqlite3`, which is the database file.
 Once done, follow installation instructions (cf. Usage section).
 
-Check in `db_converter/` directory if there's a file named `v#_to_v§.py`, where `§` is the
-current version and `#` the previous one.
-If there is such file it means the database structure has changed between the two versions.
-You need to run the following command to update your database:
+When updating from 2.0 to 3.0, run the following command to update your database:
 ```
-python ./db_converters/v#_to_v§.py library.sqlite3
+python ./db_converters/v2.0_to_v3.0.py library.sqlite3
 ```
-A backup of the old version will be created under the name `library-old_#.sqlite3`.
+A backup of the old version will be created under the name `library-old_2.0.sqlite3`.
 
-One day I'll try to find a way to automate this step.
+From version 3.2 and forward, database files are automatically updated if needed and a back up created.
 
 ## Documentation
 To come…
