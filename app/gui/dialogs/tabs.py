@@ -590,9 +590,12 @@ class _TagsTab(Tab[_TagType], typ.Generic[_TagType], abc.ABC):
         # Populate additional columns
         for j, column in enumerate(self._columns[2:-2]):
             value, cell_label = self._get_value_for_column(column, tag, not defined)
-            label_item = QtW.QTableWidgetItem(value)
-            label_item.setWhatsThis(cell_label)
-            self._table.setItem(row, 2 + j, label_item)
+            item = QtW.QTableWidgetItem(value)
+            item.setWhatsThis(cell_label)
+            if not self._editable:
+                # noinspection PyTypeChecker
+                item.setFlags(item.flags() & ~Qt.ItemIsEditable & ~Qt.ItemIsSelectable)
+            self._table.setItem(row, 2 + j, item)
 
         if not self._editable:
             # noinspection PyTypeChecker
