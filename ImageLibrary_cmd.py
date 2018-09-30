@@ -47,7 +47,7 @@ while "User hasn't typed 'exit'":
 
         if cmd.startswith("select"):
             if len(results) == 0:
-                print("No results")
+                print("Query returned no results")
             else:
                 results_nb = len(results)
                 plural = "s" if results_nb > 1 else ""
