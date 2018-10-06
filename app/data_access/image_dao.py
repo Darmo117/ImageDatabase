@@ -98,7 +98,7 @@ class ImageDao(DAO):
 
         :param image_id: Image's ID.
         :param new_path: The new path.
-        :return: True if the image was added.
+        :return: True if the image was updated.
         """
         try:
             self._connection.execute("UPDATE images SET path = ? WHERE id = ?", (new_path, image_id))
@@ -134,7 +134,7 @@ class ImageDao(DAO):
         Deletes the given image.
 
         :param image_id: Image's ID.
-        :return: True if the image was added.
+        :return: True if the image was deleted.
         """
         try:
             self._connection.execute("DELETE FROM images WHERE id = ?", (image_id,))
