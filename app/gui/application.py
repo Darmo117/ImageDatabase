@@ -94,13 +94,13 @@ class Application(QtW.QMainWindow):
         file_menu = menubar.addMenu("&File")
 
         add_file_item = QtW.QAction("Add &File…", self)
-        add_file_item.setIcon(QtG.QIcon("icons/image_add.png"))
+        add_file_item.setIcon(QtG.QIcon("app/icons/image_add.png"))
         add_file_item.setShortcut("Ctrl+F")
         add_file_item.triggered.connect(self._add_image)
         file_menu.addAction(add_file_item)
 
         add_directory_item = QtW.QAction("Add &Directory…", self)
-        add_directory_item.setIcon(QtG.QIcon("icons/folder_image.png"))
+        add_directory_item.setIcon(QtG.QIcon("app/icons/folder_image.png"))
         add_directory_item.setShortcut("Ctrl+D")
         add_directory_item.triggered.connect(self._add_directory)
         file_menu.addAction(add_directory_item)
@@ -116,7 +116,7 @@ class Application(QtW.QMainWindow):
         file_menu.addSeparator()
 
         exit_item = QtW.QAction("&Exit", self)
-        exit_item.setIcon(QtG.QIcon("icons/door_open.png"))
+        exit_item.setIcon(QtG.QIcon("app/icons/door_open.png"))
         exit_item.setShortcut("Ctrl+Q")
         exit_item.triggered.connect(QtW.qApp.quit)
         file_menu.addAction(exit_item)
@@ -124,7 +124,7 @@ class Application(QtW.QMainWindow):
         edit_menu = menubar.addMenu("&Edit")
 
         edit_tags_item = QtW.QAction("Edit Tags…", self)
-        edit_tags_item.setIcon(QtG.QIcon("icons/tag_edit.png"))
+        edit_tags_item.setIcon(QtG.QIcon("app/icons/tag_edit.png"))
         edit_tags_item.setShortcut("Ctrl+T")
         edit_tags_item.triggered.connect(self._edit_tags)
         edit_menu.addAction(edit_tags_item)
@@ -144,14 +144,14 @@ class Application(QtW.QMainWindow):
         edit_menu.addAction(self._replace_image_item)
 
         self._edit_images_item = QtW.QAction("Edit Images…", self)
-        self._edit_images_item.setIcon(QtG.QIcon("icons/image_edit.png"))
+        self._edit_images_item.setIcon(QtG.QIcon("app/icons/image_edit.png"))
         self._edit_images_item.setShortcut("Ctrl+E")
         self._edit_images_item.triggered.connect(lambda: self._edit_images(self._list.selected_images()))
         self._edit_images_item.setEnabled(False)
         edit_menu.addAction(self._edit_images_item)
 
         self._delete_images_item = QtW.QAction("Delete Images", self)
-        self._delete_images_item.setIcon(QtG.QIcon("icons/image_delete.png"))
+        self._delete_images_item.setIcon(QtG.QIcon("app/icons/image_delete.png"))
         self._delete_images_item.setShortcut("Delete")
         self._delete_images_item.triggered.connect(self._delete_images)
         self._delete_images_item.setEnabled(False)
@@ -160,7 +160,7 @@ class Application(QtW.QMainWindow):
         help_menu = menubar.addMenu("&Help")
 
         about_item = QtW.QAction("About", self)
-        about_item.setIcon(QtG.QIcon("icons/information.png"))
+        about_item.setIcon(QtG.QIcon("app/icons/information.png"))
         about_item.triggered.connect(lambda: AboutDialog(self).show())
         help_menu.addAction(about_item)
 
