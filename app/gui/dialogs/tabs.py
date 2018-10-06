@@ -419,6 +419,7 @@ class TagTypesTab(Tab[model.TagType]):
         color_btn = QtW.QPushButton(tag_type.color.name() if defined else default_color.name())
         color_btn.setWhatsThis("color")
         color_btn.setStyleSheet(f"background-color: {bg_color.name()}; color: {color.name()}")
+        color_btn.setFocusPolicy(Qt.NoFocus)
         # noinspection PyUnresolvedReferences
         color_btn.clicked.connect(self._show_color_picker)
         color_btn.setProperty("row", row)

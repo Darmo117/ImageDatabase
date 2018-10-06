@@ -78,6 +78,7 @@ class EditTagsDialog(Dialog):
         self._delete_row_btn.setIcon(QtG.QIcon("app/icons/cross.png"))
         self._delete_row_btn.setToolTip("Delete Items")
         self._delete_row_btn.setFixedSize(24, 24)
+        self._delete_row_btn.setFocusPolicy(Qt.NoFocus)
         # noinspection PyUnresolvedReferences
         self._delete_row_btn.clicked.connect(self._delete_selected_row)
         buttons.addWidget(self._delete_row_btn)
