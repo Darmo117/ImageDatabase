@@ -19,21 +19,22 @@ class AboutDialog(Dialog):
         super().__init__(parent=parent, title="About", mode=Dialog.CLOSE)
 
     def _init_body(self) -> QtW.QLayout:
-        self.setFixedSize(220, 200)
+        self.setFixedSize(220, 170)
 
         body = QtW.QHBoxLayout()
 
-        label = QtW.QTextEdit()
+        label = QtW.QLabel()
         year = datetime.now().year
         copyright_year = "" if year == 2018 else " - " + str(year)
         label.setText(f"""
         <html style="color: black; font-size: 12px">
             <span style="font-size: 16px; font-weight: bold">Image Library v{config.VERSION}</span>
-            <p>&copy; 2018{copyright_year} Damien Vergnet.</p>
-            <p>Icons &copy; FatCow.</p>
+            <p>© 2018{copyright_year} Damien Vergnet</p>
+            <p>Icons © FatCow</p>
+            <p>Find more on <a href="https://github.com/Darmo117">GitHub</a>.</p>
         </html>
         """)
-        label.setEnabled(False)
+        label.setOpenExternalLinks(True)
         body.addWidget(label)
 
         return body
