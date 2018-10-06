@@ -1,7 +1,7 @@
 pragma foreign_keys = on;
 
 create table db_version (
-  version text not null primary key
+  version text primary key
 );
 
 create table images (
@@ -32,4 +32,4 @@ create table image_tag (
   foreign key (tag_id) references tags(id) on delete cascade
 );
 
-insert into db_version(version) values("3.2");
+insert into db_version(version) values('3.2');
