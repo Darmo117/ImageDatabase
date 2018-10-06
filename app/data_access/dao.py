@@ -27,6 +27,7 @@ class DAO(ABC):
                 self._connection.executescript(db_script_file.read())
 
         self._connection.create_function("regexp", 2, lambda x, y: re.search(x, y) is not None)
+        self._connection.execute("PRAGMA foreign_keys = ON")
 
     @property
     def database_path(self):

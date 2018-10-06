@@ -140,6 +140,7 @@ class ImageDao(DAO):
             self._connection.execute("DELETE FROM images WHERE id = ?", (image_id,))
             return True
         except sqlite3.OperationalError as e:
+            self._connection.rollback()
             logger.exception(e)
             return False
 
