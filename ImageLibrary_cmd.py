@@ -42,7 +42,10 @@ while "User hasn't typed 'exit'":
 
     try:
         cursor = connection.execute(cmd)
-        column_names = tuple(desc[0] for desc in cursor.description)
+        if cursor.description is not None:
+            column_names = tuple(desc[0] for desc in cursor.description)
+        else:
+            column_names = []
         results = cursor.fetchall()
 
         if cmd.startswith("select"):
