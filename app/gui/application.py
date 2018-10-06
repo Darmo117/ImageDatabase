@@ -132,12 +132,14 @@ class Application(QtW.QMainWindow):
         edit_menu.addSeparator()
 
         self._rename_image_item = QtW.QAction("&Rename Image…", self)
+        self._rename_image_item.setIcon(QtG.QIcon("app/icons/textfield_rename.png"))
         self._rename_image_item.setShortcut("Ctrl+R")
         self._rename_image_item.triggered.connect(self._rename_image)
         self._rename_image_item.setEnabled(False)
         edit_menu.addAction(self._rename_image_item)
 
         self._replace_image_item = QtW.QAction("&Replace Image…", self)
+        self._replace_image_item.setIcon(QtG.QIcon("app/icons/images.png"))
         self._replace_image_item.setShortcut("Ctrl+Shift+R")
         self._replace_image_item.triggered.connect(self._replace_image)
         self._replace_image_item.setEnabled(False)
