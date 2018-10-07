@@ -41,11 +41,11 @@ class EditImageDialog(Dialog):
         self._mode = mode
         self._show_skip = show_skip
 
-        super().__init__(parent=parent, title=EditImageDialog._TITLES[self._mode] + " Image", modal=True)
-
         self._index = -1
         self._images: typ.List[model.Image] = []
         self._tags = {}
+
+        super().__init__(parent=parent, title=self._get_title(), modal=True)
 
         self._destination = None
         self._tags_changed = False
@@ -182,6 +182,8 @@ class EditImageDialog(Dialog):
                 self._ok_btn.setText("Finish")
             else:
                 self._ok_btn.setText("Next")
+
+        self.setWindowTitle(self._get_title())
 
     def _next(self):
         """Goes to the next image."""
@@ -337,6 +339,9 @@ class EditImageDialog(Dialog):
         except FileExistsError:
             utils.show_error("File already exists in destination!", parent=self)
             return False
+
+    def _get_title(self) -> str:
+        return f"{self._TITLES[self._mode]} Image ({self._index + 1}/{len(self._images)})"
 
     def closeEvent(self, event: QtG.QCloseEvent):
         self._tags_dialog.close()
