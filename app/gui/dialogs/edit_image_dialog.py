@@ -6,6 +6,7 @@ import typing as typ
 
 import PyQt5.QtGui as QtG
 import PyQt5.QtWidgets as QtW
+from PyQt5.QtCore import Qt
 
 import app.data_access as da
 import app.model as model
@@ -84,7 +85,21 @@ class EditImageDialog(Dialog):
 
         body.addLayout(middle)
 
-        self._tags_input = QtW.QTextEdit()
+        class CustomTextEdit(QtW.QTextEdit):
+            """Custom class to catch Ctrl+Enter events."""
+
+            def __init__(self, dialog: EditImageDialog):
+                super().__init__()
+                self._dialog = dialog
+
+            def keyPressEvent(self, e):
+                # noinspection PyTypeChecker
+                if e.key() in (Qt.Key_Return, Qt.Key_Enter) and e.modifiers() & Qt.ControlModifier:
+                    self._dialog._ok_btn.click()
+                else:
+                    super().keyPressEvent(e)
+
+        self._tags_input = CustomTextEdit(self)
         # noinspection PyUnresolvedReferences
         self._tags_input.textChanged.connect(self._text_changed)
         if self._mode == EditImageDialog.REPLACE:
@@ -194,6 +209,7 @@ class EditImageDialog(Dialog):
             else:
                 self._destination = destination
             self._dest_label.setText("Path: " + self._destination)
+            self._dest_label.setToolTip(self._destination)
 
     def _text_changed(self):
         self._tags_changed = True
