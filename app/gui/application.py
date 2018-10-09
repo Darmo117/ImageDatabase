@@ -1,3 +1,4 @@
+import ctypes
 import os
 import re
 import sys
@@ -345,6 +346,9 @@ class Application(QtW.QMainWindow):
     def run(cls):
         """Run an instance of this Application class."""
         try:
+            # Arbitrary string to display app icon in the taskbar on Windows.
+            if os.name == "nt":
+                ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID("image_library")
             app = QtW.QApplication(sys.argv)
 
             da.update_if_needed()
