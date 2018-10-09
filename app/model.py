@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import re
 import typing as typ
 
@@ -91,11 +93,11 @@ class TagType:
         return f"TagType{{id={self.id}, label={self.label}, symbol={self.symbol}, color={self.color.name()}}}"
 
     @staticmethod
-    def init(types):
+    def init(types: typ.Iterable[TagType]):
         """
         Initializes all available tag types.
 
-        :param List[TagType] types: The available types.
+        :param types: The available types.
         """
         TagType.SYMBOL_TYPES.clear()
         TagType.ID_TYPES.clear()
@@ -114,24 +116,22 @@ class TagType:
         return c in TagType.SYMBOL_TYPES
 
     @staticmethod
-    def from_symbol(symbol: str):
+    def from_symbol(symbol: str) -> TagType:
         """
         Returns the type with from the given symbol.
 
         :param symbol: The type symbol.
         :return: The corresponding type.
-        :rtype: TagType
         """
         return TagType.SYMBOL_TYPES[symbol]
 
     @staticmethod
-    def from_id(ident: int):
+    def from_id(ident: int) -> TagType:
         """
         Returns the type with the given ID.
 
         :param ident: The SQLite ID.
         :return: The corresponding type.
-        :rtype: TagType
         """
         return TagType.ID_TYPES[ident]
 
@@ -184,7 +184,7 @@ class Tag:
         return self.id == other.id and self.label == other.label and self.type == other.type
 
     @classmethod
-    def from_string(cls, s: str):
+    def from_string(cls, s: str) -> Tag:
         """
         Returns a tag instance from a given string.
 

@@ -10,7 +10,7 @@ class DAO(ABC):
     """Base class for DAO objects. It defines a 'regex' function to use in SQL queries."""
     _DEFAULT = ":memory:"
 
-    def __init__(self, database=_DEFAULT):
+    def __init__(self, database: str = _DEFAULT):
         """
         Initializes this DAO using the given database. If nothing is specified, special ':memory:' database will be
         used.
@@ -30,7 +30,7 @@ class DAO(ABC):
         self._connection.execute("PRAGMA foreign_keys = ON")
 
     @property
-    def database_path(self):
+    def database_path(self) -> str:
         return self._database_path
 
     def close(self):
