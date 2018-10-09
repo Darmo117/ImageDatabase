@@ -441,7 +441,7 @@ class TagTypesTab(Tab[model.TagType]):
 _TagType = typ.TypeVar("_TagType", model.Tag, model.CompoundTag)
 
 
-class _TagsTab(Tab[_TagType], typ.Generic[_TagType], abc.ABC):
+class _TagsTab(Tab[_TagType], typ.Generic[_TagType], metaclass=abc.ABCMeta):
     """This class represents a tab containing a table that displays all defined tags."""
     COMBO_ITEM_PATTERN = re.compile(r"^(\d+) - (.+)$")
 

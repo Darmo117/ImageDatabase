@@ -33,6 +33,7 @@ class _TreeToBoolean(lark.InlineTransformer):
 
     @staticmethod
     def _filter_whitespace(args: tuple) -> list:
+        # noinspection PyUnresolvedReferences
         return [arg for arg in args if not isinstance(arg, lark.lexer.Token)]
 
     # noinspection PyMethodMayBeStatic
@@ -89,6 +90,7 @@ def query_to_sympy(query: str, simplify: bool = True) -> sp.Basic:
     if _transformer is None:
         _transformer = _TreeToBoolean()
 
+    # noinspection PyUnresolvedReferences
     try:
         return _transformer.get_sympy(query, simplify=simplify)
     except lark.common.ParseError as e:
