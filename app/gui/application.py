@@ -329,14 +329,11 @@ class Application(QtW.QMainWindow):
         """Called when images list content changes."""
         self._export_item.setEnabled(self._list.count() > 0)
 
-    def _list_selection_changed(self, selection: list):
-        """
-        Called when the selection in images list changes.
-
-        :param selection: The current selection.
-        """
-        one_element = len(selection) == 1
-        list_not_empty = len(selection) > 0
+    def _list_selection_changed(self, _):
+        """Called when the selection in images list changes."""
+        selection_size = len(self._list.selectedIndexes())
+        one_element = selection_size == 1
+        list_not_empty = selection_size > 0
         self._rename_image_item.setEnabled(one_element)
         self._replace_image_item.setEnabled(one_element)
         self._edit_images_item.setEnabled(list_not_empty)
