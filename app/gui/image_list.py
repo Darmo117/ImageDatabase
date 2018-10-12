@@ -229,6 +229,7 @@ class ThumbnailList(ScrollingFlowWidget, ImageListView):
         if key == QtC.Qt.Key_A and modifiers == QtC.Qt.ControlModifier:
             for item in self._flow_layout.items:
                 item.selected = True
+            # noinspection PyTypeChecker
             self._on_selection_changed(self.selected_images())
 
     def _item_clicked(self, item: _FlowImageItem):
@@ -262,6 +263,7 @@ class ThumbnailList(ScrollingFlowWidget, ImageListView):
             self._last_index = item.index
             item.selected = True
             self._deselect_except(item)
+        # noinspection PyTypeChecker
         self._on_selection_changed(self.selected_images())
 
     def _item_double_clicked(self, item: _FlowImageItem):
@@ -279,10 +281,10 @@ class ThumbnailList(ScrollingFlowWidget, ImageListView):
         for i in self.selected_items():
             if i is not item:
                 i.selected = False
+        # noinspection PyTypeChecker
         self._on_selection_changed(self.selected_images())
 
 
-# TODO doc
 class _FlowImageItem(QtW.QWidget, ImageItem):
     """
     An widget that displays an image and can be selected.
@@ -322,7 +324,6 @@ class _FlowImageItem(QtW.QWidget, ImageItem):
         layout.addWidget(label)
 
         self.setLayout(layout)
-        self.setStyleSheet("background-color: red")
 
         self._click_count = None
         self.selected = False
