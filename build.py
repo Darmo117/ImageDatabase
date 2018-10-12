@@ -1,9 +1,7 @@
-#!C:\ProgramData\Anaconda3\python.exe
-
 import os
 import shutil
 
-TO_COPY = ["ImageLibrary.py", "ImageLibrary_cmd.py", "config.py", "app/", "db_converters/"]
+TO_COPY = ["ImageLibrary.py", "ImageLibrary_cmd.py", "app/", "db_converters/"]
 BUILD_DIR = "build/Image-Library/"
 
 if os.path.exists(BUILD_DIR):
@@ -22,9 +20,9 @@ for file in TO_COPY:
         shutil.copy(file, dest)
 
 print("Editing config...")
-with open("config.py") as f:
+with open("app/constants.py") as f:
     lines = f.readlines()
-with open(BUILD_DIR + "config.py", "w") as f:
+with open(BUILD_DIR + "app/constants.py", "w") as f:
     for line in lines:
         if line.startswith("DATABASE"):
             line = 'DATABASE = "library.sqlite3"\n'
