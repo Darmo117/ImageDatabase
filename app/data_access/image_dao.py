@@ -5,9 +5,9 @@ import typing as typ
 
 import sympy as sp
 
-import app.model as model
-from app.logging import logger
 from .dao import DAO
+from .. import model
+from ..logging import logger
 
 
 class ImageDao(DAO):

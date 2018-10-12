@@ -1,12 +1,12 @@
 import os
 import sqlite3
 
-import config
+from .. import constants
 
 
 def update_if_needed():
     """Updates the database if it needs to be."""
-    db_file = config.DATABASE
+    db_file = constants.DATABASE
     if os.path.exists(db_file):
         connection = sqlite3.connect(db_file)
         try:
@@ -29,7 +29,7 @@ def _update(db_file: str, version: str):
     if os.path.exists(db_file):
         os.remove(db_file)
 
-    with open(config.DB_SETUP_FILE) as f:
+    with open(constants.DB_SETUP_FILE) as f:
         script = "".join(f.readlines())
 
     old_connection = sqlite3.connect(old_db_file)

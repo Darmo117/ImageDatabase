@@ -3,7 +3,7 @@ import re
 import sqlite3
 from abc import ABC
 
-import config
+from .. import constants
 
 
 class DAO(ABC):
@@ -23,7 +23,7 @@ class DAO(ABC):
         # Disable autocommit when BEGIN has been called.
         self._connection.isolation_level = None
         if not file_exists:
-            with open(config.DB_SETUP_FILE) as db_script_file:
+            with open(constants.DB_SETUP_FILE) as db_script_file:
                 self._connection.executescript(db_script_file.read())
 
         self._connection.create_function("regexp", 2, lambda x, y: re.search(x, y) is not None)

@@ -1,7 +1,7 @@
 import typing as typ
 import xml.etree.ElementTree as ETree
 
-import app.model as model
+from .. import model
 
 
 def write_playlist(file: str, images: typ.List[model.Image]):

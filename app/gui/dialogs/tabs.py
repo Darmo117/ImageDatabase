@@ -6,10 +6,7 @@ import PyQt5.QtGui as QtG
 import PyQt5.QtWidgets as QtW
 from PyQt5.QtCore import Qt
 
-import app.data_access as da
-import app.model as model
-import app.queries as queries
-import app.utils as utils
+from app import data_access as da, model, queries, utils
 
 _Type = typ.TypeVar("_Type")
 

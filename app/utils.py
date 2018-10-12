@@ -4,7 +4,7 @@ import typing as typ
 import PyQt5.QtGui as QtGui
 import PyQt5.QtWidgets as QtW
 
-import config
+from app import constants
 
 
 def show_info(message: str, title="Information", parent: QtW.QWidget = None):
@@ -81,7 +81,7 @@ def open_image_chooser(parent: QtW.QWidget = None) -> typ.Union[str, int]:
     :param parent: Chooser's parent.
     :return: The selected file or REJECTED if the chooser was cancelled.
     """
-    exts = "; ".join(map(lambda e: "*." + e, config.FILE_EXTENSIONS))
+    exts = "; ".join(map(lambda e: "*." + e, constants.FILE_EXTENSIONS))
     file, _ = QtW.QFileDialog.getOpenFileName(caption="Open Image", filter=f"Image file ({exts})", parent=parent)
     return file if file != "" else REJECTED
 
@@ -113,7 +113,7 @@ def open_directory_chooser(parent: QtW.QWidget = None) -> typ.Union[typ.List[str
     """
     directory = QtW.QFileDialog.getExistingDirectory(caption="Open Directory", parent=parent)
     if directory != "":
-        files = filter(lambda f: os.path.splitext(f)[1].lower()[1:] in config.FILE_EXTENSIONS, os.listdir(directory))
+        files = filter(lambda f: os.path.splitext(f)[1].lower()[1:] in constants.FILE_EXTENSIONS, os.listdir(directory))
         files = list(map(lambda f: slashed(os.path.join(directory, f)), files))
         return files if len(files) > 0 else NO_IMAGES
     return REJECTED

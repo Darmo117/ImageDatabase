@@ -3,9 +3,9 @@ import typing as typ
 
 import PyQt5.QtGui as QtGui
 
-import app.model as model
-from app.logging import logger
+from ..logging import logger
 from .dao import DAO
+from .. import model
 
 
 class TagsDao(DAO):

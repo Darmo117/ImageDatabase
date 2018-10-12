@@ -4,7 +4,7 @@ import PyQt5.QtGui as QtG
 import PyQt5.QtWidgets as QtW
 from PyQt5.QtCore import Qt
 
-import app.utils as utils
+from app import utils
 
 
 class Dialog(QtW.QDialog):

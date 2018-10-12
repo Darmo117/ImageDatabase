@@ -4,10 +4,7 @@ import PyQt5.QtGui as QtG
 import PyQt5.QtWidgets as QtW
 from PyQt5.QtCore import Qt
 
-import app.data_access as da
-import app.model as model
-import app.utils as utils
-import config
+from app import constants, data_access as da, model, utils
 from .dialog_base import Dialog
 from .tabs import TagsTab, TagTypesTab, CompoundTagsTab
 
@@ -40,7 +37,7 @@ class EditTagsDialog(Dialog):
             for tab in self._tabs[1:]:
                 tab.delete_types(deleted_types)
 
-        dao = da.TagsDao(config.DATABASE)
+        dao = da.TagsDao(constants.DATABASE)
         # noinspection PyTypeChecker
         self._tabs = (TagTypesTab(self, dao, self._editable, selection_changed=self._selection_changed,
                                   cell_changed=type_cell_changed, rows_deleted=types_deleted),

@@ -5,8 +5,7 @@ import PyQt5.QtCore as QtC
 import PyQt5.QtGui as QtG
 import PyQt5.QtWidgets as QtW
 
-import app.model as model
-import app.utils as utils
+from .. import model, utils
 
 
 class TagTree(QtW.QTreeWidget):

@@ -2,7 +2,7 @@ import lark
 import sympy as sp
 from sympy.logic import boolalg as ba
 
-import app.data_access as da
+from .. import data_access as da
 
 
 class _TreeToBoolean(lark.InlineTransformer):

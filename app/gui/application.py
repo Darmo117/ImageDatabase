@@ -8,15 +8,11 @@ import PyQt5.QtCore as QtC
 import PyQt5.QtGui as QtG
 import PyQt5.QtWidgets as QtW
 
-import app.data_access as da
-import app.model as model
-import app.queries as queries
-import app.utils as utils
-import config
-from app.logging import logger
 from .components import TagTree
 from .dialogs import EditImageDialog, EditTagsDialog, AboutDialog
 from .image_list import ImageList, ImageListView, ThumbnailList
+from .. import constants, data_access as da, model, queries, utils
+from ..logging import logger
 
 
 # TODO ajouter une option pour charger ou non les miniatures
@@ -26,8 +22,8 @@ class Application(QtW.QMainWindow):
     def __init__(self):
         super().__init__()
 
-        self._dao = da.ImageDao(config.DATABASE)
-        self._tags_dao = da.TagsDao(config.DATABASE)
+        self._dao = da.ImageDao(constants.DATABASE)
+        self._tags_dao = da.TagsDao(constants.DATABASE)
 
         self._init_ui()
         utils.center(self)
@@ -35,7 +31,7 @@ class Application(QtW.QMainWindow):
     # noinspection PyUnresolvedReferences
     def _init_ui(self):
         """Initializes the UI."""
-        self.setWindowTitle("Image Library v" + config.VERSION)
+        self.setWindowTitle("Image Library v" + constants.VERSION)
         self.setWindowIcon(QtG.QIcon("app/icons/app_icon.png"))
         self.setGeometry(0, 0, 800, 600)
         self.setMinimumSize(400, 200)
@@ -365,7 +361,7 @@ class Application(QtW.QMainWindow):
             da.update_if_needed()
 
             # Initialize tag types
-            tags_dao = da.TagsDao(config.DATABASE)
+            tags_dao = da.TagsDao(constants.DATABASE)
             types = tags_dao.get_all_types()
             if types is None:
                 utils.show_error("Could not load data! Shutting down.")
@@ -398,7 +394,7 @@ class _SearchThread(QtC.QThread):
         self._error = None
 
     def run(self):
-        images_dao = da.ImageDao(config.DATABASE)
+        images_dao = da.ImageDao(constants.DATABASE)
         self._preprocess()
         try:
             expr = queries.query_to_sympy(self._query, simplify=False)
@@ -423,7 +419,7 @@ class _SearchThread(QtC.QThread):
             else:
                 break
 
-        tags_dao = da.TagsDao(config.DATABASE)
+        tags_dao = da.TagsDao(constants.DATABASE)
         compound_tags: typ.List[model.CompoundTag] = tags_dao.get_all_tags(tag_class=model.CompoundTag)
         previous_query = ""
         depth = 0

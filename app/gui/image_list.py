@@ -8,10 +8,9 @@ import PyQt5.QtCore as QtC
 import PyQt5.QtGui as QtG
 import PyQt5.QtWidgets as QtW
 
-import app.model as model
-import config
 from .components import Canvas
 from .flow_layout import ScrollingFlowWidget
+from .. import constants, model
 
 SelectionChangeListener = typ.Callable[[typ.Tuple[model.Image]], None]
 ItemDoubleClickListener = typ.Callable[[model.Image], None]
@@ -143,7 +142,7 @@ class ImageList(QtW.QListWidget, ImageListView):
             except ValueError:
                 event.ignore()
             else:
-                if all(map(lambda f: os.path.splitext(f)[1].lower()[1:] in config.FILE_EXTENSIONS, urls)):
+                if all(map(lambda f: os.path.splitext(f)[1].lower()[1:] in constants.FILE_EXTENSIONS, urls)):
                     event.accept()
                 else:
                     event.ignore()

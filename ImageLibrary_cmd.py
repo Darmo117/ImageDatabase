@@ -1,17 +1,14 @@
-#!C:\ProgramData\Anaconda3\python.exe
-
 """Command-line application to interact with the database."""
 
 import sqlite3
 
-import app.data_access as da
-import config
+from app import constants, data_access as da
 
-print("Image Library v" + config.VERSION)
+print("Image Library v" + constants.VERSION)
 print(f"SQLite v{sqlite3.sqlite_version} - PySQLite v{sqlite3.version}")
 print("Type 'exit' to terminate the command-line.\n")
 
-dao = da.ImageDao(config.DATABASE)
+dao = da.ImageDao(constants.DATABASE)
 # noinspection PyProtectedMember
 connection = dao._connection
 
