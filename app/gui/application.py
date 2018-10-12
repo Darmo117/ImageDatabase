@@ -14,10 +14,12 @@ import app.queries as queries
 import app.utils as utils
 import config
 from app.logging import logger
-from .components import ImageList, TagTree
+from .components import TagTree
 from .dialogs import EditImageDialog, EditTagsDialog, AboutDialog
+from .image_list import ImageList, ImageListView, ThumbnailList
 
 
+# TODO ajouter une option pour charger ou non les miniatures
 class Application(QtW.QMainWindow):
     """Application's main class."""
 
@@ -46,11 +48,14 @@ class Application(QtW.QMainWindow):
         self._tag_tree.itemDoubleClicked.connect(self._tree_item_clicked)
         self._refresh_tree()
 
-        self._list = ImageList(drop_action=self._add_images)
-        self._list.selectionModel().selectionChanged.connect(self._list_selection_changed)
-        self._list.model().rowsInserted.connect(self._list_changed)
-        self._list.model().rowsRemoved.connect(self._list_changed)
-        self._list.itemDoubleClicked.connect(lambda i: self._edit_images([i.image]))
+        _list = ImageList(self._list_selection_changed, lambda image: self._edit_images([image]),
+                          drop_action=self._add_images)
+        thumb_list = ThumbnailList(self._list_selection_changed, lambda image: self._edit_images([image]))
+
+        self._tabbed_pane = QtW.QTabWidget()
+        self._tabbed_pane.addTab(_list, "List")
+        self._tabbed_pane.addTab(thumb_list, "Thumbnails")
+        self._tabbed_pane.currentChanged.connect(self._on_tab_changed)
 
         self._ok_btn = QtW.QPushButton("OK")
         self._ok_btn.clicked.connect(self._fetch_images)
@@ -70,7 +75,7 @@ class Application(QtW.QMainWindow):
         h_box.addWidget(self._ok_btn)
 
         v_box = QtW.QVBoxLayout()
-        v_box.addWidget(self._list)
+        v_box.addWidget(self._tabbed_pane)
         v_box.addLayout(h_box)
         v_box.setContentsMargins(0, 5, 5, 5)
 
@@ -112,7 +117,7 @@ class Application(QtW.QMainWindow):
         self._export_item.setShortcut("Ctrl+Shift+E")
         self._export_item.triggered.connect(self._export_images)
         self._export_item.setEnabled(False)
-        # file_menu.addAction(self._export_item)  # TEMP Hidden from official release
+        # file_menu.addAction(self._export_item)  # Hidden from official release
 
         file_menu.addSeparator()
 
@@ -149,7 +154,7 @@ class Application(QtW.QMainWindow):
         self._edit_images_item = QtW.QAction("Edit Images…", self)
         self._edit_images_item.setIcon(QtG.QIcon("app/icons/image_edit.png"))
         self._edit_images_item.setShortcut("Ctrl+E")
-        self._edit_images_item.triggered.connect(lambda: self._edit_images(self._list.selected_images()))
+        self._edit_images_item.triggered.connect(lambda: self._edit_images(self._current_tab().selected_images()))
         self._edit_images_item.setEnabled(False)
         edit_menu.addAction(self._edit_images_item)
 
@@ -204,7 +209,7 @@ class Application(QtW.QMainWindow):
 
     def _rename_image(self):
         """Opens the 'Rename Image' dialog then renames the selected image."""
-        images = self._list.selected_images()
+        images = self._current_tab().selected_images()
         if len(images) == 1:
             image = images[0]
             file_name, ext = os.path.splitext(os.path.basename(image.path))
@@ -219,7 +224,7 @@ class Application(QtW.QMainWindow):
 
     def _replace_image(self):
         """Opens the 'Replace Image' dialog then replaces the image with the selected one."""
-        images = self._list.selected_images()
+        images = self._current_tab().selected_images()
         if len(images) == 1:
             image = images[0]
             dialog = EditImageDialog(self, mode=EditImageDialog.REPLACE)
@@ -232,7 +237,7 @@ class Application(QtW.QMainWindow):
 
     def _export_images(self):
         """Opens a file saver then writes all images to a playlist file."""
-        images = self._list.get_images()
+        images = self._current_tab().get_images()
         if len(images) > 0:
             file = utils.open_playlist_saver(self)
             if file != utils.REJECTED:
@@ -260,7 +265,7 @@ class Application(QtW.QMainWindow):
 
     def _delete_images(self):
         """Deletes the selected images. User is asked to confirm the action."""
-        images = self._list.selected_images()
+        images = self._current_tab().selected_images()
 
         if len(images) > 0:
             if len(images) > 1:
@@ -316,28 +321,37 @@ class Application(QtW.QMainWindow):
             self._ok_btn.setEnabled(True)
             self._input_field.setEnabled(True)
         else:
-            self._list.clear()
             images = self._thread.fetched_images
             images.sort(key=lambda i: i.path)
-            for image in images:
-                self._list.add_image(image)
+            for i in range(2):
+                tab = self._tabbed_pane.widget(i)
+                tab.clear()
+                for image in images:
+                    tab.add_image(image)
             self._ok_btn.setEnabled(True)
             self._input_field.setEnabled(True)
             self._input_field.setFocus()
-
-    def _list_changed(self, _):
-        """Called when images list content changes."""
-        self._export_item.setEnabled(self._list.count() > 0)
+        self._update_menus()
 
     def _list_selection_changed(self, _):
-        """Called when the selection in images list changes."""
-        selection_size = len(self._list.selectedIndexes())
+        self._update_menus()
+
+    def _on_tab_changed(self, _):
+        self._update_menus()
+
+    def _update_menus(self):
+        selection_size = len(self._current_tab().selected_indexes())
         one_element = selection_size == 1
         list_not_empty = selection_size > 0
+        self._export_item.setEnabled(self._current_tab().count() > 0)
         self._rename_image_item.setEnabled(one_element)
         self._replace_image_item.setEnabled(one_element)
         self._edit_images_item.setEnabled(list_not_empty)
         self._delete_images_item.setEnabled(list_not_empty)
+
+    def _current_tab(self) -> ImageListView:
+        # noinspection PyTypeChecker
+        return self._tabbed_pane.currentWidget()
 
     @classmethod
     def run(cls):
@@ -366,6 +380,7 @@ class Application(QtW.QMainWindow):
             sys.exit(app.exec_())
 
 
+# TODO ajouter un avertissement si il y a trop d'images
 class _SearchThread(QtC.QThread):
     """This thread is used to search images from a query."""
 

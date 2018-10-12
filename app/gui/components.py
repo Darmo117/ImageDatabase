@@ -7,108 +7,6 @@ import PyQt5.QtWidgets as QtW
 
 import app.model as model
 import app.utils as utils
-import config
-
-
-class ImageItem(QtW.QListWidgetItem):
-    """An ImageItem is a list item that holds data of an image."""
-
-    def __init__(self, parent: QtW.QListWidget, image: model.Image):
-        """
-        Creates an item with the given image.
-
-        :param parent: The list this item belongs to.
-        :param image: The image to associate to this item.
-        """
-        super().__init__(parent=parent)
-        self.setText(image.path)
-        self._image = image
-
-    @property
-    def image(self) -> model.Image:
-        """Returns the image."""
-        return self._image
-
-
-class ImageList(QtW.QListWidget):
-    """This list implementation displays image paths."""
-
-    def __init__(self, parent: typ.Optional[QtW.QWidget] = None,
-                 drop_action: typ.Optional[typ.Callable[[typ.List[str]], None]] = None):
-        """
-        Creates an image list.
-
-        :param parent: The widget this list belongs to.
-        :param drop_action: The action to perform when files are dropped into this list.
-        """
-        super().__init__(parent)
-        self.setSelectionMode(QtW.QAbstractItemView.ExtendedSelection)
-        self.setAcceptDrops(True)
-        self._drop_action = drop_action
-
-    def add_image(self, image: model.Image):
-        """
-        Adds an image to this list.
-
-        :param image: The image to add.
-        """
-        self.addItem(ImageItem(self, image))
-
-    def get_images(self) -> typ.List[model.Image]:
-        """Returns all images from this list."""
-        # noinspection PyUnresolvedReferences
-        return [self.item(i).image for i in range(self.count())]
-
-    def selected_images(self) -> typ.List[model.Image]:
-        """Returns selected images."""
-        # noinspection PyUnresolvedReferences
-        return [self.item(i.row()).image for i in self.selectedIndexes()]
-
-    def dragEnterEvent(self, event: QtG.QDragEnterEvent):
-        ImageList._check_drag(event)
-
-    def dragMoveEvent(self, event: QtG.QDragMoveEvent):
-        ImageList._check_drag(event)
-
-    def dropEvent(self, event: QtG.QDropEvent):
-        if self._drop_action is not None:
-            self._drop_action(ImageList._get_urls(event))
-
-    @staticmethod
-    def _check_drag(event: QtG.QDragMoveEvent):
-        """
-        Checks the validity of files dragged into this list. If at least one file has an extension that is not in the
-        config.FILE_EXTENSION array, the event is cancelled.
-
-        :param event: The drag event.
-        """
-        if event.mimeData().hasUrls():
-            try:
-                urls = ImageList._get_urls(event)
-            except ValueError:
-                event.ignore()
-            else:
-                if all(map(lambda f: os.path.splitext(f)[1].lower()[1:] in config.FILE_EXTENSIONS, urls)):
-                    event.accept()
-                else:
-                    event.ignore()
-        else:
-            event.ignore()
-
-    @staticmethod
-    def _get_urls(event: QtG.QDropEvent) -> typ.List[str]:
-        """
-        Extracts all file URLs from the drop event.
-
-        :param event: The drop event.
-        :return: URLs of dropped files.
-        """
-        urls = []
-        for url in event.mimeData().urls():
-            if not url.isLocalFile():
-                raise ValueError("URL is not local!")
-            urls.append(url.toLocalFile())
-        return urls
 
 
 class TagTree(QtW.QTreeWidget):
@@ -165,10 +63,15 @@ class TagTree(QtW.QTreeWidget):
 class Canvas(QtW.QGraphicsView):
     """This class is a canvas in which images can be displayed."""
 
-    def __init__(self):
-        """Creates an empty canvas with no image."""
+    def __init__(self, show_errors: bool = True):
+        """
+        Creates an empty canvas with no image.
+
+        :param show_errors: If true a popup will appear when an image cannot be loaded.
+        """
         super().__init__()
         self._image = None
+        self._show_errors = show_errors
 
     def set_image(self, image_path: str):
         """
@@ -183,7 +86,8 @@ class Canvas(QtW.QGraphicsView):
             self.scene().addPixmap(self._image)
             self.fit()
         else:
-            utils.show_error("Could not load image!", parent=self)
+            if self._show_errors:
+                utils.show_error("Could not load image!", parent=self)
             self._image = None
             self.scene().addText("No image")
 
