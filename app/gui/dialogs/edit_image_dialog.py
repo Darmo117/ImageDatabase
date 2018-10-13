@@ -8,7 +8,7 @@ import PyQt5.QtGui as QtG
 import PyQt5.QtWidgets as QtW
 from PyQt5.QtCore import Qt
 
-from app import constants, data_access as da, model, utils
+from app import config, data_access as da, model, utils
 from .dialog_base import Dialog
 from .edit_tags_dialog import EditTagsDialog
 from ..components import Canvas, EllipsisLabel
@@ -48,7 +48,7 @@ class EditImageDialog(Dialog):
         self._tags_changed = False
         self._image_to_replace = None
 
-        self._dao = da.ImageDao(constants.DATABASE)
+        self._dao = da.ImageDao(config.CONFIG.database_path)
         self._tags_dialog = EditTagsDialog(parent=self, editable=False)
 
     def _init_body(self) -> QtW.QLayout:
@@ -193,7 +193,7 @@ class EditImageDialog(Dialog):
             destination = utils.open_image_chooser(self)
         else:
             destination = utils.choose_directory(self)
-        if destination != utils.REJECTED:
+        if destination is not None:
             if self._mode == EditImageDialog.REPLACE:
                 img = self._images[0]
                 if self._image_to_replace is None:
@@ -217,7 +217,7 @@ class EditImageDialog(Dialog):
         return [model.Tag.from_string(t) for t in self._tags_input.toPlainText().split()]
 
     def _ensure_no_compound_tags(self) -> bool:
-        tags_dao = da.TagsDao(database=constants.DATABASE)
+        tags_dao = da.TagsDao(database=config.CONFIG.database_path)
         for tag in self._tags_input.toPlainText().split():
             t = tag if tag[0].isalnum() or tag[0] == "_" else tag[1:]
             if tags_dao.get_tag_class(t) == model.CompoundTag:

@@ -8,9 +8,9 @@ import PyQt5.QtCore as QtC
 import PyQt5.QtGui as QtG
 import PyQt5.QtWidgets as QtW
 
-from .components import Canvas
+from .components import Canvas, EllipsisLabel
 from .flow_layout import ScrollingFlowWidget
-from .. import constants, model
+from .. import config, constants, model
 
 SelectionChangeListener = typ.Callable[[typ.Tuple[model.Image]], None]
 ItemDoubleClickListener = typ.Callable[[model.Image], None]
@@ -212,6 +212,7 @@ class ThumbnailList(ScrollingFlowWidget, ImageListView):
 
     def clear(self):
         self._flow_layout.clear()
+        self._last_index = -1
 
     def count(self) -> int:
         return self._flow_layout.count()
@@ -312,14 +313,18 @@ class _FlowImageItem(QtW.QWidget, ImageItem):
 
         self._image_view = Canvas(show_errors=False)
         self._image_view.set_image(self._image.path)
-        self._image_view.setFixedSize(QtC.QSize(200, 200))  # TODO permettre de changer la taille dynamiquement
+        size = config.CONFIG.thumbnail_size
+        self._image_view.setFixedSize(QtC.QSize(size, size))
         self._image_view.mousePressEvent = self.mousePressEvent
         self._image_view.mouseReleaseEvent = self.mouseReleaseEvent
         self._image_view.mouseDoubleClickEvent = self.mouseDoubleClickEvent
         layout.addWidget(self._image_view)
 
-        label = QtW.QLabel(os.path.basename(self._image.path))
+        text = os.path.basename(self._image.path)
+        label = EllipsisLabel(text)
         label.setAlignment(QtC.Qt.AlignCenter)
+        label.setFixedWidth(size)
+        label.setToolTip(text)
         layout.addWidget(label)
 
         self.setLayout(layout)

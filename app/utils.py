@@ -3,8 +3,9 @@ import typing as typ
 
 import PyQt5.QtGui as QtGui
 import PyQt5.QtWidgets as QtW
+from PyQt5.QtCore import Qt
 
-from app import constants
+from . import constants
 
 
 def show_info(message: str, title="Information", parent: QtW.QWidget = None):
@@ -57,10 +58,7 @@ def show_question(message: str, title: str = "Question", cancel: bool = False, p
     return QtW.QMessageBox.question(parent, title, message, mode)
 
 
-REJECTED = 1
-
-
-def show_input(message: str, title: str, text: str = "", parent: QtW.QWidget = None) -> typ.Union[str, int]:
+def show_text_input(message: str, title: str, text: str = "", parent: QtW.QWidget = None) -> typ.Optional[str]:
     """
     Shows an input popup.
 
@@ -68,13 +66,31 @@ def show_input(message: str, title: str, text: str = "", parent: QtW.QWidget = N
     :param title: Popup's title.
     :param text: Text to show in the input field.
     :param parent: Popup's parent.
-    :return: The typed text or REJECTED if the popup was cancelled.
+    :return: The typed text or None if the popup was cancelled.
     """
-    text, ok = QtW.QInputDialog.getText(parent, title, message, text=text)
-    return text if ok else REJECTED
+    text, ok = QtW.QInputDialog.getText(parent, title, message, text=text, flags=Qt.WindowCloseButtonHint)
+    return text if ok else None
 
 
-def open_image_chooser(parent: QtW.QWidget = None) -> typ.Union[str, int]:
+def show_int_input(message: str, title: str, value: int = 0, min_value: int = -2147483647, max_value: int = 2147483647,
+                   parent: QtW.QWidget = None) -> typ.Optional[int]:
+    """
+    Shows an input popup.
+
+    :param message: Popup's message.
+    :param title: Popup's title.
+    :param value: Value to show in the input field.
+    :param min_value: Minimum value.
+    :param max_value: Maximum value.
+    :param parent: Popup's parent.
+    :return: The typed text or None if the popup was cancelled.
+    """
+    value, ok = QtW.QInputDialog.getInt(parent, title, message, value=value, min=min_value, max=max_value,
+                                        flags=Qt.WindowCloseButtonHint)
+    return value if ok else None
+
+
+def open_image_chooser(parent: QtW.QWidget = None) -> typ.Optional[str]:
     """
     Opens a file chooser for images.
 
@@ -83,10 +99,10 @@ def open_image_chooser(parent: QtW.QWidget = None) -> typ.Union[str, int]:
     """
     exts = "; ".join(map(lambda e: "*." + e, constants.FILE_EXTENSIONS))
     file, _ = QtW.QFileDialog.getOpenFileName(caption="Open Image", filter=f"Image file ({exts})", parent=parent)
-    return file if file != "" else REJECTED
+    return file if file != "" else None
 
 
-def open_playlist_saver(parent: typ.Optional[QtW.QWidget] = None) -> typ.Union[str, int]:
+def open_playlist_saver(parent: typ.Optional[QtW.QWidget] = None) -> typ.Optional[str]:
     """
     Opens a file saver for playlists.
 
@@ -97,13 +113,10 @@ def open_playlist_saver(parent: typ.Optional[QtW.QWidget] = None) -> typ.Union[s
     file, _ = QtW.QFileDialog.getSaveFileName(caption="Save Playlist", filter=f"Playlist (*{ext})", parent=parent)
     if file != "" and not file.endswith(ext):
         file += ext
-    return file if file != "" else REJECTED
+    return file if file != "" else None
 
 
-NO_IMAGES = 2
-
-
-def open_directory_chooser(parent: QtW.QWidget = None) -> typ.Union[typ.List[str], int]:
+def open_directory_chooser(parent: QtW.QWidget = None) -> typ.Optional[typ.List[str]]:
     """
     Opens a directory chooser then returns all the files it contains.
 
@@ -115,11 +128,11 @@ def open_directory_chooser(parent: QtW.QWidget = None) -> typ.Union[typ.List[str
     if directory != "":
         files = filter(lambda f: os.path.splitext(f)[1].lower()[1:] in constants.FILE_EXTENSIONS, os.listdir(directory))
         files = list(map(lambda f: slashed(os.path.join(directory, f)), files))
-        return files if len(files) > 0 else NO_IMAGES
-    return REJECTED
+        return files
+    return None
 
 
-def choose_directory(parent: QtW.QWidget = None) -> typ.Union[str, int]:
+def choose_directory(parent: QtW.QWidget = None) -> typ.Optional[str]:
     """
     Opens a directory chooser.
 
@@ -127,7 +140,7 @@ def choose_directory(parent: QtW.QWidget = None) -> typ.Union[str, int]:
     :return: The selected directory or REJECTED if the chooser was cancelled.
     """
     directory = QtW.QFileDialog.getExistingDirectory(caption="Choose Directory", parent=parent)
-    return directory if directory != "" else REJECTED
+    return directory if directory != "" else None
 
 
 def slashed(path: str) -> str:
@@ -160,14 +173,3 @@ def negate(color: QtGui.QColor) -> QtGui.QColor:
     :return: The negated color.
     """
     return QtGui.QColor(255 - color.red(), 255 - color.green(), 255 - color.blue())
-
-
-if __name__ == '__main__':
-    from PyQt5.QtWidgets import QApplication
-
-    app = QApplication([])
-    # show_info("Info")
-    # show_warning("Hey!")
-    # show_error("Oh no!")
-    # show_question("???", cancel=True)
-    app.exec_()

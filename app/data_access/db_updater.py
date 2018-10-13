@@ -1,12 +1,12 @@
 import os
 import sqlite3
 
-from .. import constants
+from .. import config, constants
 
 
 def update_if_needed():
     """Updates the database if it needs to be."""
-    db_file = constants.DATABASE
+    db_file = config.CONFIG.database_path
     if os.path.exists(db_file):
         connection = sqlite3.connect(db_file)
         try:

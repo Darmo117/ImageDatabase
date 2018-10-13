@@ -2,13 +2,13 @@
 
 import sqlite3
 
-from app import constants, data_access as da
+from app import config, constants, data_access as da
 
 print("Image Library v" + constants.VERSION)
 print(f"SQLite v{sqlite3.sqlite_version} - PySQLite v{sqlite3.version}")
 print("Type 'exit' to terminate the command-line.\n")
 
-dao = da.ImageDao(constants.DATABASE)
+dao = da.ImageDao(config.CONFIG.database_path)
 # noinspection PyProtectedMember
 connection = dao._connection
 

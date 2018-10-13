@@ -22,10 +22,21 @@ for file in TO_COPY:
 print("Editing config...")
 with open("app/constants.py") as f:
     lines = f.readlines()
-with open(BUILD_DIR + "app/constants.py", "w") as f:
-    for line in lines:
-        if line.startswith("DATABASE"):
-            line = 'DATABASE = "library.sqlite3"\n'
-        f.write(line)
+with open(BUILD_DIR + "config.ini", "w") as f:
+    contents = """
+# You can edit this file to change some options.
+# Changing any option while the application is running will have no immediate
+# effect, you'll have to restart it in order to apply the changes.
+
+[Database]
+# Path to the database file.
+File = library.sqlite3
+
+# These options should be modified from the application.
+[Images]
+LoadThumbnails = true
+ThumbnailSize = 200
+    """.strip()
+    f.write(contents)
 
 print("Done.")

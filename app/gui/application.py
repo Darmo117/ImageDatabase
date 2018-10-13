@@ -11,19 +11,18 @@ import PyQt5.QtWidgets as QtW
 from .components import TagTree
 from .dialogs import EditImageDialog, EditTagsDialog, AboutDialog
 from .image_list import ImageList, ImageListView, ThumbnailList
-from .. import constants, data_access as da, model, queries, utils
+from .. import config, constants, data_access as da, model, queries, utils
 from ..logging import logger
 
 
-# TODO ajouter une option pour charger ou non les miniatures
 class Application(QtW.QMainWindow):
     """Application's main class."""
 
     def __init__(self):
         super().__init__()
 
-        self._dao = da.ImageDao(constants.DATABASE)
-        self._tags_dao = da.TagsDao(constants.DATABASE)
+        self._dao = da.ImageDao(config.CONFIG.database_path)
+        self._tags_dao = da.TagsDao(config.CONFIG.database_path)
 
         self._init_ui()
         utils.center(self)
@@ -88,6 +87,8 @@ class Application(QtW.QMainWindow):
 
         self._input_field.setFocus()
 
+        self._update_menus()
+
     # noinspection PyUnresolvedReferences
     def _init_menu(self):
         """Initializes the menu bar."""
@@ -112,7 +113,6 @@ class Application(QtW.QMainWindow):
         self._export_item = QtW.QAction("E&xport As Playlist…", self)
         self._export_item.setShortcut("Ctrl+Shift+E")
         self._export_item.triggered.connect(self._export_images)
-        self._export_item.setEnabled(False)
         # file_menu.addAction(self._export_item)  # Hidden from official release
 
         file_menu.addSeparator()
@@ -137,29 +137,36 @@ class Application(QtW.QMainWindow):
         self._rename_image_item.setIcon(QtG.QIcon("app/icons/textfield_rename.png"))
         self._rename_image_item.setShortcut("Ctrl+R")
         self._rename_image_item.triggered.connect(self._rename_image)
-        self._rename_image_item.setEnabled(False)
         edit_menu.addAction(self._rename_image_item)
 
         self._replace_image_item = QtW.QAction("&Replace Image…", self)
         self._replace_image_item.setIcon(QtG.QIcon("app/icons/images.png"))
         self._replace_image_item.setShortcut("Ctrl+Shift+R")
         self._replace_image_item.triggered.connect(self._replace_image)
-        self._replace_image_item.setEnabled(False)
         edit_menu.addAction(self._replace_image_item)
 
         self._edit_images_item = QtW.QAction("Edit Images…", self)
         self._edit_images_item.setIcon(QtG.QIcon("app/icons/image_edit.png"))
         self._edit_images_item.setShortcut("Ctrl+E")
         self._edit_images_item.triggered.connect(lambda: self._edit_images(self._current_tab().selected_images()))
-        self._edit_images_item.setEnabled(False)
         edit_menu.addAction(self._edit_images_item)
 
         self._delete_images_item = QtW.QAction("Delete Images", self)
         self._delete_images_item.setIcon(QtG.QIcon("app/icons/image_delete.png"))
         self._delete_images_item.setShortcut("Delete")
         self._delete_images_item.triggered.connect(self._delete_images)
-        self._delete_images_item.setEnabled(False)
         edit_menu.addAction(self._delete_images_item)
+
+        options_menu = menubar.addMenu("&Options")
+
+        # noinspection PyArgumentList
+        self._load_thumbs_item = QtW.QAction("&Load Thumbnails", checkable=True, checked=config.CONFIG.load_thumbnails)
+        self._load_thumbs_item.triggered.connect(self._load_thumbs_item_clicked)
+        options_menu.addAction(self._load_thumbs_item)
+
+        thumb_size_item = QtW.QAction("Thumbnail &Size…", self)
+        thumb_size_item.triggered.connect(self._thumb_size_item_clicked)
+        options_menu.addAction(thumb_size_item)
 
         help_menu = menubar.addMenu("&Help")
 
@@ -178,16 +185,17 @@ class Application(QtW.QMainWindow):
     def _add_image(self):
         """Opens a file chooser then add the selected image to the database."""
         file = utils.open_image_chooser(self)
-        if file != utils.REJECTED:
+        if file is not None:
             self._add_images([file])
 
     def _add_directory(self):
         """Opens a file chooser then add the images from the selected directory to the database."""
         images = utils.open_directory_chooser(self)
-        if images == utils.NO_IMAGES:
-            utils.show_info("No images in this directory!", parent=self)
-        elif images != utils.REJECTED:
-            self._add_images(images)
+        if images is not None:
+            if len(images) == 0:
+                utils.show_info("No images in this directory!", parent=self)
+            else:
+                self._add_images(images)
 
     def _add_images(self, images: typ.List[str]):
         """Opens the 'Add Images' dialog then adds the images to the database. Checks for duplicates."""
@@ -209,8 +217,8 @@ class Application(QtW.QMainWindow):
         if len(images) == 1:
             image = images[0]
             file_name, ext = os.path.splitext(os.path.basename(image.path))
-            text = utils.show_input("Enter the new name", "New Name", text=file_name, parent=self)
-            if text != utils.REJECTED and file_name != text:
+            text = utils.show_text_input("Enter the new name", "New Name", text=file_name, parent=self)
+            if text is not None and file_name != text:
                 new_path = utils.slashed(os.path.join(os.path.dirname(image.path), text + ext))
                 if not self._dao.update_image_path(image.id, new_path):
                     utils.show_error("Could not rename image!", parent=self)
@@ -236,7 +244,7 @@ class Application(QtW.QMainWindow):
         images = self._current_tab().get_images()
         if len(images) > 0:
             file = utils.open_playlist_saver(self)
-            if file != utils.REJECTED:
+            if file is not None:
                 da.write_playlist(file, images)
                 utils.show_info("Exported playlist!", parent=self)
 
@@ -310,6 +318,8 @@ class Application(QtW.QMainWindow):
             self._thread.finished.connect(self._on_fetch_done)
             self._thread.start()
 
+    _THRESHOLD = 50
+
     def _on_fetch_done(self):
         """Called when images searching is done."""
         if self._thread.failed:
@@ -319,15 +329,40 @@ class Application(QtW.QMainWindow):
         else:
             images = self._thread.fetched_images
             images.sort(key=lambda i: i.path)
+
+            if config.CONFIG.load_thumbnails:
+                load_thumbs = True
+                if len(images) > self._THRESHOLD:
+                    button = utils.show_question(f"Query returned more than {self._THRESHOLD} images, "
+                                                 f"thumbnails will be disabled.\nDo you want to load them anyway?",
+                                                 title="Load images?", parent=self)
+                    if button != QtW.QMessageBox.Yes:
+                        load_thumbs = False
+            else:
+                load_thumbs = False
+
             for i in range(2):
                 tab = self._tabbed_pane.widget(i)
                 tab.clear()
-                for image in images:
-                    tab.add_image(image)
+                if load_thumbs and config.CONFIG.load_thumbnails or not isinstance(tab, ThumbnailList):
+                    for image in images:
+                        tab.add_image(image)
             self._ok_btn.setEnabled(True)
             self._input_field.setEnabled(True)
             self._input_field.setFocus()
         self._update_menus()
+
+    def _load_thumbs_item_clicked(self):
+        config.CONFIG.load_thumbnails = self._load_thumbs_item.isChecked()
+        config.save_config()
+
+    def _thumb_size_item_clicked(self):
+        value = utils.show_int_input("Enter the new size", "Thumbnails Size", value=config.CONFIG.thumbnail_size,
+                                     min_value=50, max_value=400, parent=self)
+        if value is not None:
+            config.CONFIG.thumbnail_size = value
+            config.save_config()
+            self._fetch_and_refresh()
 
     def _list_selection_changed(self, _):
         self._update_menus()
@@ -338,7 +373,7 @@ class Application(QtW.QMainWindow):
     def _update_menus(self):
         selection_size = len(self._current_tab().selected_indexes())
         one_element = selection_size == 1
-        list_not_empty = selection_size > 0
+        list_not_empty = selection_size != 0
         self._export_item.setEnabled(self._current_tab().count() > 0)
         self._rename_image_item.setEnabled(one_element)
         self._replace_image_item.setEnabled(one_element)
@@ -353,30 +388,34 @@ class Application(QtW.QMainWindow):
     def run(cls):
         """Run an instance of this Application class."""
         try:
-            # Arbitrary string to display app icon in the taskbar on Windows.
             if os.name == "nt":
+                # Arbitrary string to display app icon in the taskbar on Windows.
                 ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID("image_library")
+
+            config.load_config()
+
             app = QtW.QApplication(sys.argv)
 
             da.update_if_needed()
 
             # Initialize tag types
-            tags_dao = da.TagsDao(constants.DATABASE)
+            tags_dao = da.TagsDao(config.CONFIG.database_path)
             types = tags_dao.get_all_types()
             if types is None:
                 utils.show_error("Could not load data! Shutting down.")
-                sys.exit(1)
+                sys.exit(-1)
             model.TagType.init(types)
             tags_dao.close()
 
             cls().show()
         except BaseException as e:
             logger.exception(e)
+            print(e, file=sys.stderr)
+            sys.exit(-2)
         else:
             sys.exit(app.exec_())
 
 
-# TODO ajouter un avertissement si il y a trop d'images
 class _SearchThread(QtC.QThread):
     """This thread is used to search images from a query."""
 
@@ -394,7 +433,7 @@ class _SearchThread(QtC.QThread):
         self._error = None
 
     def run(self):
-        images_dao = da.ImageDao(constants.DATABASE)
+        images_dao = da.ImageDao(config.CONFIG.database_path)
         self._preprocess()
         try:
             expr = queries.query_to_sympy(self._query, simplify=False)
@@ -419,7 +458,7 @@ class _SearchThread(QtC.QThread):
             else:
                 break
 
-        tags_dao = da.TagsDao(constants.DATABASE)
+        tags_dao = da.TagsDao(config.CONFIG.database_path)
         compound_tags: typ.List[model.CompoundTag] = tags_dao.get_all_tags(tag_class=model.CompoundTag)
         previous_query = ""
         depth = 0
