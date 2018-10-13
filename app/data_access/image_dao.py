@@ -190,7 +190,8 @@ class ImageDao(DAO):
             subs = [ImageDao._get_query(arg) for arg in sympy_expr.args]
             return "SELECT id, path FROM (" + "\nINTERSECT\n".join(subs) + ")"
         elif isinstance(sympy_expr, sp.Not):
-            return "SELECT id, path FROM images EXCEPT\n" + ImageDao._get_query(sympy_expr.args[0])
+            return "SELECT id, path FROM (SELECT id, path FROM images EXCEPT\n" + \
+                   ImageDao._get_query(sympy_expr.args[0]) + ")"
         elif sympy_expr == sp.true:
             return "SELECT id, path FROM images"
         elif sympy_expr == sp.false:
