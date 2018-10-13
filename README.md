@@ -68,7 +68,7 @@ From version 3.2 and forward, database files are automatically updated if needed
 To come…
 
 ## Requirements
-- Python 3.6+ (Will *not* work with older 3.x versions)
+- Python 3.7+ (Will *not* work with older versions)
 - [PyQt5](http://pyqt.sourceforge.net/Docs/PyQt5/) (GUI)
 - sqlite3 (Database; generally installed with Python)
 - [Lark](https://github.com/erezsh/lark) (Queries analysis)
