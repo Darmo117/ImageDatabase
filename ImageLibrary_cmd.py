@@ -1,12 +1,19 @@
 """Command-line application to interact with the database."""
 
 import sqlite3
+import sys
 
 from app import config, constants, data_access as da
 
 print("Image Library v" + constants.VERSION)
 print(f"SQLite v{sqlite3.sqlite_version} - PySQLite v{sqlite3.version}")
 print("Type 'exit' to terminate the command-line.\n")
+
+try:
+    config.load_config()
+except config.ConfigError as e:
+    print(e, file=sys.stderr)
+    sys.exit(-1)
 
 dao = da.ImageDao(config.CONFIG.database_path)
 # noinspection PyProtectedMember
