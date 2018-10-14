@@ -90,12 +90,11 @@ def query_to_sympy(query: str, simplify: bool = True) -> sp.Basic:
     if _transformer is None:
         _transformer = _TreeToBoolean()
 
-    # noinspection PyUnresolvedReferences
     try:
         return _transformer.get_sympy(query, simplify=simplify)
-    except lark.common.ParseError as e:
+    except lark.ParseError as e:
         if "[" in e.args[0]:  # Lark parse errors are not very readable, just send a simple error message.
             raise ValueError("Syntax error!")
         raise ValueError(e)
-    except lark.lexer.UnexpectedInput as e:
-        raise ValueError(f"Illegal character '{e.context[0]}'!")
+    except lark.UnexpectedInput as e:
+        raise ValueError(f"Illegal character {repr(query[e.pos_in_stream])}!")
