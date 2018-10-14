@@ -300,10 +300,11 @@ class _FlowImageItem(QtW.QWidget, ImageItem):
 
     @selected.setter
     def selected(self, value: bool):
-        """Toggles selection. Border will turn blue whenever this item is selected."""
+        """Toggles selection. Border and background will turn blue whenever this item is selected."""
         self._selected = value
-        color = "blue" if self._selected else "white"
-        self._image_view.setStyleSheet(f"border: 2px solid {color}")
+        color = "#84acdd" if self._selected else "#f0f0f0"
+        bg_color = "#ddecff" if value else "#f0f0f0"
+        self.setStyleSheet(f"border: 1px solid {color}; background-color: {bg_color}")
 
     def mousePressEvent(self, event):
         self._click_count = 1
