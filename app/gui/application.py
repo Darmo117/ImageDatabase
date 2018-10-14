@@ -24,6 +24,7 @@ class Application(QtW.QMainWindow):
         self._dao = da.ImageDao(config.CONFIG.database_path)
         self._tags_dao = da.TagsDao(config.CONFIG.database_path)
 
+        self.setAcceptDrops(True)
         self._init_ui()
         utils.center(self)
 
@@ -43,8 +44,7 @@ class Application(QtW.QMainWindow):
         self._tag_tree.itemDoubleClicked.connect(self._tree_item_clicked)
         self._refresh_tree()
 
-        _list = ImageList(self._list_selection_changed, lambda image: self._edit_images([image]),
-                          drop_action=self._add_images)
+        _list = ImageList(self._list_selection_changed, lambda image: self._edit_images([image]))
         thumb_list = ThumbnailList(self._list_selection_changed, lambda image: self._edit_images([image]))
 
         self._tabbed_pane = QtW.QTabWidget()
@@ -383,6 +383,51 @@ class Application(QtW.QMainWindow):
     def _current_tab(self) -> ImageListView:
         # noinspection PyTypeChecker
         return self._tabbed_pane.currentWidget()
+
+    def dragEnterEvent(self, event: QtG.QDragEnterEvent):
+        self._check_drag(event)
+
+    def dragMoveEvent(self, event: QtG.QDragMoveEvent):
+        self._check_drag(event)
+
+    def dropEvent(self, event: QtG.QDropEvent):
+        self._add_images(self._get_urls(event))
+
+    @staticmethod
+    def _check_drag(event: QtG.QDragMoveEvent):
+        """
+        Checks the validity of files dragged into this list. If at least one file has an extension that is not in the
+        config.FILE_EXTENSION array, the event is cancelled.
+
+        :param event: The drag event.
+        """
+        if event.mimeData().hasUrls():
+            try:
+                urls = Application._get_urls(event)
+            except ValueError:
+                event.ignore()
+            else:
+                if all(map(lambda f: os.path.splitext(f)[1].lower()[1:] in constants.FILE_EXTENSIONS, urls)):
+                    event.accept()
+                else:
+                    event.ignore()
+        else:
+            event.ignore()
+
+    @staticmethod
+    def _get_urls(event: QtG.QDropEvent) -> typ.List[str]:
+        """
+        Extracts all file URLs from the drop event.
+
+        :param event: The drop event.
+        :return: URLs of dropped files.
+        """
+        urls = []
+        for url in event.mimeData().urls():
+            if not url.isLocalFile():
+                raise ValueError("URL is not local!")
+            urls.append(url.toLocalFile())
+        return urls
 
     @classmethod
     def run(cls):

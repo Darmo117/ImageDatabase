@@ -10,9 +10,9 @@ import PyQt5.QtWidgets as QtW
 
 from .components import Canvas, EllipsisLabel
 from .flow_layout import ScrollingFlowWidget
-from .. import config, constants, model
+from .. import config, model
 
-SelectionChangeListener = typ.Callable[[typ.Tuple[model.Image]], None]
+SelectionChangeListener = typ.Callable[[typ.Iterable[model.Image]], None]
 ItemDoubleClickListener = typ.Callable[[model.Image], None]
 
 
@@ -81,24 +81,22 @@ class ImageListView:
 class ImageList(QtW.QListWidget, ImageListView):
     """This list displays image paths."""
 
-    def __init__(self, selection_change_listener: SelectionChangeListener,
-                 item_double_click_listener: ItemDoubleClickListener,
-                 parent: QtW.QWidget = None,
-                 drop_action: typ.Callable[[typ.List[str]], None] = None):
+    def __init__(self, on_selection_changed: SelectionChangeListener,
+                 on_item_double_clicked: ItemDoubleClickListener,
+                 parent: QtW.QWidget = None):
         """
         Creates an image list.
 
+        :param on_selection_changed: Function called when the selection changes.
+        :param on_item_double_clicked: Function called when an item is double-clicked.
         :param parent: The widget this list belongs to.
-        :param drop_action: The action to perform when files are dropped into this list.
         """
         super().__init__(parent)
         self.setSelectionMode(QtW.QAbstractItemView.ExtendedSelection)
-        self.setAcceptDrops(True)
-        # noinspection PyUnresolvedReferences, PyTypeChecker
-        self.selectionModel().selectionChanged.connect(lambda _: selection_change_listener(self.selected_images()))
         # noinspection PyUnresolvedReferences
-        self.itemDoubleClicked.connect(lambda i: item_double_click_listener(i.image))
-        self._drop_action = drop_action
+        self.selectionModel().selectionChanged.connect(lambda _: on_selection_changed(self.selected_images()))
+        # noinspection PyUnresolvedReferences
+        self.itemDoubleClicked.connect(lambda i: on_item_double_clicked(i.image))
 
     def selected_items(self) -> typ.List[ImageItem]:
         return [self.item(i.row()) for i in self.selectedIndexes()]
@@ -117,52 +115,6 @@ class ImageList(QtW.QListWidget, ImageListView):
 
     def add_image(self, image: model.Image):
         self.addItem(_ImageListItem(self, image))
-
-    def dragEnterEvent(self, event: QtG.QDragEnterEvent):
-        self._check_drag(event)
-
-    def dragMoveEvent(self, event: QtG.QDragMoveEvent):
-        self._check_drag(event)
-
-    def dropEvent(self, event: QtG.QDropEvent):
-        if self._drop_action is not None:
-            self._drop_action(self._get_urls(event))
-
-    @staticmethod
-    def _check_drag(event: QtG.QDragMoveEvent):
-        """
-        Checks the validity of files dragged into this list. If at least one file has an extension that is not in the
-        config.FILE_EXTENSION array, the event is cancelled.
-
-        :param event: The drag event.
-        """
-        if event.mimeData().hasUrls():
-            try:
-                urls = ImageList._get_urls(event)
-            except ValueError:
-                event.ignore()
-            else:
-                if all(map(lambda f: os.path.splitext(f)[1].lower()[1:] in constants.FILE_EXTENSIONS, urls)):
-                    event.accept()
-                else:
-                    event.ignore()
-        else:
-            event.ignore()
-
-    @staticmethod
-    def _get_urls(event: QtG.QDropEvent) -> typ.List[str]:
-        """
-        Extracts all file URLs from the drop event.
-
-        :param event: The drop event.
-        :return: URLs of dropped files.
-        """
-        urls = []
-        for url in event.mimeData().urls():
-            if not url.isLocalFile():
-                raise ValueError("URL is not local!")
-            urls.append(url.toLocalFile())
-        return urls
 
 
 class _ImageListItem(QtW.QListWidgetItem, ImageItem):
@@ -186,6 +138,13 @@ class ThumbnailList(ScrollingFlowWidget, ImageListView):
     def __init__(self, on_selection_changed: SelectionChangeListener,
                  on_item_double_clicked: ItemDoubleClickListener,
                  parent: QtW.QWidget = None):
+        """
+        Creates an image list.
+
+        :param on_selection_changed: Function called when the selection changes.
+        :param on_item_double_clicked: Function called when an item is double-clicked.
+        :param parent: The widget this list belongs to.
+        """
         super().__init__(parent)
         self._on_selection_changed = on_selection_changed
         self._on_item_double_clicked = on_item_double_clicked
@@ -229,7 +188,6 @@ class ThumbnailList(ScrollingFlowWidget, ImageListView):
         if key == QtC.Qt.Key_A and modifiers == QtC.Qt.ControlModifier:
             for item in self._flow_layout.items:
                 item.selected = True
-            # noinspection PyTypeChecker
             self._on_selection_changed(self.selected_images())
 
     def _item_clicked(self, item: _FlowImageItem):
