@@ -243,7 +243,7 @@ class ThumbnailList(ScrollingFlowWidget, ImageListView):
         self._on_selection_changed(self.selected_images())
 
 
-class _FlowImageItem(QtW.QWidget, ImageItem):
+class _FlowImageItem(QtW.QFrame, ImageItem):
     """
     An widget that displays an image and can be selected.
     Used by the ThumbnailList class to display images returned by the user query.
@@ -268,6 +268,7 @@ class _FlowImageItem(QtW.QWidget, ImageItem):
         self._on_double_click = on_double_click
 
         layout = QtW.QVBoxLayout()
+        layout.setContentsMargins(2, 2, 2, 2)
 
         self._image_view = Canvas(show_errors=False)
         self._image_view.set_image(self._image.path)
@@ -303,17 +304,17 @@ class _FlowImageItem(QtW.QWidget, ImageItem):
         """Toggles selection. Border and background will turn blue whenever this item is selected."""
         self._selected = value
         color = "#84acdd" if self._selected else "#f0f0f0"
-        bg_color = "#ddecff" if value else "#f0f0f0"
-        self.setStyleSheet(f"border: 1px solid {color}; background-color: {bg_color}")
+        bg_color = "#ddecff" if self._selected else "#f0f0f0"
+        self.setStyleSheet(f"_FlowImageItem {{ border: 1px solid {color}; background-color: {bg_color} }}")
 
-    def mousePressEvent(self, event):
+    def mousePressEvent(self, _):
         self._click_count = 1
 
-    def mouseDoubleClickEvent(self, event):
+    def mouseDoubleClickEvent(self, _):
         self._click_count = 2
         self._on_double_click(self)
 
-    def mouseReleaseEvent(self, event):
+    def mouseReleaseEvent(self, _):
         if self._click_count == 1:
             # Delays the click action, waiting for an eventual second click.
             QtC.QTimer.singleShot(QtW.QApplication.instance().doubleClickInterval() // 4,

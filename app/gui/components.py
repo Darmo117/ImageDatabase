@@ -84,11 +84,15 @@ class Canvas(QtW.QGraphicsView):
             self._image = QtG.QPixmap(image_path, format=ext)
             self.scene().addPixmap(self._image)
             self.fit()
+            border = 0
         else:
             if self._show_errors:
                 utils.show_error("Could not load image!", parent=self)
             self._image = None
             self.scene().addText("No image")
+            border = "1px solid gray"
+
+        self.setStyleSheet(f"border: {border}; background-color: transparent")
 
     def fit(self):
         """Fits the image into the canvas."""
