@@ -270,7 +270,7 @@ class _FlowImageItem(QtW.QFrame, ImageItem):
         layout = QtW.QVBoxLayout()
         layout.setContentsMargins(2, 2, 2, 2)
 
-        self._image_view = Canvas(show_errors=False)
+        self._image_view = Canvas(keep_border=False, show_errors=False)
         # Allows file drag-and-drop
         self._image_view.dragEnterEvent = self.dragEnterEvent
         self._image_view.dragMoveEvent = self.dragMoveEvent

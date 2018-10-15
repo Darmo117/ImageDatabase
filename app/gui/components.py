@@ -62,14 +62,17 @@ class TagTree(QtW.QTreeWidget):
 class Canvas(QtW.QGraphicsView):
     """This class is a canvas in which images can be displayed."""
 
-    def __init__(self, show_errors: bool = True):
+    def __init__(self, keep_border: bool = True, show_errors: bool = True):
         """
         Creates an empty canvas with no image.
 
+        :param keep_border: If true the default border and bakground will be kept;
+                            otherwise they will both be transparent unless there is no image.
         :param show_errors: If true a popup will appear when an image cannot be loaded.
         """
         super().__init__()
         self._image = None
+        self._keep_border = keep_border
         self._show_errors = show_errors
 
     def set_image(self, image_path: str):
@@ -92,7 +95,8 @@ class Canvas(QtW.QGraphicsView):
             self.scene().addText("No image")
             border = "1px solid gray"
 
-        self.setStyleSheet(f"border: {border}; background-color: transparent")
+        if not self._keep_border:
+            self.setStyleSheet(f"border: {border}; background-color: transparent")
 
     def fit(self):
         """Fits the image into the canvas."""
