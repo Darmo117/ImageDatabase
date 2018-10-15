@@ -285,11 +285,9 @@ class EditImageDialog(Dialog):
         :param new_path: If present the image will be moved in this directory.
         :return: True if everything went well.
         """
-        ok = True
-        if new_path is not None:
+        ok = self._dao.add_image(image.path if new_path is None else new_path, tags)
+        if new_path is not None and ok:
             ok = self._move_image(image.path, new_path)
-        if ok:
-            ok = self._dao.add_image(image.path if new_path is None else new_path, tags)
         return ok
 
     def _edit(self, image: model.Image, tags: typ.List[model.Tag], new_path: typ.Optional[str]) -> bool:
@@ -301,13 +299,14 @@ class EditImageDialog(Dialog):
         :param new_path: If present the image will be moved in this directory.
         :return: True if everything went well.
         """
-        ok = True
-        if new_path is not None:
-            ok = self._move_image(image.path, new_path)
-            if ok:
-                ok = self._dao.update_image_path(image.id, new_path)
-        if ok and self._tags_changed:
+        if self._tags_changed:
             ok = self._dao.update_image_tags(image.id, tags)
+        else:
+            ok = True
+        if ok and new_path is not None:
+            ok = self._dao.update_image_path(image.id, new_path)
+            if ok:
+                ok = self._move_image(image.path, new_path)
         return ok
 
     def _replace(self) -> bool:
