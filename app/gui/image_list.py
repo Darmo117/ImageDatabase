@@ -271,6 +271,10 @@ class _FlowImageItem(QtW.QFrame, ImageItem):
         layout.setContentsMargins(2, 2, 2, 2)
 
         self._image_view = Canvas(show_errors=False)
+        # Allows file drag-and-drop
+        self._image_view.dragEnterEvent = self.dragEnterEvent
+        self._image_view.dragMoveEvent = self.dragMoveEvent
+        self._image_view.dropEvent = self.dropEvent
         self._image_view.set_image(self._image.path)
         size = config.CONFIG.thumbnail_size
         self._image_view.setFixedSize(QtC.QSize(size, size))
