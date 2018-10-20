@@ -165,7 +165,7 @@ class EditImageDialog(Dialog):
             self._tags_input.clear()
             tags = []
             if image.id in self._tags:
-                tags = [tag.raw_label() for tag in self._tags[image.id]]
+                tags = sorted([tag.raw_label() for tag in self._tags[image.id]])
             self._tags_input.append(" ".join(tags))
         if self._mode == EditImageDialog.REPLACE:
             self._tags_input.setDisabled(True)
