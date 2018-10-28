@@ -49,7 +49,7 @@ class EditImageDialog(Dialog):
         self._image_to_replace = None
 
         self._dao = da.ImageDao(config.CONFIG.database_path)
-        self._tags_dialog = EditTagsDialog(parent=self, editable=False)
+        self._tags_dialog = None
 
     def _init_body(self) -> QtW.QLayout:
         self.setGeometry(0, 0, 400, 400)
@@ -120,6 +120,8 @@ class EditImageDialog(Dialog):
         return []
 
     def _show_tags_dialog(self):
+        if self._tags_dialog is None:
+            self._tags_dialog = EditTagsDialog(parent=self, editable=False)
         self._tags_dialog.show()
 
     def _open_image_directory(self):
@@ -340,5 +342,6 @@ class EditImageDialog(Dialog):
         return f"{self._TITLES[self._mode]} Image ({self._index + 1}/{len(self._images)})"
 
     def closeEvent(self, event: QtG.QCloseEvent):
-        self._tags_dialog.close()
+        if self._tags_dialog is not None:
+            self._tags_dialog.close()
         super().closeEvent(event)
