@@ -142,7 +142,7 @@ class EditImageDialog(Dialog):
         :param tags: The tags for each image.
         """
         self._index = 0
-        self._images = images
+        self._images = sorted(images)
         self._tags = tags
         self._set(self._index)
 

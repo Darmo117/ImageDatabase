@@ -2,40 +2,32 @@ from __future__ import annotations
 
 import re
 import typing as typ
+from dataclasses import dataclass
 
 import PyQt5.QtGui as QtG
 
 
+@dataclass(frozen=True, eq=True)
 class Image:
     """This class represents an image."""
+    id: int
+    path: str
 
-    def __init__(self, ident: int, path: str):
-        """
-        Creates an image.
-
-        :param ident: Image's SQLite ID.
-        :param path: Image's path.
-        """
-        self._id = ident
-        self._path = path
-
-    @property
-    def id(self) -> int:
-        """Return this image's SQLite ID."""
-        return self._id
-
-    @property
-    def path(self) -> str:
-        """Returns this image's path."""
-        return self._path
-
-    def __repr__(self):
-        return "Image[id=" + str(self._id) + ", path=" + self._path + "]"
-
-    def __eq__(self, other):
+    def __lt__(self, other):
         if not isinstance(other, Image):
-            return False
-        return self._id == other.id and self._path == other.path
+            raise ValueError(f"Expected Image, got {type(other)}")
+        return self.path < other.path
+
+    def __gt__(self, other):
+        if not isinstance(other, Image):
+            raise ValueError(f"Expected Image, got {type(other)}")
+        return self.path > other.path
+
+    def __le__(self, other):
+        return self == other or self < other
+
+    def __ge__(self, other):
+        return self == other or self > other
 
 
 class TagType:
