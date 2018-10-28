@@ -19,9 +19,7 @@ for file in TO_COPY:
     else:
         shutil.copy(file, dest)
 
-print("Editing config...")
-with open("app/constants.py") as f:
-    lines = f.readlines()
+print("Creating config...")
 with open(BUILD_DIR + "config.ini", "w") as f:
     contents = """
 # You can edit this file to change some options.

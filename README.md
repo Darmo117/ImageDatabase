@@ -12,8 +12,25 @@ Image Library let's you manage images by associating tags to them.
 ## Installation
 Image Library is *not* available on PyPI. Might be some day… I dunno… When I take the time to look into it…
 
+### Until 3.1
 You need to build the application in order to use it. To do so, run `build.py` and wait for it to complete.
 Once it is done, go into `build/` and copy the application directory (`Image-Library/`) where you want to.
+
+### From 3.2
+You just need to download the attached zip file in the release then unpack it where you want.
+
+## Updating
+Delete all files and directories except database (`library.sqlite3`) and config (`config.ini`) files.
+Database file name can be different if you changed it in the config file.
+Once done, follow [installation instructions](#Installation).
+
+When updating from 2.0 to 3.0, run the following command to update your database:
+```
+python ./db_converters/v2.0_to_v3.0.py library.sqlite3
+```
+A backup of the old version will be created under the name `library-old_2.0.sqlite3`.
+
+From version 3.2 and forward, database files are automatically updated and a back up is created.
 
 ## Usage
 ### Main application
@@ -44,25 +61,19 @@ The result is the union of both image sets.
 The application also supports compound tags, i.e. tags defined from tag queries (e.g.: tag `animal` could be defined as
 `cat + dog + bird`).
 
-### Command Line
+### Command Line Tool
 Run `ImageLibrary_cmd.py` to start an SQLite command line to interact directly with the database.
+
+## Config File
+Some configs can be modified in `config.ini` file.
+- `File`: database file path and name relative to the app
+- `LoadThumbnails`: `true` or `false` to load or not thumbnails (can be changed from app)
+- `ThumbnailSize`: thumbnail size in pixels (can be changed from app)
 
 ---
 
 If you encounter an unexpected error, check the error log located in `logs/error.log` and see if there's an error.
 You can send me a message with the error and a description of how you got this error, that would be really appreciated!
-
-## Updating
-Delete all files except `library.sqlite3`, which is the database file.
-Once done, follow installation instructions (cf. Usage section).
-
-When updating from 2.0 to 3.0, run the following command to update your database:
-```
-python ./db_converters/v2.0_to_v3.0.py library.sqlite3
-```
-A backup of the old version will be created under the name `library-old_2.0.sqlite3`.
-
-From version 3.2 and forward, database files are automatically updated if needed and a back up created.
 
 ## Documentation
 To come…
