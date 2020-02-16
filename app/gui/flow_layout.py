@@ -77,8 +77,8 @@ class FlowLayout(QtW.QLayout):
     def clear(self):
         """Removes all inner components."""
         for i in reversed(range(self.count())):
-            # noinspection PyTypeChecker
-            self.itemAt(i).widget().setParent(None)
+            if self.itemAt(i).widget() is not None:
+                self.itemAt(i).widget().setParent(None)
 
     def _do_layout(self, rect: QtC.QRect, test_only: bool = False) -> int:
         """
@@ -124,9 +124,11 @@ class ScrollingFlowWidget(QtW.QWidget):
     """
 
     def __init__(self, parent: QtW.QWidget = None):
+        # noinspection PyArgumentList
         super().__init__(parent)
         grid = QtW.QGridLayout(self)
         scroll = _ResizeScrollArea()
+        # noinspection PyArgumentList
         self._wrapper = QtW.QWidget(scroll)
         self._flow_layout = FlowLayout(self._wrapper)
         self._wrapper.setLayout(self._flow_layout)

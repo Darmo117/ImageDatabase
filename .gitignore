@@ -1,4 +1,5 @@
 build/
 logs/
 test/
+venv/
 config.ini

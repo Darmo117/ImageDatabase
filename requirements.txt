@@ -1,0 +1,5 @@
+lark-parser
+mpmath
+PyQt5
+PyQt5-sip
+sympy
