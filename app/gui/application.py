@@ -18,6 +18,7 @@ from ..logging import logger
 class Application(QtW.QMainWindow):
     """Application's main class."""
 
+    # noinspection PyArgumentList
     def __init__(self):
         super().__init__()
 
@@ -28,7 +29,7 @@ class Application(QtW.QMainWindow):
         self._init_ui()
         utils.center(self)
 
-    # noinspection PyUnresolvedReferences
+    # noinspection PyUnresolvedReferences,PyArgumentList
     def _init_ui(self):
         """Initializes the UI."""
         self.setWindowTitle("Image Library v" + constants.VERSION)
@@ -358,7 +359,8 @@ class Application(QtW.QMainWindow):
 
     def _thumb_size_item_clicked(self):
         value = utils.show_int_input("Enter the new size", "Thumbnails Size", value=config.CONFIG.thumbnail_size,
-                                     min_value=50, max_value=400, parent=self)
+                                     min_value=constants.MIN_THUMB_SIZE, max_value=constants.MAX_THUMB_SIZE,
+                                     parent=self)
         if value is not None:
             config.CONFIG.thumbnail_size = value
             config.save_config()
@@ -504,6 +506,7 @@ class _SearchThread(QtC.QThread):
                 break
 
         tags_dao = da.TagsDao(config.CONFIG.database_path)
+        # noinspection PyTypeChecker
         compound_tags: typ.List[model.CompoundTag] = tags_dao.get_all_tags(tag_class=model.CompoundTag)
         previous_query = ""
         depth = 0

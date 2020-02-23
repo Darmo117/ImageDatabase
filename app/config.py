@@ -1,6 +1,6 @@
 import configparser
 import os
-from dataclasses import dataclass
+import dataclasses as dc
 
 from . import constants
 
@@ -9,20 +9,20 @@ class ConfigError(ValueError):
     pass
 
 
-@dataclass
+@dc.dataclass
 class Config:
-    database_path: str = "."
+    database_path: str = '.'
     load_thumbnails: bool = True
     thumbnail_size: int = 200
 
 
-CONFIG: Config = None
+CONFIG: Config = Config()
 
-_DB_SECTION = "Database"
-_FILE_KEY = "File"
-_IMAGES_SECTION = "Images"
-_LOAD_THUMBS_KEY = "LoadThumbnails"
-_THUMB_SIZE_KEY = "ThumbnailSize"
+_DB_SECTION = 'Database'
+_FILE_KEY = 'File'
+_IMAGES_SECTION = 'Images'
+_LOAD_THUMBS_KEY = 'LoadThumbnails'
+_THUMB_SIZE_KEY = 'ThumbnailSize'
 
 
 def load_config():
@@ -32,28 +32,34 @@ def load_config():
 
     :raise ConfigError: If an option is missing or has an illegal value.
     """
-    global CONFIG
-
     if not os.path.exists(constants.CONFIG_FILE):
-        CONFIG = Config()
         return
 
-    config = configparser.ConfigParser()
-    config.read(constants.CONFIG_FILE)
+    config_parser = configparser.ConfigParser()
+    config_parser.read(constants.CONFIG_FILE)
     try:
-        images_section = config[_IMAGES_SECTION]
-        load_t = images_section[_LOAD_THUMBS_KEY]
-        if load_t.lower() == "true":
-            load = True
-        elif load_t.lower() == "false":
-            load = False
-        else:
-            raise ConfigError(f"illegal value {repr(load_t)} for key {repr(_LOAD_THUMBS_KEY)}")
-        CONFIG = Config(config[_DB_SECTION][_FILE_KEY], load, int(images_section[_THUMB_SIZE_KEY]))
+        images_section = config_parser[_IMAGES_SECTION]
+        load_thumbs = _to_bool(images_section[_LOAD_THUMBS_KEY])
+        size = int(images_section[_THUMB_SIZE_KEY])
+        if size < constants.MIN_THUMB_SIZE or size > constants.MAX_THUMB_SIZE:
+            raise ConfigError(f'illegal thumbnail size {size}px, must be between {constants.MIN_THUMB_SIZE}px '
+                              f'and {constants.MAX_THUMB_SIZE}px')
+        CONFIG.database_path = config_parser[_DB_SECTION][_FILE_KEY]
+        CONFIG.load_thumbnails = load_thumbs
+        CONFIG.thumbnail_size = size
     except ValueError as e:
         raise ConfigError(e)
     except KeyError as e:
-        raise ConfigError(f"missing key {e}")
+        raise ConfigError(f'missing key {e}')
+
+
+def _to_bool(value: str) -> bool:
+    if value.lower() in ['true', '1', 'yes']:
+        return True
+    elif value.lower() in ['false', '0', 'no']:
+        return False
+    else:
+        raise ConfigError(f'illegal value {repr(value)} for key {repr(_LOAD_THUMBS_KEY)}')
 
 
 def save_config():
@@ -67,5 +73,5 @@ def save_config():
         _LOAD_THUMBS_KEY: str(CONFIG.load_thumbnails).lower(),
         _THUMB_SIZE_KEY: CONFIG.thumbnail_size,
     }
-    with open(constants.CONFIG_FILE, "w") as configfile:
+    with open(constants.CONFIG_FILE, 'w', encoding='UTF-8') as configfile:
         parser.write(configfile)

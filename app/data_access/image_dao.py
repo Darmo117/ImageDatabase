@@ -40,7 +40,7 @@ class ImageDao(DAO):
         try:
             cursor = self._connection.execute("""
             SELECT T.id, T.label, T.type_id
-            FROM tags AS T, image_tag as IT
+            FROM tags AS T, image_tag AS IT
             WHERE IT.image_id = ?
               AND IT.tag_id = T.id
             """, (image_id,))
@@ -233,11 +233,11 @@ class ImageDao(DAO):
         :return: The SQL query for the metatag.
         """
         # Unescape space character, escape dot and replace '*' wildcard by a regex
-        escaped_value = value.replace(r"\ ", " ").replace(".", r"\.").replace(r"*", "[^/]*")
+        escaped_value = value.replace(r"\ ", " ").replace(".", r"\.").replace("*", "[^/]*")
         return ImageDao._METATAGS[metatag][1].format(escaped_value)
 
     METAVALUE_PATTERN = r"(?:[\w.*-]|\\ )+"
-    _METAVALUE_REGEX = re.compile(fr"^{METAVALUE_PATTERN}$")
+    _METAVALUE_REGEX = re.compile(f"^{METAVALUE_PATTERN}$")
 
     # Declared metatags with their value-checking function and database query template.
     _METATAGS: typ.Dict[str, typ.Tuple[typ.Callable[[str], bool], str]] = {
