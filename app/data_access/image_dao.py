@@ -3,6 +3,8 @@ import re
 import sqlite3
 import typing as typ
 
+import cv2
+import skimage.metrics as sk_measure
 import sympy as sp
 
 from .dao import DAO
@@ -61,6 +63,9 @@ class ImageDao(DAO):
         :param image_path: Path to the image.
         :return: True if the image is registered; false otherwise. Returns None if an exception occured.
         """
+        return self._test_image_registered2(image_path)
+
+    def _test_image_registered(self, image_path):
         try:
             filename = re.escape("/" + os.path.basename(image_path))
             cursor = self._connection.execute("SELECT COUNT(*) FROM images WHERE path regexp ?", (filename,))
@@ -68,6 +73,23 @@ class ImageDao(DAO):
         except sqlite3.OperationalError as e:
             logger.exception(e)
             return None
+
+    def _test_image_registered2(self, image_path):
+        cursor = self._connection.execute('SELECT path FROM images')
+        array1 = cv2.imread(image_path)
+        size1 = len(array1), len(array1[0])
+
+        for path, in cursor.fetchall():
+            if os.path.exists(path):
+                array2 = cv2.imread(path)
+                size2 = len(array2), len(array2[0])
+                if size1 == size2:
+                    score = sk_measure.structural_similarity(array1, array2, multichannel=True, gaussian_weights=True,
+                                                             sigma=1.5, use_sample_covariance=False)
+                    if score == 1.0:
+                        return True
+
+        return False
 
     def add_image(self, image_path: str, tags: typ.List[model.Tag]) -> bool:
         """
@@ -190,7 +212,7 @@ class ImageDao(DAO):
             subs = [ImageDao._get_query(arg) for arg in sympy_expr.args]
             return "SELECT id, path FROM (" + "\nINTERSECT\n".join(subs) + ")"
         elif isinstance(sympy_expr, sp.Not):
-            return "SELECT id, path FROM (SELECT id, path FROM images EXCEPT\n" + \
+            return "SELECT id, path FROM (SELECT id, path FROM images EXCEPT " + \
                    ImageDao._get_query(sympy_expr.args[0]) + ")"
         elif sympy_expr == sp.true:
             return "SELECT id, path FROM images"

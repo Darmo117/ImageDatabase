@@ -58,26 +58,31 @@ class EditImageDialog(Dialog):
 
         self._canvas = Canvas()
         self._canvas.image = None
+        # noinspection PyArgumentList
         body.addWidget(self._canvas)
 
         middle = QtW.QHBoxLayout()
         middle.addStretch(1)
 
         self._dest_label = EllipsisLabel()
+        # noinspection PyArgumentList
         middle.addWidget(self._dest_label)
 
         text = "Replace with…" if self._mode == EditImageDialog.REPLACE else "Move to…"
         self._dest_btn = QtW.QPushButton(text)
         # noinspection PyUnresolvedReferences
         self._dest_btn.clicked.connect(self._on_dest_button_clicked)
+        # noinspection PyArgumentList
         middle.addWidget(self._dest_btn)
         b = QtW.QPushButton("Tags")
         # noinspection PyUnresolvedReferences
         b.clicked.connect(self._show_tags_dialog)
+        # noinspection PyArgumentList
         middle.addWidget(b)
         b = QtW.QPushButton("Show in directory")
         # noinspection PyUnresolvedReferences
         b.clicked.connect(self._open_image_directory)
+        # noinspection PyArgumentList
         middle.addWidget(b)
 
         body.addLayout(middle)
@@ -101,6 +106,7 @@ class EditImageDialog(Dialog):
         self._tags_input.textChanged.connect(self._text_changed)
         if self._mode == EditImageDialog.REPLACE:
             self._tags_input.setDisabled(True)
+        # noinspection PyArgumentList
         body.addWidget(self._tags_input)
 
         self.setMinimumSize(400, 400)
@@ -190,7 +196,7 @@ class EditImageDialog(Dialog):
         self._set(self._index)
 
     def _on_dest_button_clicked(self):
-        """Opens a directory chooser then sets the destionation path to the one selected if any."""
+        """Opens a directory chooser then sets the destination path to the one selected if any."""
         if self._mode == EditImageDialog.REPLACE:
             destination = utils.open_image_chooser(self)
         else:

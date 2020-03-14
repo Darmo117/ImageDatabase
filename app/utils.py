@@ -16,6 +16,7 @@ def show_info(message: str, title="Information", parent: QtW.QWidget = None):
     :param title: Popup's title.
     :param parent: Popup's parent.
     """
+    # noinspection PyArgumentList
     QtW.QMessageBox.information(parent, title, message)
 
 
@@ -27,6 +28,7 @@ def show_warning(message: str, title: str = "Warning", parent: QtW.QWidget = Non
     :param title: Popup's title.
     :param parent: Popup's parent.
     """
+    # noinspection PyArgumentList
     QtW.QMessageBox.warning(parent, title, message)
 
 
@@ -38,11 +40,12 @@ def show_error(message: str, title: str = "Error", parent: QtW.QWidget = None):
     :param title: Popup's title.
     :param parent: Popup's parent.
     """
+    # noinspection PyArgumentList
     QtW.QMessageBox.critical(parent, title, message)
 
 
-def show_question(message: str, title: str = "Question", cancel: bool = False, parent: QtW.QWidget = None) \
-        -> QtW.QMessageBox.StandardButton:
+def show_question(message: str, title: str = "Question", cancel: bool = False, parent: QtW.QWidget = None) -> \
+        typ.Optional[bool]:
     """
     Shows a question popup.
 
@@ -50,12 +53,18 @@ def show_question(message: str, title: str = "Question", cancel: bool = False, p
     :param title: Popup's title.
     :param cancel: If true a "Cancel" button will be added.
     :param parent: Popup's parent.
-    :return: The clicked button.
+    :return: True for yes, False for no or None for cancel.
     """
+    answers = {
+        QtW.QMessageBox.Yes: True,
+        QtW.QMessageBox.No: False,
+        QtW.QMessageBox.Cancel: None
+    }
     mode = QtW.QMessageBox.Yes | QtW.QMessageBox.No
     if cancel:
         mode |= QtW.QMessageBox.Cancel
-    return QtW.QMessageBox.question(parent, title, message, mode)
+    # noinspection PyArgumentList
+    return answers[QtW.QMessageBox.question(parent, title, message, mode)]
 
 
 def show_text_input(message: str, title: str, text: str = "", parent: QtW.QWidget = None) -> typ.Optional[str]:
@@ -68,6 +77,7 @@ def show_text_input(message: str, title: str, text: str = "", parent: QtW.QWidge
     :param parent: Popup's parent.
     :return: The typed text or None if the popup was cancelled.
     """
+    # noinspection PyArgumentList
     text, ok = QtW.QInputDialog.getText(parent, title, message, text=text, flags=Qt.WindowCloseButtonHint)
     return text if ok else None
 
@@ -85,6 +95,7 @@ def show_int_input(message: str, title: str, value: int = 0, min_value: int = -2
     :param parent: Popup's parent.
     :return: The typed text or None if the popup was cancelled.
     """
+    # noinspection PyArgumentList
     value, ok = QtW.QInputDialog.getInt(parent, title, message, value=value, min=min_value, max=max_value,
                                         flags=Qt.WindowCloseButtonHint)
     return value if ok else None
@@ -98,6 +109,7 @@ def open_image_chooser(parent: QtW.QWidget = None) -> typ.Optional[str]:
     :return: The selected file or REJECTED if the chooser was cancelled.
     """
     exts = "; ".join(map(lambda e: "*." + e, constants.FILE_EXTENSIONS))
+    # noinspection PyArgumentList
     file, _ = QtW.QFileDialog.getOpenFileName(caption="Open Image", filter=f"Image file ({exts})", parent=parent)
     return file if file != "" else None
 
@@ -110,6 +122,7 @@ def open_playlist_saver(parent: typ.Optional[QtW.QWidget] = None) -> typ.Optiona
     :return: The selected file or REJECTED if the saver was cancelled.
     """
     ext = ".play"
+    # noinspection PyArgumentList
     file, _ = QtW.QFileDialog.getSaveFileName(caption="Save Playlist", filter=f"Playlist (*{ext})", parent=parent)
     if file != "" and not file.endswith(ext):
         file += ext
@@ -124,6 +137,7 @@ def open_directory_chooser(parent: QtW.QWidget = None) -> typ.Optional[typ.List[
     :return: All files inside the chosen directory or REJECTED if the chooser was cancelled or NO_IMAGES if the
              directory contains no images.
     """
+    # noinspection PyArgumentList
     directory = QtW.QFileDialog.getExistingDirectory(caption="Open Directory", parent=parent)
     if directory != "":
         files = filter(lambda f: os.path.splitext(f)[1].lower()[1:] in constants.FILE_EXTENSIONS, os.listdir(directory))
@@ -139,12 +153,13 @@ def choose_directory(parent: QtW.QWidget = None) -> typ.Optional[str]:
     :param parent: Chooser's parent.
     :return: The selected directory or REJECTED if the chooser was cancelled.
     """
+    # noinspection PyArgumentList
     directory = QtW.QFileDialog.getExistingDirectory(caption="Choose Directory", parent=parent)
     return directory if directory != "" else None
 
 
 def slashed(path: str) -> str:
-    """
+    r"""
     Replaces backslashes (\) in the given path with normal slashes (/).
 
     :param path: The path to convert.

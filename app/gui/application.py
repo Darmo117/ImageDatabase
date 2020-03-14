@@ -203,13 +203,13 @@ class Application(QtW.QMainWindow):
         if len(images) > 0:
             images_to_add = [i for i in images if not self._dao.image_registered(i)]
             if len(images_to_add) == 0:
-                plural = "s" if len(images) > 1 else ""
-                text = f"Image{plural} already registered!"
+                s = "s" if len(images) > 1 else ""
+                text = f"Image{s} already registered!"
                 utils.show_info(text, parent=self)
             else:
                 dialog = EditImageDialog(self, show_skip=len(images_to_add) > 1, mode=EditImageDialog.ADD)
                 dialog.set_on_close_action(self._fetch_and_refresh)
-                dialog.set_images([model.Image(0, i) for i in images_to_add], {})
+                dialog.set_images([model.Image(id=0, path=image_path) for image_path in images_to_add], {})
                 dialog.show()
 
     def _rename_image(self):
@@ -224,8 +224,14 @@ class Application(QtW.QMainWindow):
                 if not self._dao.update_image_path(image.id, new_path):
                     utils.show_error("Could not rename image!", parent=self)
                 else:
-                    os.rename(image.path, new_path)
-                    self._fetch_images()
+                    rename = True
+                    if os.path.exists(new_path):
+                        rename &= utils.show_question(
+                            'A file with this name already exists, do you want to overwrite it?',
+                            title='Name conflict', parent=self)
+                    if rename:
+                        os.rename(image.path, new_path)
+                        self._fetch_images()
 
     def _replace_image(self):
         """Opens the 'Replace Image' dialog then replaces the image with the selected one."""
@@ -278,8 +284,7 @@ class Application(QtW.QMainWindow):
             else:
                 message = "<html>Are you sure you want to delete this image?"
             message += "<br/><b>Files will be delete from the disk.</b></html>"
-            choice = utils.show_question(message, "Delete", parent=self)
-            if choice == QtW.QMessageBox.Yes:
+            if utils.show_question(message, "Delete", parent=self):
                 for item in images:
                     if self._dao.delete_image(item.id):
                         try:
@@ -334,10 +339,10 @@ class Application(QtW.QMainWindow):
             if config.CONFIG.load_thumbnails:
                 load_thumbs = True
                 if len(images) > self._THRESHOLD:
-                    button = utils.show_question(f"Query returned more than {self._THRESHOLD} images, "
-                                                 f"thumbnails will be disabled.\nDo you want to load them anyway?",
-                                                 title="Load images?", parent=self)
-                    if button != QtW.QMessageBox.Yes:
+                    ok = utils.show_question(f"Query returned more than {self._THRESHOLD} images, "
+                                             f"thumbnails will be disabled.\nDo you want to load them anyway?",
+                                             title="Load images?", parent=self)
+                    if ok:
                         load_thumbs = False
             else:
                 load_thumbs = False

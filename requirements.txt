@@ -1,3 +1,5 @@
+cv2
+scikit-image
 lark-parser
 mpmath
 PyQt5

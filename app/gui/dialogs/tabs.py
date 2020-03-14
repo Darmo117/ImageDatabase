@@ -132,8 +132,7 @@ class Tab(abc.ABC, typ.Generic[_Type]):
         """Deletes all selected rows."""
         selected_rows = {i.row() for i in self._table.selectionModel().selectedRows()}
         if len(selected_rows) > 0:
-            choice = utils.show_question("Delete these entries?", parent=self._owner)
-            if choice == QtW.QMessageBox.Yes:
+            if utils.show_question("Delete these entries?", parent=self._owner):
                 self._deleted_rows |= selected_rows - self._added_rows
                 self._changed_rows -= selected_rows
                 self._added_rows -= selected_rows
@@ -426,6 +425,7 @@ class TagTypesTab(Tab[model.TagType]):
 
     def _show_color_picker(self):
         """Shows a color picker then sets the event button to the selected color."""
+        # noinspection PyArgumentList
         color = QtW.QColorDialog.getColor()
         if color.isValid():
             button = self._owner.sender()
@@ -614,6 +614,7 @@ class _TagsTab(Tab[_TagType], typ.Generic[_TagType], metaclass=abc.ABCMeta):
             for tag_type in types:
                 combo.addItem(self._get_combo_text(tag_type.id, tag_type.label))
             if defined and tag.type is not None:
+                # noinspection PyArgumentList
                 combo.setCurrentIndex(combo.findText(self._get_combo_text(tag.type.id, tag.type.label)))
             self._table.setCellWidget(row, self._type_column, combo)
 
