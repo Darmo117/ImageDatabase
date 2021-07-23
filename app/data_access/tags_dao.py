@@ -18,7 +18,7 @@ class TagsDao(DAO):
         :return: All tag types or None if an exception occured.
         """
         try:
-            cursor = self._connection.execute("SELECT id, label, symbol, color FROM tag_types")
+            cursor = self._connection.execute('SELECT id, label, symbol, color FROM tag_types')
             return [model.TagType(t[0], t[1], t[2], QtGui.QColor.fromRgb(t[3])) for t in cursor.fetchall()]
         except sqlite3.OperationalError as e:
             logger.exception(e)
@@ -35,7 +35,7 @@ class TagsDao(DAO):
         :return: True if the type was added or None if an exception occured.
         """
         try:
-            self._connection.execute("INSERT INTO tag_types (label, symbol, color) VALUES (?, ?, ?)",
+            self._connection.execute('INSERT INTO tag_types (label, symbol, color) VALUES (?, ?, ?)',
                                      (tag_type.label, tag_type.symbol, tag_type.color.rgb()))
             return True
         except (sqlite3.OperationalError, sqlite3.IntegrityError) as e:
@@ -50,7 +50,7 @@ class TagsDao(DAO):
         :return: True if the type was updated.
         """
         try:
-            self._connection.execute("UPDATE tag_types SET label = ?, symbol = ?, color = ? WHERE id = ?",
+            self._connection.execute('UPDATE tag_types SET label = ?, symbol = ?, color = ? WHERE id = ?',
                                      (tag_type.label, tag_type.symbol, tag_type.color.rgb(), tag_type.id))
             return True
         except (sqlite3.OperationalError, sqlite3.IntegrityError) as e:
@@ -65,7 +65,7 @@ class TagsDao(DAO):
         :return: True if the type was deleted.
         """
         try:
-            self._connection.execute("DELETE FROM tag_types WHERE id = ?", (type_id,))
+            self._connection.execute('DELETE FROM tag_types WHERE id = ?', (type_id,))
             return True
         except sqlite3.OperationalError as e:
             logger.exception(e)
@@ -82,12 +82,12 @@ class TagsDao(DAO):
         :return: The list of tags or tag/count pairs or None if an exception occured.
         """
         try:
-            query = "SELECT id, label, type_id, definition"
+            query = 'SELECT id, label, type_id, definition'
             if get_count:
-                query += ", (SELECT COUNT(tag_id) FROM image_tag WHERE tags.id = tag_id) AS count"
-            query += " FROM tags"
+                query += ', (SELECT COUNT(tag_id) FROM image_tag WHERE tags.id = tag_id) AS count'
+            query += ' FROM tags'
             if sort_by_label:
-                query += " ORDER BY label"
+                query += ' ORDER BY label'
             cursor = self._connection.execute(query)
 
             def row_to_tag(row: typ.Tuple[int, str, int, str, int]) \
@@ -115,7 +115,7 @@ class TagsDao(DAO):
         :return: True if a tag with the same name already exists.
         """
         try:
-            return self._connection.execute("SELECT COUNT(*) FROM tags WHERE label = ? AND id != ?",
+            return self._connection.execute('SELECT COUNT(*) FROM tags WHERE label = ? AND id != ?',
                                             (tag_name, tag_id)).fetchall()[0][0] != 0
         except sqlite3.OperationalError as e:
             logger.exception(e)
@@ -129,7 +129,7 @@ class TagsDao(DAO):
         :return: Tag's class or None if tag doesn't exist.
         """
         try:
-            cursor = self._connection.execute("SELECT definition FROM tags WHERE label = ?", (tag_name,))
+            cursor = self._connection.execute('SELECT definition FROM tags WHERE label = ?', (tag_name,))
             results = cursor.fetchall()
             if len(results) == 0:
                 return None
@@ -146,7 +146,7 @@ class TagsDao(DAO):
         :return: True if the type was added or None if an exception occured.
         """
         try:
-            self._connection.execute("INSERT INTO tags (label, type_id, definition) VALUES (?, ?, ?)",
+            self._connection.execute('INSERT INTO tags (label, type_id, definition) VALUES (?, ?, ?)',
                                      (tag.label, tag.type.id if tag.type is not None else None, tag.definition))
             return True
         except (sqlite3.OperationalError, sqlite3.IntegrityError) as e:
@@ -163,10 +163,10 @@ class TagsDao(DAO):
         try:
             tag_type = tag.type.id if tag.type is not None else None
             if isinstance(tag, model.CompoundTag):
-                self._connection.execute("UPDATE tags SET label = ?, type_id = ?, definition = ? WHERE id = ?",
+                self._connection.execute('UPDATE tags SET label = ?, type_id = ?, definition = ? WHERE id = ?',
                                          (tag.label, tag_type, tag.definition, tag.id))
             else:
-                self._connection.execute("UPDATE tags SET label = ?, type_id = ? WHERE id = ?",
+                self._connection.execute('UPDATE tags SET label = ?, type_id = ? WHERE id = ?',
                                          (tag.label, tag_type, tag.id))
             return True
         except (sqlite3.OperationalError, sqlite3.IntegrityError) as e:
@@ -181,7 +181,7 @@ class TagsDao(DAO):
         :return: True if the tag was deleted.
         """
         try:
-            self._connection.execute("DELETE FROM tags WHERE id = ?", (tag_id,))
+            self._connection.execute('DELETE FROM tags WHERE id = ?', (tag_id,))
             return True
         except sqlite3.OperationalError as e:
             logger.exception(e)

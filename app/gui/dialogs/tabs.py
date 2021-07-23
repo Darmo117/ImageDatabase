@@ -8,7 +8,7 @@ from PyQt5.QtCore import Qt
 
 from app import data_access as da, model, queries, utils
 
-_Type = typ.TypeVar("_Type")
+_Type = typ.TypeVar('_Type')
 
 
 class Tab(abc.ABC, typ.Generic[_Type]):
@@ -21,9 +21,7 @@ class Tab(abc.ABC, typ.Generic[_Type]):
     _EMPTY = 2
     _FORMAT = 4
 
-    _DISABLED_COLOR = QtG.QColor(200, 200, 200)
     _FETCH_COLOR = QtG.QColor(140, 200, 255)
-    _NORMAL_COLOR = QtG.QColor(255, 255, 255)
 
     def __init__(self, owner: QtW.QWidget, dao: da.TagsDao, title: str, addable: bool, deletable: bool, editable: bool,
                  columns_to_check: typ.List[int], search_columns: typ.List[int],
@@ -70,6 +68,10 @@ class Tab(abc.ABC, typ.Generic[_Type]):
 
         self._valid = True
 
+        # Use system colors
+        self._DISABLED_COLOR = QtW.QApplication.palette().color(QtG.QPalette.Disabled, QtG.QPalette.Base)
+        self._NORMAL_COLOR = QtW.QApplication.palette().color(QtG.QPalette.Base)
+
     @abc.abstractmethod
     def init(self):
         """Initializes the inner table."""
@@ -86,7 +88,7 @@ class Tab(abc.ABC, typ.Generic[_Type]):
             self._table.setSelectionMode(QtW.QAbstractItemView.SingleSelection)
         else:
             delete_action = QtW.QAction(self._owner)
-            delete_action.setShortcut("Delete")
+            delete_action.setShortcut('Delete')
             # noinspection PyUnresolvedReferences
             delete_action.triggered.connect(self.delete_selected_rows)
             self._table.addAction(delete_action)
@@ -132,7 +134,7 @@ class Tab(abc.ABC, typ.Generic[_Type]):
         """Deletes all selected rows."""
         selected_rows = {i.row() for i in self._table.selectionModel().selectedRows()}
         if len(selected_rows) > 0:
-            if utils.show_question("Delete these entries?", parent=self._owner):
+            if utils.show_question('Delete these entries?', parent=self._owner):
                 self._deleted_rows |= selected_rows - self._added_rows
                 self._changed_rows -= selected_rows
                 self._added_rows -= selected_rows
@@ -152,11 +154,15 @@ class Tab(abc.ABC, typ.Generic[_Type]):
         if self._highlighted_cell is not None:
             self._highlighted_cell.setBackground(self._NORMAL_COLOR)
 
+        if selected_rows := self._table.selectionModel().selectedRows():
+            start_row = selected_rows[0].row()
+        else:
+            start_row = self._highlighted_cell.row() if self._highlighted_cell else -1
         row_count = self._table.rowCount()
         for col in self._search_columns:
-            for row in range(row_count):
+            for row in range(start_row + 1, row_count):
                 item = self._table.item(row, col)
-                if item.text() == query:
+                if query.lower() in item.text().lower():
                     self._table.setFocus()
                     self._table.scrollToItem(item)
                     item.setBackground(self._FETCH_COLOR)
@@ -232,8 +238,8 @@ class Tab(abc.ABC, typ.Generic[_Type]):
         for row in range(self._table.rowCount()):
             if self._table.isRowHidden(row):
                 continue
-            if self._table.item(row, column).text().strip() == "":
-                return self._EMPTY, row, "Cell is empty!"
+            if self._table.item(row, column).text().strip() == '':
+                return self._EMPTY, row, 'Cell is empty!'
             if check_format:
                 # noinspection PyTupleAssignmentBalance
                 ok, message = self._check_cell_format(row, column)
@@ -244,8 +250,8 @@ class Tab(abc.ABC, typ.Generic[_Type]):
                 if self._table.isRowHidden(r):
                     continue
                 if r != row and self._table.item(r, column).text() == cell_value:
-                    return self._DUPLICATE, row, "Value is already used! Please choose another."
-        return self._OK, -1, ""
+                    return self._DUPLICATE, row, 'Value is already used! Please choose another.'
+        return self._OK, -1, ''
 
     @abc.abstractmethod
     def _check_cell_format(self, row: int, col: int) -> (bool, str):
@@ -276,7 +282,7 @@ class TagTypesTab(Tab[model.TagType]):
         :param cell_changed: Action called when a cell has been edited. It takes the cell's row, column and text.
         :param rows_deleted: Action called when rows have been deleted. It takes the list of deleted values.
         """
-        super().__init__(owner, dao, "Tag Types", True, True, editable, [1, 2], [1, 2],
+        super().__init__(owner, dao, 'Tag Types', True, True, editable, [1, 2], [1, 2],
                          selection_changed=selection_changed, cell_changed=cell_changed, rows_deleted=rows_deleted)
 
     def init(self):
@@ -287,7 +293,7 @@ class TagTypesTab(Tab[model.TagType]):
 
         self._table.setColumnCount(4)
         self._table.setColumnWidth(0, 30)
-        self._table.setHorizontalHeaderLabels(["ID", "Label", "Symbol", "Color"])
+        self._table.setHorizontalHeaderLabels(['ID', 'Label', 'Symbol', 'Color'])
 
         self._values = sorted(model.TagType.SYMBOL_TYPES.values(), key=lambda t: t.label)
         self._table.setRowCount(len(self._values))
@@ -341,12 +347,12 @@ class TagTypesTab(Tab[model.TagType]):
             if cell is None:
                 cell = self._table.cellWidget(row, i)
             arg = cell.whatsThis()
-            if arg == "":
+            if arg == '':
                 continue
-            if arg == "color":
+            if arg == 'color':
                 args[arg] = cell.palette().button().color()
             else:
-                args[arg] = cell.text() if arg != "ident" else int(cell.text())
+                args[arg] = cell.text() if arg != 'ident' else int(cell.text())
 
         try:
             return model.TagType(**args)
@@ -378,32 +384,32 @@ class TagTypesTab(Tab[model.TagType]):
     def _check_cell_format(self, row: int, col: int) -> (bool, str):
         text = self._table.item(row, col).text()
         if col == 1:
-            return (text != "Other" and model.TagType.LABEL_PATTERN.match(text) is not None,
+            return (text != 'Other' and model.TagType.LABEL_PATTERN.match(text) is not None,
                     'Type label should only be letters, digits or "_"!')
         if col == 2:
             return (model.TagType.SYMBOL_PATTERN.match(text) is not None,
-                    "Symbol should only be one character long and any character "
+                    'Symbol should only be one character long and any character '
                     'except letters, digits, "_", "+" and "-"!')
-        return True, ""
+        return True, ''
 
     def _set_row(self, tag_type: typ.Optional[model.TagType], row: int):
         defined = tag_type is not None
         id_item = QtW.QTableWidgetItem(str(tag_type.id) if defined else str(self._dummy_type_id))
-        id_item.setWhatsThis("ident")
+        id_item.setWhatsThis('ident')
         # noinspection PyTypeChecker
         id_item.setFlags(id_item.flags() & ~Qt.ItemIsEditable & ~Qt.ItemIsSelectable)
         id_item.setBackground(self._DISABLED_COLOR)
         self._table.setItem(row, 0, id_item)
 
-        label_item = QtW.QTableWidgetItem(tag_type.label if defined else "New Type")
-        label_item.setWhatsThis("label")
+        label_item = QtW.QTableWidgetItem(tag_type.label if defined else 'New Type')
+        label_item.setWhatsThis('label')
         if not self._editable:
             # noinspection PyTypeChecker
             label_item.setFlags(label_item.flags() & ~Qt.ItemIsEditable & ~Qt.ItemIsSelectable)
         self._table.setItem(row, 1, label_item)
 
-        symbol_item = QtW.QTableWidgetItem(tag_type.symbol if defined else "§")
-        symbol_item.setWhatsThis("symbol")
+        symbol_item = QtW.QTableWidgetItem(tag_type.symbol if defined else '§')
+        symbol_item.setWhatsThis('symbol')
         if not self._editable:
             # noinspection PyTypeChecker
             symbol_item.setFlags(symbol_item.flags() & ~Qt.ItemIsEditable & ~Qt.ItemIsSelectable)
@@ -413,34 +419,34 @@ class TagTypesTab(Tab[model.TagType]):
         bg_color = tag_type.color if defined else default_color
         color = utils.negate(bg_color)
         color_btn = QtW.QPushButton(tag_type.color.name() if defined else default_color.name())
-        color_btn.setWhatsThis("color")
-        color_btn.setStyleSheet(f"background-color: {bg_color.name()}; color: {color.name()}")
+        color_btn.setWhatsThis('color')
+        color_btn.setStyleSheet(f'background-color: {bg_color.name()}; color: {color.name()}')
         color_btn.setFocusPolicy(Qt.NoFocus)
         # noinspection PyUnresolvedReferences
         color_btn.clicked.connect(self._show_color_picker)
-        color_btn.setProperty("row", row)
+        color_btn.setProperty('row', row)
         if not self._editable:
             color_btn.setEnabled(False)
         self._table.setCellWidget(row, 3, color_btn)
 
     def _show_color_picker(self):
         """Shows a color picker then sets the event button to the selected color."""
-        # noinspection PyArgumentList
-        color = QtW.QColorDialog.getColor()
+        button = self._owner.sender()
+        # Set initial color to the button’s current background color
+        color = QtW.QColorDialog.getColor(button.palette().button().color())
         if color.isValid():
-            button = self._owner.sender()
-            row = button.property("row")
+            row = button.property('row')
             button.setText(color.name())
-            button.setStyleSheet(f"background-color: {color.name()}; color: {utils.negate(color).name()}")
+            button.setStyleSheet(f'background-color: {color.name()}; color: {utils.negate(color).name()}')
             self._cell_edited(row, 3)
 
 
-_TagType = typ.TypeVar("_TagType", model.Tag, model.CompoundTag)
+_TagType = typ.TypeVar('_TagType', model.Tag, model.CompoundTag)
 
 
 class _TagsTab(Tab[_TagType], typ.Generic[_TagType], metaclass=abc.ABCMeta):
     """This class represents a tab containing a table that displays all defined tags."""
-    COMBO_ITEM_PATTERN = re.compile(r"^(\d+) - (.+)$")
+    COMBO_ITEM_PATTERN = re.compile(r'^(\d+) - (.+)$')
 
     def __init__(self, owner: QtW.QWidget, dao: da.TagsDao, title: str, addable: bool, editable: bool, tag_class: type,
                  additional_columns: typ.List[str], additional_search_columns: typ.List[int],
@@ -467,7 +473,7 @@ class _TagsTab(Tab[_TagType], typ.Generic[_TagType], metaclass=abc.ABCMeta):
         super().__init__(owner, dao, title, addable, True, editable, cols_to_check, search_cols,
                          selection_changed=selection_changed, cell_changed=cell_changed, rows_deleted=rows_deleted)
         self._tag_class = tag_class
-        self._columns = ["ID", "Label", *additional_columns, "Type", "Times used"]
+        self._columns = ['ID', 'Label', *additional_columns, 'Type', 'Times used']
         self._type_column = 2 + len(additional_columns)
         self._tag_use_count_column = 1 + self._type_column
 
@@ -528,15 +534,15 @@ class _TagsTab(Tab[_TagType], typ.Generic[_TagType], metaclass=abc.ABCMeta):
             if cell is None:
                 cell = self._table.cellWidget(row, i)
             arg = cell.whatsThis()
-            if arg == "":
+            if arg == '':
                 continue
-            if arg == "tag_type":
+            if arg == 'tag_type':
                 if cell.currentIndex() != 0:
                     ident = self._id_from_combo(cell.currentText())
                     if ident is not None:
                         args[arg] = model.TagType.from_id(ident)
             else:
-                args[arg] = cell.text() if arg != "ident" else int(cell.text())
+                args[arg] = cell.text() if arg != 'ident' else int(cell.text())
 
         try:
             return self._tag_class(**args)
@@ -553,7 +559,7 @@ class _TagsTab(Tab[_TagType], typ.Generic[_TagType], metaclass=abc.ABCMeta):
             if not self._table.isRowHidden(tag_row):
                 combo = self._table.cellWidget(tag_row, self._type_column)
                 for i in range(combo.count()):
-                    if combo.itemText(i).startswith(f"{tag_type.id} "):
+                    if combo.itemText(i).startswith(f'{tag_type.id} '):
                         combo.setItemText(i, self._get_combo_text(tag_type.id, tag_type.label))
                         break
 
@@ -575,14 +581,14 @@ class _TagsTab(Tab[_TagType], typ.Generic[_TagType], metaclass=abc.ABCMeta):
     def _set_row(self, tag: typ.Optional[_TagType], row: int):
         defined = tag is not None
         id_item = QtW.QTableWidgetItem(str(tag.id if defined else self._dummy_type_id))
-        id_item.setWhatsThis("ident")
+        id_item.setWhatsThis('ident')
         # noinspection PyTypeChecker
         id_item.setFlags(id_item.flags() & ~Qt.ItemIsEditable & ~Qt.ItemIsSelectable)
         id_item.setBackground(self._DISABLED_COLOR)
         self._table.setItem(row, 0, id_item)
 
-        label_item = QtW.QTableWidgetItem(tag.label if defined else "new_tag")
-        label_item.setWhatsThis("label")
+        label_item = QtW.QTableWidgetItem(tag.label if defined else 'new_tag')
+        label_item.setWhatsThis('label')
         self._table.setItem(row, 1, label_item)
 
         # Populate additional columns
@@ -599,7 +605,7 @@ class _TagsTab(Tab[_TagType], typ.Generic[_TagType], metaclass=abc.ABCMeta):
             # noinspection PyTypeChecker
             label_item.setFlags(label_item.flags() & ~Qt.ItemIsEditable & ~Qt.ItemIsSelectable)
 
-            type_item = QtW.QTableWidgetItem(tag.type.label if defined and tag.type is not None else "None")
+            type_item = QtW.QTableWidgetItem(tag.type.label if defined and tag.type is not None else 'None')
             # noinspection PyTypeChecker
             type_item.setFlags(type_item.flags() & ~Qt.ItemIsEditable & ~Qt.ItemIsSelectable)
             self._table.setItem(row, self._type_column, type_item)
@@ -607,9 +613,9 @@ class _TagsTab(Tab[_TagType], typ.Generic[_TagType], metaclass=abc.ABCMeta):
             combo = QtW.QComboBox()
             # noinspection PyUnresolvedReferences
             combo.currentIndexChanged.connect(self._combo_changed)
-            combo.setWhatsThis("tag_type")
-            combo.setProperty("row", row)
-            combo.addItem("None")
+            combo.setWhatsThis('tag_type')
+            combo.setProperty('row', row)
+            combo.addItem('None')
             types = sorted(model.TagType.SYMBOL_TYPES.values(), key=lambda t: t.label)
             for tag_type in types:
                 combo.addItem(self._get_combo_text(tag_type.id, tag_type.label))
@@ -663,8 +669,8 @@ class _TagsTab(Tab[_TagType], typ.Generic[_TagType], metaclass=abc.ABCMeta):
                 return False, 'Tag label should only be letters, digits or "_"!'
             tag_id = int(self._table.item(row, 0).text())
             if self._dao.tag_exists(tag_id, text):
-                return False, "A tag with this name already exists!"
-        return True, ""
+                return False, 'A tag with this name already exists!'
+        return True, ''
 
     def _combo_changed(self, _):
         """Called when a combobox changes."""
@@ -705,7 +711,7 @@ class _TagsTab(Tab[_TagType], typ.Generic[_TagType], metaclass=abc.ABCMeta):
         :param label: Type's label.
         :return: The formatted string.
         """
-        return f"{ident} - {label}"
+        return f'{ident} - {label}'
 
 
 class TagsTab(_TagsTab[model.Tag]):
@@ -723,7 +729,7 @@ class TagsTab(_TagsTab[model.Tag]):
         :param cell_changed: Action called when a cell has been edited. It takes the cell's row, column and text.
         :param rows_deleted: Action called when rows have been deleted. It takes the list of deleted values.
         """
-        super().__init__(owner, dao, "Tags", False, editable, model.Tag, [], [], selection_changed=selection_changed,
+        super().__init__(owner, dao, 'Tags', False, editable, model.Tag, [], [], selection_changed=selection_changed,
                          cell_changed=cell_changed, rows_deleted=rows_deleted)
 
 
@@ -742,7 +748,7 @@ class CompoundTagsTab(_TagsTab[model.CompoundTag]):
         :param cell_changed: Action called when a cell has been edited. It takes the cell's row, column and text.
         :param rows_deleted: Action called when rows have been deleted. It takes the list of deleted values.
         """
-        super().__init__(owner, dao, "Compound Tags", True, editable, model.CompoundTag, ["Definition"], [0],
+        super().__init__(owner, dao, 'Compound Tags', True, editable, model.CompoundTag, ['Definition'], [0],
                          selection_changed=selection_changed, cell_changed=cell_changed, rows_deleted=rows_deleted)
 
     def init(self):
@@ -750,7 +756,7 @@ class CompoundTagsTab(_TagsTab[model.CompoundTag]):
         self._table.setColumnHidden(self._tag_use_count_column, True)
 
     def _get_value_for_column(self, column_name: str, tag: model.CompoundTag, default: bool) -> typ.Tuple[str, str]:
-        return (tag.definition if not default else ""), "definition"
+        return (tag.definition if not default else ''), 'definition'
 
     def _check_cell_format(self, row: int, col: int) -> (bool, str):
         ok, message = super()._check_cell_format(row, col)
@@ -762,4 +768,4 @@ class CompoundTagsTab(_TagsTab[model.CompoundTag]):
                 queries.query_to_sympy(tag_label, simplify=False)
             except ValueError as e:
                 return False, str(e)
-        return True, ""
+        return True, ''

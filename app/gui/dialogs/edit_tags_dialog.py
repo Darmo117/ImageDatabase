@@ -46,7 +46,7 @@ class EditTagsDialog(Dialog):
                       TagsTab(self, dao, self._editable, selection_changed=self._selection_changed,
                               cell_changed=self._check_integrity, rows_deleted=self._check_integrity))
 
-        title = "Edit Tags" if self._editable else "Tags"
+        title = 'Edit Tags' if self._editable else 'Tags'
         mode = self.CLOSE if not self._editable else self.OK_CANCEL
         super().__init__(parent=parent, title=title, modal=self._editable, mode=mode)
         self._valid = True
@@ -63,8 +63,8 @@ class EditTagsDialog(Dialog):
         buttons.addStretch(1)
 
         self._add_row_btn = QtW.QPushButton()
-        self._add_row_btn.setIcon(QtG.QIcon("app/icons/plus.png"))
-        self._add_row_btn.setToolTip("Add Item")
+        self._add_row_btn.setIcon(QtG.QIcon('app/icons/plus.png'))
+        self._add_row_btn.setToolTip('Add Item')
         self._add_row_btn.setFixedSize(24, 24)
         self._add_row_btn.setFocusPolicy(Qt.NoFocus)
         # noinspection PyUnresolvedReferences
@@ -72,8 +72,8 @@ class EditTagsDialog(Dialog):
         buttons.addWidget(self._add_row_btn)
 
         self._delete_row_btn = QtW.QPushButton()
-        self._delete_row_btn.setIcon(QtG.QIcon("app/icons/cross.png"))
-        self._delete_row_btn.setToolTip("Delete Items")
+        self._delete_row_btn.setIcon(QtG.QIcon('app/icons/cross.png'))
+        self._delete_row_btn.setToolTip('Delete Items')
         self._delete_row_btn.setFixedSize(24, 24)
         self._delete_row_btn.setFocusPolicy(Qt.NoFocus)
         # noinspection PyUnresolvedReferences
@@ -92,12 +92,12 @@ class EditTagsDialog(Dialog):
 
         search_layout = QtW.QHBoxLayout()
         self._search_field = QtW.QLineEdit()
-        self._search_field.setPlaceholderText("Search tag or type…")
+        self._search_field.setPlaceholderText('Search tag or type…')
         # noinspection PyUnresolvedReferences
         self._search_field.returnPressed.connect(self._search)
         search_layout.addWidget(self._search_field)
 
-        search_btn = QtW.QPushButton("Search")
+        search_btn = QtW.QPushButton('Search')
         # noinspection PyUnresolvedReferences
         search_btn.clicked.connect(self._search)
         search_layout.addWidget(search_btn)
@@ -109,8 +109,8 @@ class EditTagsDialog(Dialog):
     def _init_buttons(self) -> typ.List[QtW.QAbstractButton]:
         if self._editable:
             self._ok_btn.setEnabled(False)
-            self._apply_btn = QtW.QPushButton("Apply")
-            # noinspection PyUnresolvedReferences
+            self._apply_btn = QtW.QPushButton('Apply')
+            # noinspection PyUnresolvedReferences,PyTypeChecker
             self._apply_btn.clicked.connect(self._apply)
             self._apply_btn.setEnabled(False)
             return [self._apply_btn]
@@ -141,7 +141,7 @@ class EditTagsDialog(Dialog):
         if len(text) > 0:
             found = self._tabs[self._tabbed_pane.currentIndex()].search(text)
             if not found:
-                utils.show_info("No match found.", parent=self)
+                utils.show_info('No match found.', parent=self)
 
     def _is_valid(self) -> bool:
         return self._valid
@@ -149,7 +149,7 @@ class EditTagsDialog(Dialog):
     def _apply(self) -> bool:
         ok = all(map(lambda t: t.apply(), self._tabs))
         if not ok:
-            utils.show_error("An error occured! Some changes may not have been saved.", parent=self)
+            utils.show_error('An error occured! Some changes may not have been saved.', parent=self)
         else:
             self._apply_btn.setEnabled(False)
             super()._apply()

@@ -14,6 +14,7 @@ class _TreeToBoolean(lark.InlineTransformer):
     def __init__(self):
         with open("app/queries/grammar.lark") as f:
             grammar = "\n".join(f.readlines())
+        # noinspection PyArgumentList
         self._parser = lark.Lark(grammar, parser="lalr", lexer="contextual", start="query")
 
     # noinspection PyMethodMayBeStatic
@@ -60,6 +61,7 @@ class _TreeToBoolean(lark.InlineTransformer):
         :return: The SymPy expression.
         """
         parsed_query = self._parser.parse(query)
+        # noinspection PyUnresolvedReferences
         bool_expr = self.transform(parsed_query)
 
         if simplify:

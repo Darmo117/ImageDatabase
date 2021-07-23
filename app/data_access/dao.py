@@ -8,7 +8,7 @@ from .. import constants
 
 class DAO(ABC):
     """Base class for DAO objects. It defines a 'regex' function to use in SQL queries."""
-    _DEFAULT = ":memory:"
+    _DEFAULT = ':memory:'
 
     def __init__(self, database: str = _DEFAULT):
         """
@@ -26,8 +26,8 @@ class DAO(ABC):
             with open(constants.DB_SETUP_FILE) as db_script_file:
                 self._connection.executescript(db_script_file.read())
 
-        self._connection.create_function("regexp", 2, lambda x, y: re.search(x, y) is not None)
-        self._connection.execute("PRAGMA foreign_keys = ON")
+        self._connection.create_function('regexp', 2, lambda x, y: re.search(x, y) is not None)
+        self._connection.execute('PRAGMA foreign_keys = ON')
 
     @property
     def database_path(self) -> str:

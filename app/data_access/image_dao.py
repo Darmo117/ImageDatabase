@@ -63,18 +63,20 @@ class ImageDao(DAO):
         :param image_path: Path to the image.
         :return: True if the image is registered; false otherwise. Returns None if an exception occured.
         """
-        return self._test_image_registered2(image_path)
+        return self._test_image_registered(image_path)
 
     def _test_image_registered(self, image_path):
+        # Only checks if another file in the same directory has the same name
         try:
-            filename = re.escape("/" + os.path.basename(image_path))
-            cursor = self._connection.execute("SELECT COUNT(*) FROM images WHERE path regexp ?", (filename,))
+            filename = re.escape(image_path)
+            cursor = self._connection.execute('SELECT COUNT(*) FROM images WHERE path regexp ?', (filename,))
             return cursor.fetchall()[0][0] > 0
         except sqlite3.OperationalError as e:
             logger.exception(e)
             return None
 
     def _test_image_registered2(self, image_path):
+        # Uses OpenCV2 to compare pixels
         cursor = self._connection.execute('SELECT path FROM images')
         array1 = cv2.imread(image_path)
         size1 = len(array1), len(array1[0])
@@ -102,10 +104,10 @@ class ImageDao(DAO):
         try:
             self._connection.execute("BEGIN")
             image_cursor = self._connection.cursor()
-            image_cursor.execute("INSERT INTO images(path) VALUES(?)", (image_path,))
+            image_cursor.execute('INSERT INTO images(path) VALUES(?)', (image_path,))
             for tag in tags:
                 tag_id = self._insert_tag_if_not_exists(tag)
-                self._connection.execute("INSERT INTO image_tag(image_id, tag_id) VALUES(?, ?)",
+                self._connection.execute('INSERT INTO image_tag(image_id, tag_id) VALUES(?, ?)',
                                          (image_cursor.lastrowid, tag_id))
             self._connection.commit()
             return True
@@ -123,7 +125,7 @@ class ImageDao(DAO):
         :return: True if the image was updated.
         """
         try:
-            self._connection.execute("UPDATE images SET path = ? WHERE id = ?", (new_path, image_id))
+            self._connection.execute('UPDATE images SET path = ? WHERE id = ?', (new_path, image_id))
             return True
         except (sqlite3.OperationalError, sqlite3.IntegrityError) as e:
             self._connection.rollback()
@@ -139,11 +141,11 @@ class ImageDao(DAO):
         :return: True if the image was added.
         """
         try:
-            self._connection.execute("BEGIN")
-            self._connection.execute("DELETE FROM image_tag WHERE image_id = ?", (image_id,))
+            self._connection.execute('BEGIN')
+            self._connection.execute('DELETE FROM image_tag WHERE image_id = ?', (image_id,))
             for tag in tags:
                 tag_id = self._insert_tag_if_not_exists(tag)
-                self._connection.execute("INSERT INTO image_tag(image_id, tag_id) VALUES(?, ?)", (image_id, tag_id))
+                self._connection.execute('INSERT INTO image_tag(image_id, tag_id) VALUES(?, ?)', (image_id, tag_id))
             self._connection.commit()
             return True
         except (sqlite3.OperationalError, sqlite3.IntegrityError) as e:
@@ -159,7 +161,7 @@ class ImageDao(DAO):
         :return: True if the image was deleted.
         """
         try:
-            self._connection.execute("DELETE FROM images WHERE id = ?", (image_id,))
+            self._connection.execute('DELETE FROM images WHERE id = ?', (image_id,))
             return True
         except sqlite3.OperationalError as e:
             self._connection.rollback()
@@ -172,13 +174,13 @@ class ImageDao(DAO):
 
         :return: The tag's ID.
         """
-        cursor = self._connection.execute("SELECT id FROM tags WHERE label = ?", (tag.label,))
+        cursor = self._connection.execute('SELECT id FROM tags WHERE label = ?', (tag.label,))
         result = cursor.fetchone()
         cursor.close()
         if result is None:
             cursor = self._connection.cursor()
             tag_type = tag.type.id if tag.type is not None else None
-            cursor.execute("INSERT INTO tags(label, type_id) VALUES(?, ?)", (tag.label, tag_type))
+            cursor.execute('INSERT INTO tags(label, type_id) VALUES(?, ?)', (tag.label, tag_type))
             return cursor.lastrowid
         return result[0]
 
@@ -207,15 +209,15 @@ class ImageDao(DAO):
                 """
         elif isinstance(sympy_expr, sp.Or):
             subs = [ImageDao._get_query(arg) for arg in sympy_expr.args]
-            return "SELECT id, path FROM (" + "\nUNION\n".join(subs) + ")"
+            return 'SELECT id, path FROM (' + '\nUNION\n'.join(subs) + ')'
         elif isinstance(sympy_expr, sp.And):
             subs = [ImageDao._get_query(arg) for arg in sympy_expr.args]
-            return "SELECT id, path FROM (" + "\nINTERSECT\n".join(subs) + ")"
+            return 'SELECT id, path FROM (' + '\nINTERSECT\n'.join(subs) + ')'
         elif isinstance(sympy_expr, sp.Not):
-            return "SELECT id, path FROM (SELECT id, path FROM images EXCEPT " + \
-                   ImageDao._get_query(sympy_expr.args[0]) + ")"
+            return f'SELECT id, path FROM (SELECT id, path FROM images EXCEPT ' \
+                   f'{ImageDao._get_query(sympy_expr.args[0])})'
         elif sympy_expr == sp.true:
-            return "SELECT id, path FROM images"
+            return 'SELECT id, path FROM images'
         elif sympy_expr == sp.false:
             return None
 
@@ -255,16 +257,16 @@ class ImageDao(DAO):
         :return: The SQL query for the metatag.
         """
         # Unescape space character, escape dot and replace '*' wildcard by a regex
-        escaped_value = value.replace(r"\ ", " ").replace(".", r"\.").replace("*", "[^/]*")
+        escaped_value = value.replace(r'\ ', ' ').replace('.', r'\.').replace('*', '[^/]*')
         return ImageDao._METATAGS[metatag][1].format(escaped_value)
 
-    METAVALUE_PATTERN = r"(?:[\w.*-]|\\ )+"
-    _METAVALUE_REGEX = re.compile(f"^{METAVALUE_PATTERN}$")
+    METAVALUE_PATTERN = r'(?:[\w.*-]|\\ )+'
+    _METAVALUE_REGEX = re.compile(f'^{METAVALUE_PATTERN}$')
 
     # Declared metatags with their value-checking function and database query template.
     _METATAGS: typ.Dict[str, typ.Tuple[typ.Callable[[str], bool], str]] = {
-        "type": (lambda v: ImageDao._METAVALUE_REGEX.match(v) is not None,
+        'type': (lambda v: ImageDao._METAVALUE_REGEX.match(v) is not None,
                  r"SELECT id, path FROM images WHERE path regexp '\.{}$'"),
-        "name": (lambda v: ImageDao._METAVALUE_REGEX.match(v) is not None,
+        'name': (lambda v: ImageDao._METAVALUE_REGEX.match(v) is not None,
                  r"SELECT id, path FROM images WHERE path regexp '/{}\.\w+$'"),
     }

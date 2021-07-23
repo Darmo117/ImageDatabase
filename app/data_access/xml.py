@@ -11,10 +11,10 @@ def write_playlist(file: str, images: typ.List[model.Image]):
     :param file: The output file.
     :param images: The image of the playlist.
     """
-    playlist = ETree.Element("playlist")
+    playlist = ETree.Element('playlist')
     for image in images:
-        item = ETree.SubElement(playlist, "image")
+        item = ETree.SubElement(playlist, 'image')
         item.text = image.path
-        item.set("rotation", "0")
+        item.set('rotation', '0')
     tree = ETree.ElementTree(playlist)
-    tree.write(file, encoding="UTF-8", xml_declaration=True)
+    tree.write(file, encoding='UTF-8', xml_declaration=True)
