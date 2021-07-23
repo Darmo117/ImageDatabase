@@ -148,6 +148,7 @@ class Tab(abc.ABC, typ.Generic[_Type]):
     def search(self, query: str):
         """
         Searches for a string inside the table.
+        Starts the search from the currently selected row, or from the first one if none is selected.
 
         :param query: The string to search for.
         """

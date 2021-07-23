@@ -63,19 +63,20 @@ class ImageDao(DAO):
         :param image_path: Path to the image.
         :return: True if the image is registered; false otherwise. Returns None if an exception occured.
         """
-        return self._test_image_registered(image_path)
+        return self._test_image_registered_file_name(image_path)
 
-    def _test_image_registered(self, image_path):
+    def _test_image_registered_file_name(self, image_path):
         # Only checks if another file in the same directory has the same name
         try:
             filename = re.escape(image_path)
-            cursor = self._connection.execute('SELECT COUNT(*) FROM images WHERE path regexp ?', (filename,))
+            cursor = self._connection.execute('SELECT COUNT(*) FROM images WHERE path REGEXP ?', (filename,))
             return cursor.fetchall()[0][0] > 0
         except sqlite3.OperationalError as e:
             logger.exception(e)
             return None
 
-    def _test_image_registered2(self, image_path):
+    # TEST Experimental, use at your own risk.
+    def _test_image_registered_pixels(self, image_path):
         # Uses OpenCV2 to compare pixels
         cursor = self._connection.execute('SELECT path FROM images')
         array1 = cv2.imread(image_path)
@@ -86,9 +87,14 @@ class ImageDao(DAO):
                 array2 = cv2.imread(path)
                 size2 = len(array2), len(array2[0])
                 if size1 == size2:
-                    score = sk_measure.structural_similarity(array1, array2, multichannel=True, gaussian_weights=True,
-                                                             sigma=1.5, use_sample_covariance=False)
-                    if score == 1.0:
+                    score = sk_measure.structural_similarity(
+                        array1, array2,
+                        multichannel=True,
+                        gaussian_weights=True,
+                        sigma=1.5,
+                        use_sample_covariance=False
+                    )
+                    if score == 1:
                         return True
 
         return False
@@ -266,7 +272,7 @@ class ImageDao(DAO):
     # Declared metatags with their value-checking function and database query template.
     _METATAGS: typ.Dict[str, typ.Tuple[typ.Callable[[str], bool], str]] = {
         'type': (lambda v: ImageDao._METAVALUE_REGEX.match(v) is not None,
-                 r"SELECT id, path FROM images WHERE path regexp '\.{}$'"),
+                 r"SELECT id, path FROM images WHERE path REGEXP '\.{}$'"),
         'name': (lambda v: ImageDao._METAVALUE_REGEX.match(v) is not None,
-                 r"SELECT id, path FROM images WHERE path regexp '/{}\.\w+$'"),
+                 r"SELECT id, path FROM images WHERE path REGEXP '/{}\.\w+$'"),
     }

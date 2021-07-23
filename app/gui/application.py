@@ -18,6 +18,11 @@ from ..logging import logger
 class Application(QtW.QMainWindow):
     """Application's main class."""
 
+    _TAB_TITLES = (
+        'Paths ({})',
+        'Thumbnails ({})',
+    )
+
     # noinspection PyArgumentList
     def __init__(self):
         super().__init__()
@@ -32,8 +37,8 @@ class Application(QtW.QMainWindow):
     # noinspection PyUnresolvedReferences,PyArgumentList
     def _init_ui(self):
         """Initializes the UI."""
-        self.setWindowTitle("Image Library v" + constants.VERSION)
-        self.setWindowIcon(QtG.QIcon("app/icons/app_icon.png"))
+        self.setWindowTitle('Image Library')
+        self.setWindowIcon(QtG.QIcon('app/icons/app_icon.png'))
         self.setGeometry(0, 0, 800, 600)
         self.setMinimumSize(400, 200)
 
@@ -45,19 +50,19 @@ class Application(QtW.QMainWindow):
         self._tag_tree.itemDoubleClicked.connect(self._tree_item_clicked)
         self._refresh_tree()
 
-        _list = ImageList(self._list_selection_changed, lambda image: self._edit_images([image]))
+        path_list = ImageList(self._list_selection_changed, lambda image: self._edit_images([image]))
         thumb_list = ThumbnailList(self._list_selection_changed, lambda image: self._edit_images([image]))
 
         self._tabbed_pane = QtW.QTabWidget()
-        self._tabbed_pane.addTab(_list, "List")
-        self._tabbed_pane.addTab(thumb_list, "Thumbnails")
+        self._tabbed_pane.addTab(path_list, self._TAB_TITLES[0].format(0))
+        self._tabbed_pane.addTab(thumb_list, self._TAB_TITLES[1].format(0))
         self._tabbed_pane.currentChanged.connect(self._on_tab_changed)
 
-        self._ok_btn = QtW.QPushButton("OK")
+        self._ok_btn = QtW.QPushButton('OK')
         self._ok_btn.clicked.connect(self._fetch_images)
 
         self._input_field = QtW.QLineEdit()
-        self._input_field.setPlaceholderText("Search tags…")
+        self._input_field.setPlaceholderText('Search tags…')
         self._input_field.returnPressed.connect(self._fetch_images)
 
         splitter = QtW.QSplitter()
@@ -95,84 +100,88 @@ class Application(QtW.QMainWindow):
         """Initializes the menu bar."""
         menubar = self.menuBar()
 
-        file_menu = menubar.addMenu("&File")
+        file_menu = menubar.addMenu('&File')
 
-        add_file_item = QtW.QAction("Add &File…", self)
-        add_file_item.setIcon(QtG.QIcon("app/icons/image_add.png"))
-        add_file_item.setShortcut("Ctrl+F")
+        add_file_item = QtW.QAction('Add &File…', self)
+        add_file_item.setIcon(QtG.QIcon('app/icons/image_add.png'))
+        add_file_item.setShortcut('Ctrl+F')
         add_file_item.triggered.connect(self._add_image)
         file_menu.addAction(add_file_item)
 
-        add_directory_item = QtW.QAction("Add &Directory…", self)
-        add_directory_item.setIcon(QtG.QIcon("app/icons/folder_image.png"))
-        add_directory_item.setShortcut("Ctrl+D")
+        add_directory_item = QtW.QAction('Add &Directory…', self)
+        add_directory_item.setIcon(QtG.QIcon('app/icons/folder_image.png'))
+        add_directory_item.setShortcut('Ctrl+D')
         add_directory_item.triggered.connect(self._add_directory)
         file_menu.addAction(add_directory_item)
 
         file_menu.addSeparator()
 
-        self._export_item = QtW.QAction("E&xport As Playlist…", self)
-        self._export_item.setShortcut("Ctrl+Shift+E")
+        self._export_item = QtW.QAction('E&xport As Playlist…', self)
+        self._export_item.setShortcut('Ctrl+Shift+E')
         self._export_item.triggered.connect(self._export_images)
-        # file_menu.addAction(self._export_item)  # Hidden from official release
+        file_menu.addAction(self._export_item)
 
         file_menu.addSeparator()
 
-        exit_item = QtW.QAction("&Exit", self)
-        exit_item.setIcon(QtG.QIcon("app/icons/door_open.png"))
-        exit_item.setShortcut("Ctrl+Q")
+        exit_item = QtW.QAction('&Exit', self)
+        exit_item.setIcon(QtG.QIcon('app/icons/door_open.png'))
+        exit_item.setShortcut('Ctrl+Q')
         exit_item.triggered.connect(QtW.qApp.quit)
         file_menu.addAction(exit_item)
 
-        edit_menu = menubar.addMenu("&Edit")
+        edit_menu = menubar.addMenu('&Edit')
 
-        edit_tags_item = QtW.QAction("Edit Tags…", self)
-        edit_tags_item.setIcon(QtG.QIcon("app/icons/tag_edit.png"))
-        edit_tags_item.setShortcut("Ctrl+T")
+        edit_tags_item = QtW.QAction('Edit Tags…', self)
+        edit_tags_item.setIcon(QtG.QIcon('app/icons/tag_edit.png'))
+        edit_tags_item.setShortcut('Ctrl+T')
         edit_tags_item.triggered.connect(self._edit_tags)
         edit_menu.addAction(edit_tags_item)
 
         edit_menu.addSeparator()
 
-        self._rename_image_item = QtW.QAction("&Rename Image…", self)
-        self._rename_image_item.setIcon(QtG.QIcon("app/icons/textfield_rename.png"))
-        self._rename_image_item.setShortcut("Ctrl+R")
+        self._rename_image_item = QtW.QAction('&Rename Image…', self)
+        self._rename_image_item.setIcon(QtG.QIcon('app/icons/textfield_rename.png'))
+        self._rename_image_item.setShortcut('Ctrl+R')
         self._rename_image_item.triggered.connect(self._rename_image)
         edit_menu.addAction(self._rename_image_item)
 
-        self._replace_image_item = QtW.QAction("&Replace Image…", self)
-        self._replace_image_item.setIcon(QtG.QIcon("app/icons/images.png"))
-        self._replace_image_item.setShortcut("Ctrl+Shift+R")
+        self._replace_image_item = QtW.QAction('&Replace Image…', self)
+        self._replace_image_item.setIcon(QtG.QIcon('app/icons/images.png'))
+        self._replace_image_item.setShortcut('Ctrl+Shift+R')
         self._replace_image_item.triggered.connect(self._replace_image)
         edit_menu.addAction(self._replace_image_item)
 
-        self._edit_images_item = QtW.QAction("Edit Images…", self)
-        self._edit_images_item.setIcon(QtG.QIcon("app/icons/image_edit.png"))
-        self._edit_images_item.setShortcut("Ctrl+E")
+        self._edit_images_item = QtW.QAction('Edit Images…', self)
+        self._edit_images_item.setIcon(QtG.QIcon('app/icons/image_edit.png'))
+        self._edit_images_item.setShortcut('Ctrl+E')
         self._edit_images_item.triggered.connect(lambda: self._edit_images(self._current_tab().selected_images()))
         edit_menu.addAction(self._edit_images_item)
 
-        self._delete_images_item = QtW.QAction("Delete Images", self)
-        self._delete_images_item.setIcon(QtG.QIcon("app/icons/image_delete.png"))
-        self._delete_images_item.setShortcut("Delete")
+        self._delete_images_item = QtW.QAction('Delete Images', self)
+        self._delete_images_item.setIcon(QtG.QIcon('app/icons/image_delete.png'))
+        self._delete_images_item.setShortcut('Delete')
         self._delete_images_item.triggered.connect(self._delete_images)
         edit_menu.addAction(self._delete_images_item)
 
-        options_menu = menubar.addMenu("&Options")
+        options_menu = menubar.addMenu('&Options')
 
         # noinspection PyArgumentList
-        self._load_thumbs_item = QtW.QAction("&Load Thumbnails", checkable=True, checked=config.CONFIG.load_thumbnails)
+        self._load_thumbs_item = QtW.QAction('&Load Thumbnails', checkable=True, checked=config.CONFIG.load_thumbnails)
         self._load_thumbs_item.triggered.connect(self._load_thumbs_item_clicked)
         options_menu.addAction(self._load_thumbs_item)
 
-        thumb_size_item = QtW.QAction("Thumbnail &Size…", self)
+        thumb_size_item = QtW.QAction('Thumbnail &Size…', self)
         thumb_size_item.triggered.connect(self._thumb_size_item_clicked)
         options_menu.addAction(thumb_size_item)
 
-        help_menu = menubar.addMenu("&Help")
+        thumb_load_threshold_item = QtW.QAction('Thumbnail Load &Threshold…', self)
+        thumb_load_threshold_item.triggered.connect(self._thumb_load_threshold_item_clicked)
+        options_menu.addAction(thumb_load_threshold_item)
 
-        about_item = QtW.QAction("About", self)
-        about_item.setIcon(QtG.QIcon("app/icons/information.png"))
+        help_menu = menubar.addMenu('&Help')
+
+        about_item = QtW.QAction('About', self)
+        about_item.setIcon(QtG.QIcon('app/icons/information.png'))
         about_item.triggered.connect(lambda: AboutDialog(self).show())
         help_menu.addAction(about_item)
 
@@ -194,7 +203,7 @@ class Application(QtW.QMainWindow):
         images = utils.open_directory_chooser(self)
         if images is not None:
             if len(images) == 0:
-                utils.show_info("No images in this directory!", parent=self)
+                utils.show_info('No images in this directory!', parent=self)
             else:
                 self._add_images(images)
 
@@ -203,8 +212,8 @@ class Application(QtW.QMainWindow):
         if len(images) > 0:
             images_to_add = [i for i in images if not self._dao.image_registered(i)]
             if len(images_to_add) == 0:
-                s = "s" if len(images) > 1 else ""
-                text = f"Image{s} already registered!"
+                s = 's' if len(images) > 1 else ""
+                text = f'Image{s} already registered!'
                 utils.show_info(text, parent=self)
             else:
                 dialog = EditImageDialog(self, show_skip=len(images_to_add) > 1, mode=EditImageDialog.ADD)
@@ -218,11 +227,11 @@ class Application(QtW.QMainWindow):
         if len(images) == 1:
             image = images[0]
             file_name, ext = os.path.splitext(os.path.basename(image.path))
-            text = utils.show_text_input("Enter the new name", "New Name", text=file_name, parent=self)
+            text = utils.show_text_input('Enter the new name', 'New Name', text=file_name, parent=self)
             if text is not None and file_name != text:
                 new_path = utils.slashed(os.path.join(os.path.dirname(image.path), text + ext))
                 if not self._dao.update_image_path(image.id, new_path):
-                    utils.show_error("Could not rename image!", parent=self)
+                    utils.show_error('Could not rename image!', parent=self)
                 else:
                     rename = True
                     if os.path.exists(new_path):
@@ -242,7 +251,7 @@ class Application(QtW.QMainWindow):
             dialog.set_on_close_action(self._fetch_images)
             tags = self._dao.get_image_tags(image.id)
             if tags is None:
-                utils.show_error("Failed to load tags!")
+                utils.show_error('Failed to load tags!')
             dialog.set_image(image, tags)
             dialog.show()
 
@@ -253,7 +262,7 @@ class Application(QtW.QMainWindow):
             file = utils.open_playlist_saver(self)
             if file is not None:
                 da.write_playlist(file, images)
-                utils.show_info("Exported playlist!", parent=self)
+                utils.show_info('Exported playlist!', parent=self)
 
     def _fetch_and_refresh(self):
         """Fetches images then refreshes the list."""
@@ -269,7 +278,7 @@ class Application(QtW.QMainWindow):
             for image in images:
                 t = self._dao.get_image_tags(image.id)
                 if t is None:
-                    utils.show_error("Failed to load tags!")
+                    utils.show_error('Failed to load tags!')
                 tags[image.id] = t
             dialog.set_images(images, tags)
             dialog.show()
@@ -280,18 +289,18 @@ class Application(QtW.QMainWindow):
 
         if len(images) > 0:
             if len(images) > 1:
-                message = "<html>Are you sure you want to delete these images?"
+                message = '<html>Are you sure you want to delete these images?'
             else:
-                message = "<html>Are you sure you want to delete this image?"
-            message += "<br/><b>Files will be delete from the disk.</b></html>"
-            if utils.show_question(message, "Delete", parent=self):
+                message = '<html>Are you sure you want to delete this image?'
+            message += '<br/><b>Files will be delete from the disk.</b></html>'
+            if utils.show_question(message, 'Delete', parent=self):
                 for item in images:
                     if self._dao.delete_image(item.id):
                         try:
                             os.remove(item.path)
                         except FileNotFoundError as e:
                             logger.exception(e)
-                            utils.show_error("Could not delete file!\n" + e.filename, parent=self)
+                            utils.show_error('Could not delete file!\n' + e.filename, parent=self)
                 self._fetch_images()
 
     def _edit_tags(self):
@@ -306,8 +315,8 @@ class Application(QtW.QMainWindow):
 
         :param item: The clicked item.
         """
-        if item.whatsThis(0) == "tag":
-            self._input_field.setText((self._input_field.text() + " " + item.text(0)).lstrip())
+        if item.whatsThis(0) == 'tag':
+            self._input_field.setText((self._input_field.text() + ' ' + item.text(0)).lstrip())
 
     def _refresh_tree(self):
         """Refreshes the tags tree."""
@@ -324,8 +333,6 @@ class Application(QtW.QMainWindow):
             self._thread.finished.connect(self._on_fetch_done)
             self._thread.start()
 
-    _THRESHOLD = 50
-
     def _on_fetch_done(self):
         """Called when images searching is done."""
         if self._thread.failed:
@@ -338,17 +345,22 @@ class Application(QtW.QMainWindow):
 
             if config.CONFIG.load_thumbnails:
                 load_thumbs = True
-                if len(images) > self._THRESHOLD:
-                    ok = utils.show_question(f"Query returned more than {self._THRESHOLD} images, "
-                                             f"thumbnails will be disabled.\nDo you want to load them anyway?",
-                                             title="Load images?", parent=self)
-                    if ok:
+                if len(images) > config.CONFIG.thumbnail_load_threshold:
+                    ok = utils.show_question(
+                        f'Query returned more than {config.CONFIG.thumbnail_load_threshold} image(s), '
+                        'thumbnails will be disabled.\n'
+                        'Do you want to load them anyway? The app may crash as a result.',
+                        title='Load image thumbnails?',
+                        parent=self
+                    )
+                    if not ok:
                         load_thumbs = False
             else:
                 load_thumbs = False
 
             for i in range(2):
                 tab = self._tabbed_pane.widget(i)
+                self._tabbed_pane.setTabText(i, self._TAB_TITLES[i].format(len(images)))
                 tab.clear()
                 if load_thumbs and config.CONFIG.load_thumbnails or not isinstance(tab, ThumbnailList):
                     for image in images:
@@ -363,11 +375,30 @@ class Application(QtW.QMainWindow):
         config.save_config()
 
     def _thumb_size_item_clicked(self):
-        value = utils.show_int_input("Enter the new size", "Thumbnails Size", value=config.CONFIG.thumbnail_size,
-                                     min_value=constants.MIN_THUMB_SIZE, max_value=constants.MAX_THUMB_SIZE,
-                                     parent=self)
+        value = utils.show_int_input(
+            'Enter the new size',
+            'Thumbnails Size',
+            value=config.CONFIG.thumbnail_size,
+            min_value=constants.MIN_THUMB_SIZE,
+            max_value=constants.MAX_THUMB_SIZE,
+            parent=self
+        )
         if value is not None:
             config.CONFIG.thumbnail_size = value
+            config.save_config()
+            self._fetch_and_refresh()
+
+    def _thumb_load_threshold_item_clicked(self):
+        value = utils.show_int_input(
+            'Enter the new threshold',
+            'Thumbnails Load Threshold',
+            value=config.CONFIG.thumbnail_load_threshold,
+            min_value=constants.MIN_THUMB_LOAD_THRESHOLD,
+            max_value=constants.MAX_THUMB_LOAD_THRESHOLD,
+            parent=self
+        )
+        if value is not None:
+            config.CONFIG.thumbnail_load_threshold = value
             config.save_config()
             self._fetch_and_refresh()
 
@@ -432,7 +463,7 @@ class Application(QtW.QMainWindow):
         urls = []
         for url in event.mimeData().urls():
             if not url.isLocalFile():
-                raise ValueError("URL is not local!")
+                raise ValueError('URL is not local!')
             urls.append(url.toLocalFile())
         return urls
 
@@ -440,9 +471,9 @@ class Application(QtW.QMainWindow):
     def run(cls):
         """Run an instance of this Application class."""
         try:
-            if os.name == "nt":
+            if os.name == 'nt':
                 # Arbitrary string to display app icon in the taskbar on Windows.
-                ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID("image_library")
+                ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID('image_library')
 
             config.load_config()
 
@@ -454,7 +485,7 @@ class Application(QtW.QMainWindow):
             tags_dao = da.TagsDao(config.CONFIG.database_path)
             types = tags_dao.get_all_types()
             if types is None:
-                utils.show_error("Could not load data! Shutting down.")
+                utils.show_error('Could not load data! Shutting down.')
                 sys.exit(-1)
             model.TagType.init(types)
             tags_dao.close()
@@ -495,18 +526,18 @@ class _SearchThread(QtC.QThread):
         self._images = images_dao.get_images(expr)
         images_dao.close()
         if self._images is None:
-            self._error = "Failed to load images!"
+            self._error = 'Failed to load images!'
 
     def _preprocess(self):
         meta_tag_values = {}
         index = 0
         # Replace metatag values with placeholders to avoid them being altered in the next step
-        while "There are matches":
-            match = re.search(fr":\s*({da.ImageDao.METAVALUE_PATTERN})", self._query)
+        while 'There are matches':
+            match = re.search(fr':\s*({da.ImageDao.METAVALUE_PATTERN})', self._query)
             if match is not None:
                 index += 1
                 meta_tag_values[index] = match[1]
-                self._query = re.sub(re.escape(match[1]), f"%%{index}%%", self._query, count=1)
+                self._query = re.sub(re.escape(match[1]), f'%%{index}%%', self._query, count=1)
             else:
                 break
 
@@ -519,15 +550,15 @@ class _SearchThread(QtC.QThread):
         while self._query != previous_query:
             previous_query = self._query
             for tag in compound_tags:
-                self._query = re.sub(fr"(\W|^){tag.label}(\W|$)", fr"\1({tag.definition})\2", self._query)
+                self._query = re.sub(fr'(\W|^){tag.label}(\W|$)', fr'\1({tag.definition})\2', self._query)
             depth += 1
             if depth >= self._MAXIMUM_DEPTH:
-                self._error = f"Maximum recursion depth of {self._MAXIMUM_DEPTH} reached!"
+                self._error = f'Maximum recursion depth of {self._MAXIMUM_DEPTH} reached!'
                 return
 
         # Restore placeholders' original values
         for index, value in meta_tag_values.items():
-            self._query = self._query.replace(f"%%{index}%%", value, 1)
+            self._query = self._query.replace(f'%%{index}%%', value, 1)
 
     @property
     def fetched_images(self) -> typ.List[model.Image]:

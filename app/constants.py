@@ -1,7 +1,9 @@
-VERSION = "3.2"
-DB_SETUP_FILE = "app/setup.sql"
-CONFIG_FILE = "config.ini"
-ERROR_LOG_FILE = "logs/errors.log"
-FILE_EXTENSIONS = ["png", "jpg", "jpeg", "bmp", "gif"]
+VERSION = '3.2'
+DB_SETUP_FILE = 'app/setup.sql'
+CONFIG_FILE = 'config.ini'
+ERROR_LOG_FILE = 'logs/errors.log'
+FILE_EXTENSIONS = ['png', 'jpg', 'jpeg', 'bmp', 'gif']
 MIN_THUMB_SIZE = 50
-MAX_THUMB_SIZE = 1000
+MAX_THUMB_SIZE = 2000
+MIN_THUMB_LOAD_THRESHOLD = 0
+MAX_THUMB_LOAD_THRESHOLD = 1000

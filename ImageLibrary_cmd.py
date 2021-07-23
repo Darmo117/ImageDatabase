@@ -1,3 +1,4 @@
+#!/usr/bin/python3
 """Command-line application to interact with the database."""
 
 import sqlite3

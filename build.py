@@ -1,26 +1,26 @@
 import os
 import shutil
 
-TO_COPY = ["ImageLibrary.py", "ImageLibrary_cmd.py", "app/", "db_converters/"]
-BUILD_DIR = "build/Image-Library/"
+TO_COPY = ['ImageLibrary.py', 'ImageLibrary_cmd.py', 'setup.sh', 'requirements.txt', 'app/', 'LICENSE', 'README.md']
+BUILD_DIR = 'build/Image-Library/'
 
 if os.path.exists(BUILD_DIR):
-    print("Cleaning build directory...")
+    print('Cleaning build directory…')
     shutil.rmtree(BUILD_DIR)
 
-print("Creating build directory...")
+print('Creating build directory…')
 os.makedirs(BUILD_DIR)
 
-print("Copying files...")
+print('Copying files…')
 for file in TO_COPY:
     dest = BUILD_DIR + file
-    if file[-1] == "/":
+    if file[-1] == '/':
         shutil.copytree(file, dest)
     else:
         shutil.copy(file, dest)
 
-print("Creating config...")
-with open(BUILD_DIR + "config.ini", "w") as f:
+print('Creating config…')
+with open(BUILD_DIR + 'config.ini', 'w') as f:
     contents = """
 # You can edit this file to change some options.
 # Changing any option while the application is running will have no immediate
@@ -34,7 +34,8 @@ File = library.sqlite3
 [Images]
 LoadThumbnails = true
 ThumbnailSize = 200
+ThumbnailLoadThreshold = 50
     """.strip()
     f.write(contents)
 
-print("Done.")
+print('Done.')

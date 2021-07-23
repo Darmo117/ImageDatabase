@@ -8,7 +8,7 @@ matplotlib==3.4.2
 mpmath==1.2.1
 networkx==2.5.1
 numpy==1.21.1
-opencv-contrib-python==4.5.3.56
+opencv-contrib-python==4.1.2.30 # Versions 4.2+ do not work. See https://stackoverflow.com/questions/60042568/this-application-failed-to-start-because-no-qt-platform-plugin-could-be-initiali
 Pillow==8.3.1
 pyparsing==2.4.7
 PyQt5==5.15.4
