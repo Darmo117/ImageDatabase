@@ -24,7 +24,7 @@ with open(BUILD_DIR + 'config.ini', 'w') as f:
     contents = """
 # You can edit this file to change some options.
 # Changing any option while the application is running will have no immediate
-# effect, you'll have to restart it in order to apply the changes.
+# effect, you’ll have to restart it in order to apply the changes.
 
 [Database]
 # Path to the database file.
@@ -32,8 +32,11 @@ File = library.sqlite3
 
 # These options should be modified from the application.
 [Images]
-LoadThumbnails = true
+# Load thumbnails: yes or no
+LoadThumbnails = yes
+# Size of thumbnails in list
 ThumbnailSize = 200
+# Minimum number of images in query result to disable thumbnails (to avoid running out of memory)
 ThumbnailLoadThreshold = 50
     """.strip()
     f.write(contents)
