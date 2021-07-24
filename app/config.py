@@ -18,7 +18,8 @@ _DEFAULT_THUMBS_LOAD_THRESHOLD = 50
 
 @dc.dataclass
 class Config:
-    lang_code: str = _DEFAULT_LANG_CODE
+    language: i18n.Language = None
+    change_to_language: str = None
     database_path: str = _DEFAULT_DB_PATH
     load_thumbnails: bool = _DEFAULT_LOAD_THUMBS
     thumbnail_size: int = _DEFAULT_THUMBS_SIZE
@@ -45,12 +46,16 @@ def load_config():
 
     :raise ConfigError: If an option is missing or has an illegal value.
     """
+    if not i18n.load_languages():
+        raise ConfigError(f'could not load languages')
+
+    lang_code = _DEFAULT_LANG_CODE
     if os.path.exists(constants.CONFIG_FILE):
         config_parser = configparser.ConfigParser()
         config_parser.read(constants.CONFIG_FILE)
         try:
             # UI section
-            CONFIG.lang_code = config_parser.get(_UI_SECTION, _LANG_KEY, fallback=_DEFAULT_LANG_CODE)
+            lang_code = config_parser.get(_UI_SECTION, _LANG_KEY, fallback=_DEFAULT_LANG_CODE)
 
             # Images section
             load_thumbs = _to_bool(config_parser.get(_IMAGES_SECTION, _LOAD_THUMBS_KEY,
@@ -84,8 +89,9 @@ def load_config():
         except KeyError as e:
             raise ConfigError(f'missing key {e}')
 
-    if not i18n.load_language(CONFIG.lang_code):
-        raise ConfigError(f'invalid language code "{CONFIG.lang_code}"')
+    CONFIG.language = i18n.get_language(lang_code) or i18n.get_language(_DEFAULT_LANG_CODE)
+    if not CONFIG.language:
+        raise ConfigError('could not load language')
 
 
 def _to_bool(value: str) -> bool:
@@ -102,7 +108,7 @@ def save_config():
     parser = configparser.ConfigParser(strict=True)
     parser.optionxform = str
     parser[_UI_SECTION] = {
-        _LANG_KEY: CONFIG.lang_code,
+        _LANG_KEY: CONFIG.change_to_language or CONFIG.language.code,
     }
     parser[_IMAGES_SECTION] = {
         _LOAD_THUMBS_KEY: str(CONFIG.load_thumbnails).lower(),

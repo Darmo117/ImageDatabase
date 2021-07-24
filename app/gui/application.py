@@ -12,7 +12,7 @@ from .components import TagTree
 from .dialogs import EditImageDialog, EditTagsDialog, AboutDialog
 from .image_list import ImageList, ImageListView, ThumbnailList
 from .. import config, constants, data_access as da, model, queries, utils
-from ..i18n import translate as _t
+from ..i18n import translate as _t, get_languages as i18n_get_languages
 from ..logging import logger
 
 
@@ -181,6 +181,16 @@ class Application(QtW.QMainWindow):
         options_menu.addAction(thumb_load_threshold_item)
 
         language_menu = options_menu.addMenu(_t('main_window.menu.options.item.language'))
+        language_menu.setIcon(QtG.QIcon(constants.ICONS_DIR + 'world.png'))
+        langs_group = QtW.QActionGroup(self)
+        for lang in i18n_get_languages():
+            lang_item = QtW.QAction(lang.name, self)
+            lang_item.setData(lang)
+            lang_item.triggered.connect(self._language_clicked)
+            lang_item.setCheckable(True)
+            lang_item.setChecked(lang.code == config.CONFIG.language.code)
+            langs_group.addAction(lang_item)
+            language_menu.addAction(lang_item)
 
         help_menu = menubar.addMenu(_t('main_window.menu.help.label'))
 
@@ -317,8 +327,7 @@ class Application(QtW.QMainWindow):
         dialog.show()
 
     def _tree_item_clicked(self, item: QtW.QTreeWidgetItem):
-        """
-        Called when a item in the tags tree is clicked.
+        """Called when a item in the tags tree is clicked.
 
         :param item: The clicked item.
         """
@@ -374,6 +383,12 @@ class Application(QtW.QMainWindow):
             self._input_field.setEnabled(True)
             self._input_field.setFocus()
         self._update_menus()
+
+    def _language_clicked(self):
+        language = self.sender().data()
+        config.CONFIG.change_to_language = language.code
+        config.save_config()
+        utils.show_info(_t('popup.language_changed.text', lang_name=language.name), parent=self)
 
     def _load_thumbs_item_clicked(self):
         config.CONFIG.load_thumbnails = self._load_thumbs_item.isChecked()
