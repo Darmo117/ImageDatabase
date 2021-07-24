@@ -100,7 +100,7 @@ To come…
 
 ## Requirements
 
-- Python 3.8+ (May not work with older versions)
+- Python 3.8+ (Will *not* work with older versions)
 - [PyQt5](http://pyqt.sourceforge.net/Docs/PyQt5/) (GUI)
 - sqlite3 (Database; generally installed with Python)
 - [Lark](https://github.com/erezsh/lark) (Queries analysis)

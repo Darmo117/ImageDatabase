@@ -60,8 +60,7 @@ class ImageListView:
 
     @abc.abstractmethod
     def add_image(self, image: model.Image):
-        """
-        Adds an image to this list.
+        """Adds an image to this list.
 
         :param image: The image to add.
         """
@@ -84,8 +83,7 @@ class ImageList(QtW.QListWidget, ImageListView):
     def __init__(self, on_selection_changed: SelectionChangeListener,
                  on_item_double_clicked: ItemDoubleClickListener,
                  parent: QtW.QWidget = None):
-        """
-        Creates an image list.
+        """Creates an image list.
 
         :param on_selection_changed: Function called when the selection changes.
         :param on_item_double_clicked: Function called when an item is double-clicked.
@@ -93,9 +91,7 @@ class ImageList(QtW.QListWidget, ImageListView):
         """
         super().__init__(parent)
         self.setSelectionMode(QtW.QAbstractItemView.ExtendedSelection)
-        # noinspection PyUnresolvedReferences
         self.selectionModel().selectionChanged.connect(lambda _: on_selection_changed(self.selected_images()))
-        # noinspection PyUnresolvedReferences
         self.itemDoubleClicked.connect(lambda i: on_item_double_clicked(i.image))
 
     def selected_items(self) -> typ.List[ImageItem]:
@@ -121,8 +117,7 @@ class _ImageListItem(QtW.QListWidgetItem, ImageItem):
     """This class is used as an item in the ImageList widget."""
 
     def __init__(self, parent: QtW.QListWidget, image: model.Image):
-        """
-        Creates an item with the given image.
+        """Creates an item with the given image.
 
         :param parent: The list this item belongs to.
         :param image: The image to associate to this item.
@@ -138,8 +133,7 @@ class ThumbnailList(ScrollingFlowWidget, ImageListView):
     def __init__(self, on_selection_changed: SelectionChangeListener,
                  on_item_double_clicked: ItemDoubleClickListener,
                  parent: QtW.QWidget = None):
-        """
-        Creates an image list.
+        """Creates an image list.
 
         :param on_selection_changed: Function called when the selection changes.
         :param on_item_double_clicked: Function called when an item is double-clicked.
@@ -181,7 +175,7 @@ class ThumbnailList(ScrollingFlowWidget, ImageListView):
         self._deselect_except(None)
 
     def keyPressEvent(self, event: QtG.QKeyEvent):
-        """Handles Ctrl+A action."""
+        """Handles “select all“ action."""
         key = event.key()
         modifiers = event.modifiers()
 
@@ -191,8 +185,7 @@ class ThumbnailList(ScrollingFlowWidget, ImageListView):
             self._on_selection_changed(self.selected_images())
 
     def _item_clicked(self, item: _FlowImageItem):
-        """
-        Called when an item is clicked once. It handles Ctrl+Click and Shift+Click actions.
+        """Called when an item is clicked once. It handles Ctrl+Click and Shift+Click actions.
 
         :param item: The clicked item.
         """
@@ -231,8 +224,7 @@ class ThumbnailList(ScrollingFlowWidget, ImageListView):
         self._on_item_double_clicked(item.image)
 
     def _deselect_except(self, item: typ.Optional[_FlowImageItem]):
-        """
-        Deselects all items apart from the given one.
+        """Deselects all items apart from the given one.
 
         :param item: The item to keep selected.
         """
@@ -244,15 +236,13 @@ class ThumbnailList(ScrollingFlowWidget, ImageListView):
 
 
 class _FlowImageItem(QtW.QFrame, ImageItem):
-    """
-    An widget that displays an image and can be selected.
+    """An widget that displays an image and can be selected.
     Used by the ThumbnailList class to display images returned by the user query.
     """
 
     def __init__(self, image: model.Image, index: int, on_click: typ.Callable[[_FlowImageItem], None],
                  on_double_click: typ.Callable[[_FlowImageItem], None]):
-        """
-        Creates an image item.
+        """Creates an image item.
 
         :param image: The image to display.
         :param index: Item's index.
@@ -307,9 +297,9 @@ class _FlowImageItem(QtW.QFrame, ImageItem):
     def selected(self, value: bool):
         """Toggles selection. Border and background will turn blue whenever this item is selected."""
         self._selected = value
-        color = "#84acdd" if self._selected else "#f0f0f0"
-        bg_color = "#ddecff" if self._selected else "#f0f0f0"
-        self.setStyleSheet(f"_FlowImageItem {{ border: 1px solid {color}; background-color: {bg_color} }}")
+        color = '#84acdd' if self._selected else '#f0f0f0'
+        bg_color = '#ddecff' if self._selected else '#f0f0f0'
+        self.setStyleSheet(f'_FlowImageItem {{ border: 1px solid {color}; background-color: {bg_color} }}')
 
     def mousePressEvent(self, _):
         self._click_count = 1

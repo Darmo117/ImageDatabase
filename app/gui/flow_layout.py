@@ -11,8 +11,7 @@ class FlowLayout(QtW.QLayout):
     """Standard PyQt examples FlowLayout modified to work with a scrollable parent."""
 
     def __init__(self, parent: QtW.QWidget = None, margin: int = 0, spacing: int = -1):
-        """
-        Creates a flow layout.
+        """Creates a flow layout.
 
         :param parent: An optional parent for this layout.
         :param margin: Margins value.
@@ -78,15 +77,15 @@ class FlowLayout(QtW.QLayout):
         """Removes all inner components."""
         for i in reversed(range(self.count())):
             if self.itemAt(i).widget() is not None:
+                # noinspection PyTypeChecker
                 self.itemAt(i).widget().setParent(None)
 
     def _do_layout(self, rect: QtC.QRect, test_only: bool = False) -> int:
-        """
-        Sets the geometry of this layout and its inner widgets.
+        """Sets the geometry of this layout and its inner widgets.
 
         :param rect: The rectangle of this layout.
-        :param test_only:
-        :return:
+        :param test_only: Used only in heightForWidth method.
+        :return: The height of this layout.
         """
         x = rect.x()
         y = rect.y()
@@ -94,10 +93,16 @@ class FlowLayout(QtW.QLayout):
 
         for item in self._item_list:
             width = item.widget()
-            space_x = self.spacing() + width.style().layoutSpacing(QtW.QSizePolicy.PushButton,
-                                                                   QtW.QSizePolicy.PushButton, Qt.Horizontal)
-            space_y = self.spacing() + width.style().layoutSpacing(QtW.QSizePolicy.PushButton,
-                                                                   QtW.QSizePolicy.PushButton, Qt.Vertical)
+            space_x = self.spacing() + width.style().layoutSpacing(
+                QtW.QSizePolicy.PushButton,
+                QtW.QSizePolicy.PushButton,
+                Qt.Horizontal
+            )
+            space_y = self.spacing() + width.style().layoutSpacing(
+                QtW.QSizePolicy.PushButton,
+                QtW.QSizePolicy.PushButton,
+                Qt.Vertical
+            )
             next_x = x + item.sizeHint().width() + space_x
             if next_x - space_x > rect.right() and line_height > 0:
                 x = rect.x()
@@ -118,17 +123,14 @@ class FlowLayout(QtW.QLayout):
 
 
 class ScrollingFlowWidget(QtW.QWidget):
-    """
-    A resizable and scrollable widget that uses a flow layout.
+    """A resizable and scrollable widget that uses a flow layout.
     Use its add_widget() method to flow children into it.
     """
 
     def __init__(self, parent: QtW.QWidget = None):
-        # noinspection PyArgumentList
         super().__init__(parent)
         grid = QtW.QGridLayout(self)
         scroll = _ResizeScrollArea()
-        # noinspection PyArgumentList
         self._wrapper = QtW.QWidget(scroll)
         self._flow_layout = FlowLayout(self._wrapper)
         self._wrapper.setLayout(self._flow_layout)
@@ -137,8 +139,7 @@ class ScrollingFlowWidget(QtW.QWidget):
         grid.addWidget(scroll)
 
     def add_widget(self, widget: QtW.QWidget):
-        """
-        Adds a widget to the underlying flow flayout.
+        """Adds a widget to the underlying flow flayout.
 
         :param widget: The widget to add.
         """

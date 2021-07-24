@@ -1,0 +1,291 @@
+{
+  "main_window": {
+    "title": "Image Library",
+    "menu": {
+      "file": {
+        "label": "&File",
+        "items": {
+          "add_file": "Add &File…",
+          "add_directory": "Add &Directory…",
+          "export_playlist": "E&xport As Playlist…",
+          "exit": "&Exit"
+        }
+      },
+      "edit": {
+        "label": "&Edit",
+        "items": {
+          "edit_tags": "Edit &Tags…",
+          "rename_image": "&Rename Image…",
+          "replace_image": "Re&place Image…",
+          "edit_images": "Edit &Images…",
+          "delete_images": "&Delete Images"
+        }
+      },
+      "options": {
+        "label": "&Options",
+        "items": {
+          "load_thumbs": "&Load Thumbnails",
+          "thumbs_size": "Thumbnail &Size…",
+          "thumbs_load_threshold": "Thumbnail Load &Threshold…"
+        }
+      },
+      "help": {
+        "label": "&Help",
+        "items": {
+          "about": "&About…"
+        }
+      }
+    },
+    "tags_tree": {
+      "title": "Tags ({amount})",
+      "type_item_unclassified": "Unclassified"
+    },
+    "tab": {
+      "paths_list": {
+        "title": "Paths ({images_number})"
+      },
+      "thumbnails_list": {
+        "title": "Thumbnails ({images_number})"
+      }
+    },
+    "query_form": {
+      "ok_button": {
+        "label": "OK"
+      },
+      "text_field": {
+        "placeholder": "Search images with tags…"
+      }
+    },
+    "error": {
+      "remote_URL": "URL is not local!"
+    }
+  },
+  "canvas": {
+    "image_load_error": "Could not load image!",
+    "no_image": "No image"
+  },
+  "dialog": {
+    "common": {
+      "ok_button": {
+        "label": "OK"
+      },
+      "close_button": {
+        "label": "Close"
+      },
+      "cancel_button": {
+        "label": "Cancel"
+      },
+      "invalid_data": {
+        "text": "Invalid data!"
+      }
+    },
+    "edit_image": {
+      "title_add": "Add Image ({index}/{total})",
+      "title_edit": "Edit Image ({index}/{total})",
+      "title_replace": "Replace Image ({index}/{total})",
+      "replace_button": {
+        "label": "Replace with…"
+      },
+      "move_to_button": {
+        "label": "Move to…"
+      },
+      "tags_button": {
+        "label": "Tags"
+      },
+      "show_directory_button": {
+        "label": "Show in directory"
+      },
+      "skip_button": {
+        "label": "Skip"
+      },
+      "next_button": {
+        "label": "Next"
+      },
+      "finish_button": {
+        "label": "Finish"
+      },
+      "target_path": "Path: {path}",
+      "error": {
+        "replace_self": "Cannot replace image with itself!",
+        "no_tags": "No tags specified!",
+        "compound_tags_disallowed": "Compound tags are not allowed here!",
+        "invalid_tag_format": "Invalid tag format!",
+        "changes_not_applied": "Could not apply changes!",
+        "image_not_added": "Could not add image!",
+        "file_already_exists": "File already exists in destination!"
+      }
+    },
+    "edit_tags": {
+      "title_edit": "Edit Tags",
+      "title_readonly": "Tags",
+      "add_item_button": {
+        "tooltip": "Add Item"
+      },
+      "delete_items_button": {
+        "tooltip": "Delete Items"
+      },
+      "search_field": {
+        "placeholder": "Search tag or tag type…"
+      },
+      "search_button": {
+        "label": "Search"
+      },
+      "apply_button": {
+        "label": "Apply"
+      },
+      "delete_warning": {
+        "text": "Delete these entries?"
+      },
+      "no_match": "No match found.",
+      "tab": {
+        "tag_types": {
+          "title": "Tag Types",
+          "table": {
+            "header": {
+              "type_id": "ID",
+              "label": "Label",
+              "symbol": "Symbol",
+              "color": "Color"
+            },
+            "default_label": "New Type"
+          }
+        },
+        "tags_common": {
+          "table": {
+            "header": {
+              "tag_id": "ID",
+              "label": "Label",
+              "type": "Type",
+              "usage": "Times Used"
+            },
+            "combo_no_type": "None"
+          }
+        },
+        "tags": {
+          "title": "Tags"
+        },
+        "compound_tags": {
+          "title": "Compound Tags",
+          "table": {
+            "header": {
+              "definition": "Definition"
+            }
+          }
+        }
+      },
+      "error": {
+        "saving": "An error occured! Some changes may not have been saved.",
+        "empty_cell": "Cell is empty!",
+        "duplicate_value": "Value is already used! Please choose another.",
+        "invalid_tag_type_name": "Type label should only be letters, digits or “_”!",
+        "invalid_tag_type_symbol": "Symbol should only be one character long and any character except letters, digits, “_”, “+”, “-”, “:”, “(” and “)”!",
+        "invalid_tag_name": "Tag label should only be letters, digits or “_”!",
+        "duplicate_tag_name": "A tag with this name already exists!"
+      }
+    },
+    "about": {
+      "title": "About {app_name}"
+    }
+  },
+  "popup": {
+    "info": {
+      "title": "Information"
+    },
+    "warning": {
+      "title": "Warning"
+    },
+    "error": {
+      "title": "Error"
+    },
+    "question": {
+      "title": "Question"
+    },
+    "empty_directory": {
+      "text": "No images in this directory!"
+    },
+    "images_already_registered": {
+      "text": "Image(s) already registered!"
+    },
+    "image_chooser": {
+      "caption": "Open Image",
+      "filter": "Image file"
+    },
+    "open_directory_chooser": {
+      "caption": "Open Directory"
+    },
+    "directory_chooser": {
+      "caption": "Choose Directory"
+    },
+    "playlist_saver": {
+      "caption": "Save Playlist",
+      "filter": "Playlist"
+    },
+    "rename_image": {
+      "title": "Rename image",
+      "text": "Enter the new name"
+    },
+    "rename_error": {
+      "text": "Could not rename image!"
+    },
+    "rename_overwrite": {
+      "title": "Name conflict",
+      "text": "A file with this name already exists, do you want to overwrite it?"
+    },
+    "tag_load_error": {
+      "text": "Failed to load tags!"
+    },
+    "playlist_exported": {
+      "text": "Playlist exported!"
+    },
+    "delete_image_warning": {
+      "title": "Delete Image",
+      "text_question_single": "Are you sure you want to delete this image?",
+      "text_question_multiple": "Are you sure you want to delete these images?",
+      "text_warning": "Files will be delete from the disk."
+    },
+    "delete_image_error": {
+      "text": "Could not delete file!\n{filename}"
+    },
+    "load_thumbs_warning": {
+      "title": "Load image thumbnails?",
+      "text": "Query returned more than {threshold} image(s), thumbnails will be disabled.\nDo you want to load them anyway? The app may crash as a result."
+    },
+    "set_thumbs_size": {
+      "title": "Thumbnails Size",
+      "text": "Enter the new size in pixels [{min}, {max}]"
+    },
+    "set_thumbs_load_threshold": {
+      "title": "Thumbnails Load Threshold",
+      "text": "Enter the new threshold [{min}, {max}]"
+    },
+    "data_loading_error": {
+      "text": "Could not load data! Shutting down."
+    }
+  },
+  "thread": {
+    "search": {
+      "error": {
+        "image_loading_error": "Failed to load images!",
+        "max_recursion": "Maximum recursion depth of {max_depth} reached!"
+      }
+    }
+  },
+  "query_parser": {
+    "error": {
+      "unknown_metatag": "Unknown metatag “{metatag}”!",
+      "invalid_metatag_value": "Invalid value '{value}' for metatag '{metatag}'!",
+      "syntax_error": "Syntax error! Unexpected character “{token}”.",
+      "syntax_error_eol": "Syntax error! Unexpected end of query.",
+      "illegal_character": "Illegal character ”{char}“ (U+{code})!"
+    }
+  },
+  "SQL_console": {
+    "exit_notice": "Type \"exit\" to terminate the command-line.\n",
+    "connection": "Connection: {path}",
+    "no_results": "Query returned no results",
+    "display_more": "Display more? (Y / N)",
+    "results": "Showing result(s) {start} to {end} of {total}",
+    "error": "Error:",
+    "goodbye": "Goodbye!"
+  }
+}

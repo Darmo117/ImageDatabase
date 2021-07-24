@@ -8,10 +8,11 @@ import PyQt5.QtGui as QtG
 import PyQt5.QtWidgets as QtW
 from PyQt5.QtCore import Qt
 
-from app import config, data_access as da, model, utils
 from .dialog_base import Dialog
 from .edit_tags_dialog import EditTagsDialog
 from ..components import Canvas, EllipsisLabel
+from ... import config, data_access as da, model, utils
+from ...i18n import translate as _t
 
 
 class EditImageDialog(Dialog):
@@ -20,20 +21,23 @@ class EditImageDialog(Dialog):
     ADD = 1
     REPLACE = 2
 
-    _TITLES = ["Edit", "Add", "Replace"]
+    _TITLES = [
+        'dialog.edit_image.title_edit',
+        'dialog.edit_image.title_add',
+        'dialog.edit_image.title_replace',
+    ]
 
     def __init__(self, parent: typ.Optional[QtW.QWidget] = None, mode: int = EDIT, show_skip: bool = False):
-        """
-        Creates an edition dialog.
+        """Creates an edition dialog.
 
         :param parent: The widget this dialog is attached to.
         :param mode: Either EDIT, ADD or REPLACE.
         :param show_skip: If true a 'Skip' button will be added.
         """
         if mode not in (EditImageDialog.EDIT, EditImageDialog.ADD, EditImageDialog.REPLACE):
-            raise ValueError(f"Unknown mode '{mode}'!")
+            raise ValueError(f'unknown mode "{mode}"')
         if show_skip and mode == EditImageDialog.REPLACE:
-            raise ValueError("Cannot show skip button while on replace mode!")
+            raise ValueError('cannot show skip button while on replace mode')
 
         self._mode = mode
         self._show_skip = show_skip
@@ -58,31 +62,26 @@ class EditImageDialog(Dialog):
 
         self._canvas = Canvas()
         self._canvas.image = None
-        # noinspection PyArgumentList
         body.addWidget(self._canvas)
 
         middle = QtW.QHBoxLayout()
         middle.addStretch(1)
 
         self._dest_label = EllipsisLabel()
-        # noinspection PyArgumentList
         middle.addWidget(self._dest_label)
 
-        text = "Replace with…" if self._mode == EditImageDialog.REPLACE else "Move to…"
+        if self._mode == EditImageDialog.REPLACE:
+            text = _t('dialog.edit_image.replace_button.label')
+        else:
+            text = _t('dialog.edit_image.move_to_button.label')
         self._dest_btn = QtW.QPushButton(text)
-        # noinspection PyUnresolvedReferences
         self._dest_btn.clicked.connect(self._on_dest_button_clicked)
-        # noinspection PyArgumentList
         middle.addWidget(self._dest_btn)
-        b = QtW.QPushButton("Tags")
-        # noinspection PyUnresolvedReferences
+        b = QtW.QPushButton(_t('dialog.edit_image.tags_button.label'))
         b.clicked.connect(self._show_tags_dialog)
-        # noinspection PyArgumentList
         middle.addWidget(b)
-        b = QtW.QPushButton("Show in directory")
-        # noinspection PyUnresolvedReferences
+        b = QtW.QPushButton(_t('dialog.edit_image.show_directory_button.label'))
         b.clicked.connect(self._open_image_directory)
-        # noinspection PyArgumentList
         middle.addWidget(b)
 
         body.addLayout(middle)
@@ -95,18 +94,15 @@ class EditImageDialog(Dialog):
                 self._dialog = dialog
 
             def keyPressEvent(self, e):
-                # noinspection PyTypeChecker
                 if e.key() in (Qt.Key_Return, Qt.Key_Enter) and e.modifiers() & Qt.ControlModifier:
                     self._dialog._ok_btn.click()
                 else:
                     super().keyPressEvent(e)
 
         self._tags_input = CustomTextEdit(self)
-        # noinspection PyUnresolvedReferences
         self._tags_input.textChanged.connect(self._text_changed)
         if self._mode == EditImageDialog.REPLACE:
             self._tags_input.setDisabled(True)
-        # noinspection PyArgumentList
         body.addWidget(self._tags_input)
 
         self.setMinimumSize(400, 400)
@@ -119,8 +115,7 @@ class EditImageDialog(Dialog):
 
         self._skip_btn = None
         if self._show_skip:
-            self._skip_btn = QtW.QPushButton("Skip")
-            # noinspection PyUnresolvedReferences
+            self._skip_btn = QtW.QPushButton(_t('dialog.edit_image.skip_button.label'))
             self._skip_btn.clicked.connect(self._next)
             return [self._skip_btn]
         return []
@@ -131,20 +126,19 @@ class EditImageDialog(Dialog):
         self._tags_dialog.show()
 
     def _open_image_directory(self):
-        """Shows the current image in the system's file explorer."""
+        """Shows the current image in the system’s file explorer."""
         path = os.path.realpath(self._images[self._index].path)
         os_name = platform.system().lower()
-        if os_name == "windows":
+        if os_name == 'windows':
             subprocess.Popen(f'explorer /select,"{path}"')
-        elif os_name == "linux":
-            subprocess.Popen(["xdg-open", path])
-        elif os_name == "darwin":  # OS-X
-            subprocess.Popen(["open", path])
+        elif os_name == 'linux':
+            subprocess.Popen(['xdg-open', path])
+        elif os_name == 'darwin':  # OS-X
+            subprocess.Popen(['open', path])
 
     def set_images(self, images: typ.List[model.Image], tags: typ.Dict[int, typ.List[model.Tag]]):
-        """
-        Sets the images to display. If more than one image are given, they will be displayed one after another when the
-        user clicks on 'OK' or 'Skip'.
+        """Sets the images to display. If more than one image are given, they will be displayed one after another when
+        the user clicks on 'OK' or 'Skip'.
 
         :param images: The images to display.
         :param tags: The tags for each image.
@@ -155,8 +149,7 @@ class EditImageDialog(Dialog):
         self._set(self._index)
 
     def set_image(self, image, tags):
-        """
-        Sets the image to display.
+        """Sets the image to display.
 
         :param image: The image to display.
         :param tags: The image's tags.
@@ -174,7 +167,7 @@ class EditImageDialog(Dialog):
             tags = []
             if image.id in self._tags:
                 tags = sorted([tag.raw_label() for tag in self._tags[image.id]])
-            self._tags_input.append(" ".join(tags))
+            self._tags_input.append(' '.join(tags))
         if self._mode == EditImageDialog.REPLACE:
             self._tags_input.setDisabled(True)
         self._tags_changed = False
@@ -184,9 +177,9 @@ class EditImageDialog(Dialog):
         if self._skip_btn is not None:
             if self._index == len(self._images) - 1:
                 self._skip_btn.setDisabled(True)
-                self._ok_btn.setText("Finish")
+                self._ok_btn.setText(_t('dialog.edit_image.finish_button.label'))
             else:
-                self._ok_btn.setText("Next")
+                self._ok_btn.setText(_t('dialog.edit_image.next_button.label'))
 
         self.setWindowTitle(self._get_title())
 
@@ -207,7 +200,7 @@ class EditImageDialog(Dialog):
                 if self._image_to_replace is None:
                     self._image_to_replace = img.path
                 if self._image_to_replace == destination:
-                    utils.show_error("Cannot replace image with itself!", parent=self)
+                    utils.show_error(_t('dialog.edit_image.error.replace_self'), parent=self)
                     return
                 self._destination = destination
                 self._ok_btn.setDisabled(False)
@@ -215,7 +208,7 @@ class EditImageDialog(Dialog):
                 self._set(0)
             else:
                 self._destination = destination
-            self._dest_label.setText("Path: " + self._destination)
+            self._dest_label.setText(_t('dialog.edit_image.target_path', path=self._destination))
             self._dest_label.setToolTip(self._destination)
 
     def _text_changed(self):
@@ -227,7 +220,7 @@ class EditImageDialog(Dialog):
     def _ensure_no_compound_tags(self) -> bool:
         tags_dao = da.TagsDao(database=config.CONFIG.database_path)
         for tag in self._tags_input.toPlainText().split():
-            t = tag if tag[0].isalnum() or tag[0] == "_" else tag[1:]
+            t = tag if tag[0].isalnum() or tag[0] == '_' else tag[1:]
             if tags_dao.get_tag_class(t) == model.CompoundTag:
                 return False
         return True
@@ -236,12 +229,12 @@ class EditImageDialog(Dialog):
         try:
             tags = self._get_tags()
             if len(tags) == 0:
-                return "No tags specified!"
+                return _t('dialog.edit_image.error.no_tags')
             if not self._ensure_no_compound_tags():
-                return "Compound tags are not allowed here!"
+                return _t('dialog.edit_image.error.compound_tags_disallowed')
             return None
         except ValueError:
-            return "Invalid tag format!"
+            return _t('dialog.edit_image.error.invalid_tag_format')
 
     def _is_valid(self) -> bool:
         return self._get_error() is None
@@ -265,15 +258,17 @@ class EditImageDialog(Dialog):
                 self._next()
             super()._apply()
         else:
-            text = "Could not apply changes!" if self._mode == EditImageDialog.EDIT else "Could not add image!"
+            if self._mode == EditImageDialog.EDIT:
+                text = _t('dialog.edit_image.error.changes_not_applied')
+            else:
+                text = _t('dialog.edit_image.error.image_not_added')
             utils.show_error(text, parent=self)
             close = False
 
         return close
 
     def _get_new_path(self, image: model.Image) -> typ.Optional[str]:
-        """
-        Returns the new image path. It is obtained by appending the image name to the destination path.
+        """Returns the new image path. It is obtained by appending the image name to the destination path.
 
         :param image: The image to move.
         :return: The new path.
@@ -285,8 +280,7 @@ class EditImageDialog(Dialog):
             return None
 
     def _add(self, image: model.Image, tags: typ.List[model.Tag], new_path: typ.Optional[str]) -> bool:
-        """
-        Adds an image to the database.
+        """Adds an image to the database.
 
         :param image: The image to add.
         :param tags: Image's tags.
@@ -299,8 +293,7 @@ class EditImageDialog(Dialog):
         return ok
 
     def _edit(self, image: model.Image, tags: typ.List[model.Tag], new_path: typ.Optional[str]) -> bool:
-        """
-        Edits an image from the database.
+        """Edits an image from the database.
 
         :param image: The image to edit.
         :param tags: Image's tags.
@@ -318,8 +311,7 @@ class EditImageDialog(Dialog):
         return ok
 
     def _replace(self) -> bool:
-        """
-        Replaces an image by another one. The old image is deleted. The new image will stay in its directory.
+        """Replaces an image by another one. The old image is deleted. The new image will stay in its directory.
 
         :return: True if everything went well.
         """
@@ -330,8 +322,7 @@ class EditImageDialog(Dialog):
         return self._dao.update_image_path(self._images[0].id, self._destination)
 
     def _move_image(self, path: str, new_path: str) -> bool:
-        """
-        Moves an image to a specific directory.
+        """Moves an image to a specific directory.
 
         :param path: Image's path.
         :param new_path: Path to the new directory.
@@ -341,11 +332,11 @@ class EditImageDialog(Dialog):
             shutil.move(path, new_path)
             return True
         except FileExistsError:
-            utils.show_error("File already exists in destination!", parent=self)
+            utils.show_error(_t('dialog.edit_image.error.file_already_exists'), parent=self)
             return False
 
     def _get_title(self) -> str:
-        return f"{self._TITLES[self._mode]} Image ({self._index + 1}/{len(self._images)})"
+        return _t(self._TITLES[self._mode], index=self._index + 1, total=len(self._images))
 
     def closeEvent(self, event: QtG.QCloseEvent):
         if self._tags_dialog is not None:

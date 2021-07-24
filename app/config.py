@@ -2,7 +2,7 @@ import configparser
 import dataclasses as dc
 import os
 
-from . import constants
+from . import constants, i18n
 
 
 class ConfigError(ValueError):
@@ -11,6 +11,7 @@ class ConfigError(ValueError):
 
 @dc.dataclass
 class Config:
+    lang_code: str = 'en'
     database_path: str = 'library.sqlite3'
     load_thumbnails: bool = True
     thumbnail_size: int = 200
@@ -34,39 +35,39 @@ def load_config():
 
     :raise ConfigError: If an option is missing or has an illegal value.
     """
-    if not os.path.exists(constants.CONFIG_FILE):
-        return
-
-    config_parser = configparser.ConfigParser()
-    config_parser.read(constants.CONFIG_FILE)
-    try:
-        images_section = config_parser[_IMAGES_SECTION]
-        load_thumbs = _to_bool(images_section[_LOAD_THUMBS_KEY])
-
+    if os.path.exists(constants.CONFIG_FILE):
+        config_parser = configparser.ConfigParser()
+        config_parser.read(constants.CONFIG_FILE)
         try:
-            size = int(images_section.get(_THUMB_SIZE_KEY, '200'))
-        except ValueError as e:
-            raise ConfigError(f'key {_THUMB_SIZE_KEY!r}: {e}')
-        if size < constants.MIN_THUMB_SIZE or size > constants.MAX_THUMB_SIZE:
-            raise ConfigError(f'illegal thumbnail size {size}px, must be between {constants.MIN_THUMB_SIZE}px '
-                              f'and {constants.MAX_THUMB_SIZE}px')
+            images_section = config_parser[_IMAGES_SECTION]
+            load_thumbs = _to_bool(images_section[_LOAD_THUMBS_KEY])
 
-        try:
-            threshold = int(images_section.get(_THUMB_LOAD_THRESHOLD_KEY, '50'))
-        except ValueError as e:
-            raise ConfigError(f'key {_THUMB_LOAD_THRESHOLD_KEY!r}: {e}')
-        if threshold < 0:
-            raise ConfigError(f'illegal thumbnail load threshold {threshold}, must be between '
-                              f'{constants.MIN_THUMB_LOAD_THRESHOLD}px and {constants.MAX_THUMB_LOAD_THRESHOLD}px')
+            try:
+                size = int(images_section.get(_THUMB_SIZE_KEY, '200'))
+            except ValueError as e:
+                raise ConfigError(f'key {_THUMB_SIZE_KEY!r}: {e}')
+            if size < constants.MIN_THUMB_SIZE or size > constants.MAX_THUMB_SIZE:
+                raise ConfigError(f'illegal thumbnail size {size}px, must be between {constants.MIN_THUMB_SIZE}px '
+                                  f'and {constants.MAX_THUMB_SIZE}px')
 
-        CONFIG.database_path = config_parser[_DB_SECTION][_FILE_KEY]
-        CONFIG.load_thumbnails = load_thumbs
-        CONFIG.thumbnail_size = size
-        CONFIG.thumbnail_load_threshold = threshold
-    except ValueError as e:
-        raise ConfigError(e)
-    except KeyError as e:
-        raise ConfigError(f'missing key {e}')
+            try:
+                threshold = int(images_section.get(_THUMB_LOAD_THRESHOLD_KEY, '50'))
+            except ValueError as e:
+                raise ConfigError(f'key {_THUMB_LOAD_THRESHOLD_KEY!r}: {e}')
+            if threshold < 0:
+                raise ConfigError(f'illegal thumbnail load threshold {threshold}, must be between '
+                                  f'{constants.MIN_THUMB_LOAD_THRESHOLD}px and {constants.MAX_THUMB_LOAD_THRESHOLD}px')
+
+            CONFIG.database_path = config_parser[_DB_SECTION][_FILE_KEY]
+            CONFIG.load_thumbnails = load_thumbs
+            CONFIG.thumbnail_size = size
+            CONFIG.thumbnail_load_threshold = threshold
+        except ValueError as e:
+            raise ConfigError(e)
+        except KeyError as e:
+            raise ConfigError(f'missing key {e}')
+
+    i18n.load_language(CONFIG.lang_code)
 
 
 def _to_bool(value: str) -> bool:

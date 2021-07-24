@@ -1,40 +1,37 @@
+import re
+
 import lark
 import sympy as sp
 from sympy.logic import boolalg as ba
 
 from .. import data_access as da
+from ..i18n import translate as _t
 
 
 class _TreeToBoolean(lark.InlineTransformer):
-    """
-    This class is the lexer for the tag query language.
+    """This class is the lexer for the tag query language.
     It converts a string query into a SymPy expression.
     """
 
     def __init__(self):
-        with open("app/queries/grammar.lark") as f:
-            grammar = "\n".join(f.readlines())
-        # noinspection PyArgumentList
-        self._parser = lark.Lark(grammar, parser="lalr", lexer="contextual", start="query")
+        with open('app/queries/grammar.lark') as f:
+            grammar = '\n'.join(f.readlines())
+        self._parser = lark.Lark(grammar, parser='lalr', lexer='contextual', start='query')
 
-    # noinspection PyMethodMayBeStatic
     def conjunction(self, *args):
         # Filter out whitespace
         return sp.And(*self._filter_whitespace(args))
 
-    # noinspection PyMethodMayBeStatic
     def disjunction(self, *args):
         # Filter out whitespace
         return sp.Or(*self._filter_whitespace(args))
 
-    # noinspection PyMethodMayBeStatic
     def group(self, *args):
         # Filter out whitespace
         return self._filter_whitespace(args)[0]
 
     @staticmethod
     def _filter_whitespace(args: tuple) -> list:
-        # noinspection PyUnresolvedReferences
         return [arg for arg in args if not isinstance(arg, lark.lexer.Token)]
 
     # noinspection PyMethodMayBeStatic
@@ -46,15 +43,14 @@ class _TreeToBoolean(lark.InlineTransformer):
         metatag = str(metatag)
         value = str(value)
         if not da.ImageDao.check_metatag_value(metatag, value):
-            raise ValueError(f"Invalid value '{value}' for metatag '{metatag}'!")
+            raise ValueError(_t('query_parser.error.invalid_metatag_value'))
         # Double-escape backslash
-        return sp.symbols(metatag + r"\:" + value.replace("\\", r"\\"))
+        return sp.symbols(metatag + r'\:' + value.replace('\\', r'\\'))
 
     negation = sp.Not
 
     def get_sympy(self, query: str, simplify: bool = True) -> sp.Basic:
-        """
-        Converts the given string query into a SymPy expression.
+        """Converts the given string query into a SymPy expression.
 
         :param query: The query to convert.
         :param simplify: If true (default) the result will be simplified using boolean logic.
@@ -66,9 +62,9 @@ class _TreeToBoolean(lark.InlineTransformer):
 
         if simplify:
             if ba.is_dnf(bool_expr):
-                form = "dnf"
+                form = 'dnf'
             elif ba.is_cnf(bool_expr):
-                form = "cnf"
+                form = 'cnf'
             else:
                 form = None
             bool_expr = sp.simplify_logic(bool_expr, form=form)
@@ -80,8 +76,7 @@ _transformer = None
 
 
 def query_to_sympy(query: str, simplify: bool = True) -> sp.Basic:
-    """
-    Converts a query into a simplified SymPy boolean expression.
+    """Converts a query into a simplified SymPy boolean expression.
 
     :param query: The query to convert.
     :param simplify: If true the query will be simplified once it is converted into a SymPy expression.
@@ -95,8 +90,13 @@ def query_to_sympy(query: str, simplify: bool = True) -> sp.Basic:
     try:
         return _transformer.get_sympy(query, simplify=simplify)
     except lark.ParseError as e:
-        if "[" in e.args[0]:  # Lark parse errors are not very readable, just send a simple error message.
-            raise ValueError("Syntax error!")
+        message = str(e)
+        # Lark parse errors are not very readable, just send a simpler error message if possible.
+        if match := re.match(r"^Unexpected token Token\('[\w$]+', '(.+?)'\)", message):
+            raise ValueError(_t('query_parser.error.syntax_error', token=match[1]))
+        elif '$END' in message:
+            raise ValueError(_t('query_parser.error.syntax_error_eol'))
         raise ValueError(e)
     except lark.UnexpectedInput as e:
-        raise ValueError(f"Illegal character {repr(query[e.pos_in_stream])}!")
+        c = query[e.pos_in_stream]
+        raise ValueError(_t('query_parser.error.illegal_character', char=c, code=hex(ord(c))[2:].upper().rjust(4, '0')))

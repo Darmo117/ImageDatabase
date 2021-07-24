@@ -6,14 +6,14 @@ import PyQt5.QtGui as QtG
 import PyQt5.QtWidgets as QtW
 from PyQt5.QtCore import Qt
 
-from app import data_access as da, model, queries, utils
+from ... import data_access as da, model, queries, utils
+from ...i18n import translate as _t
 
 _Type = typ.TypeVar('_Type')
 
 
 class Tab(abc.ABC, typ.Generic[_Type]):
-    """
-    This class represents a tab containing a single table.
+    """This class represents a tab containing a single table.
     This is a generic class. _Type is the type of the values displayed in each row.
     """
     _OK = 0
@@ -28,18 +28,17 @@ class Tab(abc.ABC, typ.Generic[_Type]):
                  selection_changed: typ.Optional[typ.Callable[[None], None]] = None,
                  cell_changed: typ.Optional[typ.Callable[[int, int, str], None]] = None,
                  rows_deleted: typ.Optional[typ.Callable[[typ.List[_Type]], None]] = None):
-        """
-        Initializes this tab.
+        """Initializes this tab.
 
-        :param owner: Tab's owner.
-        :param dao: The tag's DAO.
+        :param owner: Tab’s owner.
+        :param dao: The tag’s DAO.
         :param addable: If true rows can be added to this tab.
         :param deletable: If true rows can be deleted from this tab.
         :param editable: If true the contained table will be editable.
         :param columns_to_check: List of column indices that need content checking.
         :param search_columns: List of column indices in which searching is allowed.
         :param selection_changed: Action called when the selection changes.
-        :param cell_changed: Action called when a cell has been edited. It takes the cell's row, column and text.
+        :param cell_changed: Action called when a cell has been edited. It takes the cell’s row, column and text.
         :param rows_deleted: Action called when rows have been deleted. It takes the list of deleted values.
         """
         self._initialized = False
@@ -79,17 +78,14 @@ class Tab(abc.ABC, typ.Generic[_Type]):
         self._table.setSelectionBehavior(QtW.QAbstractItemView.SelectRows)
         self._table.verticalHeader().setDefaultSectionSize(20)
         self._table.horizontalHeader().setStretchLastSection(True)
-        # noinspection PyUnresolvedReferences
         self._table.cellChanged.connect(self._cell_edited)
         if self._selection_changed is not None:
-            # noinspection PyUnresolvedReferences
             self._table.itemSelectionChanged.connect(self._selection_changed)
         if not self._editable:
             self._table.setSelectionMode(QtW.QAbstractItemView.SingleSelection)
         else:
             delete_action = QtW.QAction(self._owner)
             delete_action.setShortcut('Delete')
-            # noinspection PyUnresolvedReferences
             delete_action.triggered.connect(self.delete_selected_rows)
             self._table.addAction(delete_action)
 
@@ -134,7 +130,7 @@ class Tab(abc.ABC, typ.Generic[_Type]):
         """Deletes all selected rows."""
         selected_rows = {i.row() for i in self._table.selectionModel().selectedRows()}
         if len(selected_rows) > 0:
-            if utils.show_question('Delete these entries?', parent=self._owner):
+            if utils.show_question(_t('dialog.edit_tags.delete_warning.text'), parent=self._owner):
                 self._deleted_rows |= selected_rows - self._added_rows
                 self._changed_rows -= selected_rows
                 self._added_rows -= selected_rows
@@ -146,8 +142,7 @@ class Tab(abc.ABC, typ.Generic[_Type]):
                     self._rows_deleted(to_delete)
 
     def search(self, query: str):
-        """
-        Searches for a string inside the table.
+        """Searches for a string inside the table.
         Starts the search from the currently selected row, or from the first one if none is selected.
 
         :param query: The string to search for.
@@ -173,16 +168,14 @@ class Tab(abc.ABC, typ.Generic[_Type]):
 
     @abc.abstractmethod
     def apply(self) -> bool:
-        """
-        Applies all changes.
+        """Applies all changes.
 
-        :return: True if *all* changes were applied.
+        :return: True if all changes were applied.
         """
         pass
 
     def check_integrity(self) -> bool:
-        """
-        Checks table's integrity.
+        """Checks table’s integrity.
 
         :return: True if all cells have valid values.
         """
@@ -195,8 +188,7 @@ class Tab(abc.ABC, typ.Generic[_Type]):
 
     @abc.abstractmethod
     def get_value(self, row: int) -> typ.Optional[_Type]:
-        """
-        Returns the value for the given row.
+        """Returns the value for the given row.
 
         :param row: The row.
         :return: The instanciated value.
@@ -205,8 +197,7 @@ class Tab(abc.ABC, typ.Generic[_Type]):
 
     @abc.abstractmethod
     def _set_row(self, value: typ.Optional[_Type], row: int):
-        """
-        Sets the value at the given row.
+        """Sets the value at the given row.
 
         :param value: The value.
         :param row: The row to set.
@@ -215,22 +206,20 @@ class Tab(abc.ABC, typ.Generic[_Type]):
 
     @abc.abstractmethod
     def _cell_edited(self, row: int, col: int):
-        """
-        Called when a table cell is edited.
+        """Called when a table cell is edited.
 
-        :param row: Cell's row.
-        :param col: Cell's column.
+        :param row: Cell’s row.
+        :param col: Cell’s column.
         """
         pass
 
     def _check_column(self, column: int, check_format: bool) -> typ.Tuple[int, int, str]:
-        """
-        Checks column's integrity. If a duplicate value is present or a cell is empty, the corresponding error is
+        """Checks column’s integrity. If a duplicate value is present or a cell is empty, the corresponding error is
         returned.
 
         :param column: The column to check.
         :return: A tuple with 3 values: table integrity which is one of OK, DUPLICATE, EMPTY or FORMAT; row of the
-                 invalid cell or -1 if whole column is valid.
+                 invalid cell or -1 if whole column is valid; the error message.
                  OK if all cells have valid values;
                  DUPLICATE if some cells have identical values;
                  EMPTY if a cell is empty;
@@ -240,9 +229,8 @@ class Tab(abc.ABC, typ.Generic[_Type]):
             if self._table.isRowHidden(row):
                 continue
             if self._table.item(row, column).text().strip() == '':
-                return self._EMPTY, row, 'Cell is empty!'
+                return self._EMPTY, row, _t('dialog.edit_tags.error.empty_cell')
             if check_format:
-                # noinspection PyTupleAssignmentBalance
                 ok, message = self._check_cell_format(row, column)
                 if not ok:
                     return self._FORMAT, False, message
@@ -251,16 +239,15 @@ class Tab(abc.ABC, typ.Generic[_Type]):
                 if self._table.isRowHidden(r):
                     continue
                 if r != row and self._table.item(r, column).text() == cell_value:
-                    return self._DUPLICATE, row, 'Value is already used! Please choose another.'
+                    return self._DUPLICATE, row, _t('dialog.edit_tags.error.duplicate_value')
         return self._OK, -1, ''
 
     @abc.abstractmethod
     def _check_cell_format(self, row: int, col: int) -> (bool, str):
-        """
-        Checks the format of the cell at the given position.
+        """Checks the format of the cell at the given position.
 
-        :param row: Cell's row.
-        :param col: Cell's column.
+        :param row: Cell’s row.
+        :param col: Cell’s column.
         :return: True if the cell content's format is correct.
         """
         pass
@@ -273,28 +260,31 @@ class TagTypesTab(Tab[model.TagType]):
                  selection_changed: typ.Optional[typ.Callable[[None], None]] = None,
                  cell_changed: typ.Optional[typ.Callable[[int, int, str], None]] = None,
                  rows_deleted: typ.Optional[typ.Callable[[typ.List[_Type]], None]] = None):
-        """
-        Initializes this tab.
+        """Initializes this tab.
 
-        :param owner: Tab's owner.
-        :param dao: The tag's DAO.
+        :param owner: Tab’s owner.
+        :param dao: The tag’s DAO.
         :param editable: If true the contained table will be editable.
         :param selection_changed: Action called when the selection changes.
-        :param cell_changed: Action called when a cell has been edited. It takes the cell's row, column and text.
+        :param cell_changed: Action called when a cell has been edited. It takes the cell’s row, column and text.
         :param rows_deleted: Action called when rows have been deleted. It takes the list of deleted values.
         """
-        super().__init__(owner, dao, 'Tag Types', True, True, editable, [1, 2], [1, 2],
+        super().__init__(owner, dao, _t('dialog.edit_tags.tab.tag_types.title'), True, True, editable, [1, 2], [1, 2],
                          selection_changed=selection_changed, cell_changed=cell_changed, rows_deleted=rows_deleted)
 
     def init(self):
         super().init()
 
-        # noinspection PyAttributeOutsideInit
         self._dummy_type_id = -1
 
         self._table.setColumnCount(4)
         self._table.setColumnWidth(0, 30)
-        self._table.setHorizontalHeaderLabels(['ID', 'Label', 'Symbol', 'Color'])
+        self._table.setHorizontalHeaderLabels([
+            _t('dialog.edit_tags.tab.tag_types.table.header.type_id'),
+            _t('dialog.edit_tags.tab.tag_types.table.header.label'),
+            _t('dialog.edit_tags.tab.tag_types.table.header.symbol'),
+            _t('dialog.edit_tags.tab.tag_types.table.header.color'),
+        ])
 
         self._values = sorted(model.TagType.SYMBOL_TYPES.values(), key=lambda t: t.label)
         self._table.setRowCount(len(self._values))
@@ -385,12 +375,11 @@ class TagTypesTab(Tab[model.TagType]):
     def _check_cell_format(self, row: int, col: int) -> (bool, str):
         text = self._table.item(row, col).text()
         if col == 1:
-            return (text != 'Other' and model.TagType.LABEL_PATTERN.match(text) is not None,
-                    'Type label should only be letters, digits or "_"!')
+            return model.TagType.LABEL_PATTERN.match(text) is not None,\
+                   _t('dialog.edit_tags.error.invalid_tag_name')
         if col == 2:
             return (model.TagType.SYMBOL_PATTERN.match(text) is not None,
-                    'Symbol should only be one character long and any character '
-                    'except letters, digits, "_", "+" and "-"!')
+                    _t('dialog.edit_tags.error.invalid_tag_type_symbol'))
         return True, ''
 
     def _set_row(self, tag_type: typ.Optional[model.TagType], row: int):
@@ -402,7 +391,8 @@ class TagTypesTab(Tab[model.TagType]):
         id_item.setBackground(self._DISABLED_COLOR)
         self._table.setItem(row, 0, id_item)
 
-        label_item = QtW.QTableWidgetItem(tag_type.label if defined else 'New Type')
+        label_item = QtW.QTableWidgetItem(tag_type.label if defined
+                                          else _t('dialog.edit_tags.tab.tag_types.table.default_label'))
         label_item.setWhatsThis('label')
         if not self._editable:
             # noinspection PyTypeChecker
@@ -423,7 +413,6 @@ class TagTypesTab(Tab[model.TagType]):
         color_btn.setWhatsThis('color')
         color_btn.setStyleSheet(f'background-color: {bg_color.name()}; color: {color.name()}')
         color_btn.setFocusPolicy(Qt.NoFocus)
-        # noinspection PyUnresolvedReferences
         color_btn.clicked.connect(self._show_color_picker)
         color_btn.setProperty('row', row)
         if not self._editable:
@@ -454,11 +443,10 @@ class _TagsTab(Tab[_TagType], typ.Generic[_TagType], metaclass=abc.ABCMeta):
                  selection_changed: typ.Optional[typ.Callable[[None], None]] = None,
                  cell_changed: typ.Optional[typ.Callable[[int, int, str], None]] = None,
                  rows_deleted: typ.Optional[typ.Callable[[typ.List[_TagType]], None]] = None):
-        """
-        Initializes this tab.
+        """Initializes this tab.
 
-        :param owner: Tab's owner.
-        :param dao: The tag's DAO.
+        :param owner: Tab’s owner.
+        :param dao: The tag’s DAO.
         :param title: Tab's title.
         :param addable: If true rows can be added to this tab.
         :param editable: If true the contained table will be editable.
@@ -466,7 +454,7 @@ class _TagsTab(Tab[_TagType], typ.Generic[_TagType], metaclass=abc.ABCMeta):
         :param additional_columns: Titles of additional columns. They will be inserted between label and type columns.
         :param additional_search_columns: List of column indices in which searching is allowed.
         :param selection_changed: Action called when the selection changes.
-        :param cell_changed: Action called when a cell has been edited. It takes the cell's row, column and text.
+        :param cell_changed: Action called when a cell has been edited. It takes the cell’s row, column and text.
         :param rows_deleted: Action called when rows have been deleted. It takes the list of deleted values.
         """
         cols_to_check = [1, *range(2, 2 + len(additional_columns))]
@@ -474,7 +462,13 @@ class _TagsTab(Tab[_TagType], typ.Generic[_TagType], metaclass=abc.ABCMeta):
         super().__init__(owner, dao, title, addable, True, editable, cols_to_check, search_cols,
                          selection_changed=selection_changed, cell_changed=cell_changed, rows_deleted=rows_deleted)
         self._tag_class = tag_class
-        self._columns = ['ID', 'Label', *additional_columns, 'Type', 'Times used']
+        self._columns = [
+            _t('dialog.edit_tags.tab.tags_common.table.header.tag_id'),
+            _t('dialog.edit_tags.tab.tags_common.table.header.label'),
+            *additional_columns,
+            _t('dialog.edit_tags.tab.tags_common.table.header.type'),
+            _t('dialog.edit_tags.tab.tags_common.table.header.usage'),
+        ]
         self._type_column = 2 + len(additional_columns)
         self._tag_use_count_column = 1 + self._type_column
 
@@ -493,7 +487,7 @@ class _TagsTab(Tab[_TagType], typ.Generic[_TagType], metaclass=abc.ABCMeta):
                 tag.count = count
                 self._set_row(tag, i)
         else:
-            utils.show_error("Failed to load tags!", parent=self._owner)
+            utils.show_error(_t('popup.tag_load_error.text'), parent=self._owner)
             self._values = []
 
         self._initialized = True
@@ -551,8 +545,7 @@ class _TagsTab(Tab[_TagType], typ.Generic[_TagType], metaclass=abc.ABCMeta):
             return None
 
     def update_type_label(self, tag_type: model.TagType):
-        """
-        Updates the name of the given type in all comboboxes.
+        """Updates the name of the given type in all comboboxes.
 
         :param tag_type: The type to update.
         """
@@ -565,8 +558,7 @@ class _TagsTab(Tab[_TagType], typ.Generic[_TagType], metaclass=abc.ABCMeta):
                         break
 
     def delete_types(self, deleted_types: typ.List[model.TagType]):
-        """
-        Removes from all comboboxes the tag types that have been deleted.
+        """Removes from all comboboxes the tag types that have been deleted.
 
         :param deleted_types: All deleted tag types.
         """
@@ -606,22 +598,21 @@ class _TagsTab(Tab[_TagType], typ.Generic[_TagType], metaclass=abc.ABCMeta):
             # noinspection PyTypeChecker
             label_item.setFlags(label_item.flags() & ~Qt.ItemIsEditable & ~Qt.ItemIsSelectable)
 
-            type_item = QtW.QTableWidgetItem(tag.type.label if defined and tag.type is not None else 'None')
+            type_item = QtW.QTableWidgetItem(tag.type.label if defined and tag.type
+                                             else _t('dialog.edit_tags.tab.tags_common.table.combo_no_type'))
             # noinspection PyTypeChecker
             type_item.setFlags(type_item.flags() & ~Qt.ItemIsEditable & ~Qt.ItemIsSelectable)
             self._table.setItem(row, self._type_column, type_item)
         else:
             combo = QtW.QComboBox()
-            # noinspection PyUnresolvedReferences
             combo.currentIndexChanged.connect(self._combo_changed)
             combo.setWhatsThis('tag_type')
             combo.setProperty('row', row)
-            combo.addItem('None')
+            combo.addItem(_t('dialog.edit_tags.tab.tags_common.table.combo_no_type'))
             types = sorted(model.TagType.SYMBOL_TYPES.values(), key=lambda t: t.label)
             for tag_type in types:
                 combo.addItem(self._get_combo_text(tag_type.id, tag_type.label))
             if defined and tag.type is not None:
-                # noinspection PyArgumentList
                 combo.setCurrentIndex(combo.findText(self._get_combo_text(tag.type.id, tag.type.label)))
             self._table.setCellWidget(row, self._type_column, combo)
 
@@ -633,10 +624,9 @@ class _TagsTab(Tab[_TagType], typ.Generic[_TagType], metaclass=abc.ABCMeta):
         self._table.setItem(row, self._tag_use_count_column, number_item)
 
     def _get_value_for_column(self, column_name: str, value: _TagType, default: bool) -> typ.Tuple[str, str]:
-        """
-        Returns the value for tha given column and tag.
+        """Returns the value for tha given column and tag.
 
-        :param column_name: Column's name.
+        :param column_name: Column’s name.
         :param value: The tag.
         :return: A tuple with the value and the cell label.
         """
@@ -667,21 +657,20 @@ class _TagsTab(Tab[_TagType], typ.Generic[_TagType], metaclass=abc.ABCMeta):
         text = self._table.item(row, col).text()
         if col == 1:
             if model.Tag.LABEL_PATTERN.match(text) is None:
-                return False, 'Tag label should only be letters, digits or "_"!'
+                return False, _t('dialog.edit_tags.error.invalid_tag_name')
             tag_id = int(self._table.item(row, 0).text())
             if self._dao.tag_exists(tag_id, text):
-                return False, 'A tag with this name already exists!'
+                return False, _t('dialog.edit_tags.error.duplicate_tag_name')
         return True, ''
 
     def _combo_changed(self, _):
         """Called when a combobox changes."""
         if self._initialized:
             combo = self._owner.sender()
-            self._cell_edited(combo.property("row"), self._type_column)
+            self._cell_edited(combo.property('row'), self._type_column)
 
     def _label_from_combo(self, text: str) -> typ.Optional[str]:
-        """
-        Returns the label of the tag type represented by the given text from a combobox.
+        """Returns the label of the tag type represented by the given text from a combobox.
 
         :param text: The text to get the label from.
         :return: The type's label or None.
@@ -692,8 +681,7 @@ class _TagsTab(Tab[_TagType], typ.Generic[_TagType], metaclass=abc.ABCMeta):
         return None
 
     def _id_from_combo(self, text: str) -> typ.Optional[int]:
-        """
-        Returns the ID of the tag type represented by the given text from a combobox.
+        """Returns the ID of the tag type represented by the given text from a combobox.
 
         :param text: The text to get the ID from.
         :return: The ID or None.
@@ -705,11 +693,10 @@ class _TagsTab(Tab[_TagType], typ.Generic[_TagType], metaclass=abc.ABCMeta):
 
     @staticmethod
     def _get_combo_text(ident: int, label: str) -> str:
-        """
-        Formats an ID and label to a combobox item label.
+        """Formats an ID and label to a combobox item label.
 
-        :param ident: Type's ID.
-        :param label: Type's label.
+        :param ident: Type’s ID.
+        :param label: Type’s label.
         :return: The formatted string.
         """
         return f'{ident} - {label}'
@@ -720,18 +707,17 @@ class TagsTab(_TagsTab[model.Tag]):
                  selection_changed: typ.Optional[typ.Callable[[None], None]] = None,
                  cell_changed: typ.Optional[typ.Callable[[int, int, str], None]] = None,
                  rows_deleted: typ.Optional[typ.Callable[[typ.List[model.Tag]], None]] = None):
-        """
-        Initializes this tab.
+        """Initializes this tab.
 
-        :param owner: Tab's owner.
-        :param dao: The tag's DAO.
+        :param owner: Tab’s owner.
+        :param dao: The tag’s DAO.
         :param editable: If true the contained table will be editable.
         :param selection_changed: Action called when the selection changes.
-        :param cell_changed: Action called when a cell has been edited. It takes the cell's row, column and text.
+        :param cell_changed: Action called when a cell has been edited. It takes the cell’s row, column and text.
         :param rows_deleted: Action called when rows have been deleted. It takes the list of deleted values.
         """
-        super().__init__(owner, dao, 'Tags', False, editable, model.Tag, [], [], selection_changed=selection_changed,
-                         cell_changed=cell_changed, rows_deleted=rows_deleted)
+        super().__init__(owner, dao, _t('dialog.edit_tags.tab.tags.title'), False, editable, model.Tag, [], [],
+                         selection_changed=selection_changed, cell_changed=cell_changed, rows_deleted=rows_deleted)
 
 
 class CompoundTagsTab(_TagsTab[model.CompoundTag]):
@@ -739,17 +725,17 @@ class CompoundTagsTab(_TagsTab[model.CompoundTag]):
                  selection_changed: typ.Optional[typ.Callable[[None], None]] = None,
                  cell_changed: typ.Optional[typ.Callable[[int, int, str], None]] = None,
                  rows_deleted: typ.Optional[typ.Callable[[typ.List[model.CompoundTag]], None]] = None):
-        """
-        Initializes this tab.
+        """Initializes this tab.
 
-        :param owner: Tab's owner.
-        :param dao: The tag's DAO.
+        :param owner: Tab’s owner.
+        :param dao: The tag’s DAO.
         :param editable: If true the contained table will be editable.
         :param selection_changed: Action called when the selection changes.
-        :param cell_changed: Action called when a cell has been edited. It takes the cell's row, column and text.
+        :param cell_changed: Action called when a cell has been edited. It takes the cell’s row, column and text.
         :param rows_deleted: Action called when rows have been deleted. It takes the list of deleted values.
         """
-        super().__init__(owner, dao, 'Compound Tags', True, editable, model.CompoundTag, ['Definition'], [0],
+        super().__init__(owner, dao, _t('dialog.edit_tags.tab.compound_tags.title'), True, editable, model.CompoundTag,
+                         [_t('dialog.edit_tags.tab.compound_tags.table.header.definition')], [0],
                          selection_changed=selection_changed, cell_changed=cell_changed, rows_deleted=rows_deleted)
 
     def init(self):

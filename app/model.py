@@ -15,12 +15,12 @@ class Image:
 
     def __lt__(self, other):
         if not isinstance(other, Image):
-            raise ValueError(f"Expected Image, got {type(other)}")
+            raise ValueError(f'expected Image, got {type(other)}')
         return self.path < other.path
 
     def __gt__(self, other):
         if not isinstance(other, Image):
-            raise ValueError(f"Expected Image, got {type(other)}")
+            raise ValueError(f'expected Image, got {type(other)}')
         return self.path > other.path
 
     def __le__(self, other):
@@ -32,24 +32,23 @@ class Image:
 
 class TagType:
     """This class represents a tag type."""
-    LABEL_PATTERN = re.compile(r"^\S.*$")
-    SYMBOL_PATTERN = re.compile(r"^[^\w+()-]$")
+    LABEL_PATTERN = re.compile(r'^\S.*$')
+    SYMBOL_PATTERN = re.compile(r'^[^\w+()/\\:-]$')
     SYMBOL_TYPES = {}
     ID_TYPES = {}
 
     def __init__(self, ident: int, label: str, symbol: str, color: QtG.QColor = QtG.QColor(0, 0, 0)):
-        """
-        Creates a tag type.
+        """Creates a tag type.
 
-        :param ident: Type's SQLite ID.
-        :param label: Type's label.
-        :param symbol: Type's symbol.
-        :param color: Type's color.
+        :param ident: Type’s SQLite ID.
+        :param label: Type’s label.
+        :param symbol: Type’s symbol.
+        :param color: Type’s color.
         """
         if not self.LABEL_PATTERN.match(label):
-            raise ValueError("Illegal type label format!")
+            raise ValueError('illegal type label format')
         if not self.SYMBOL_PATTERN.match(symbol):
-            raise ValueError("Illegal type symbol format!")
+            raise ValueError('illegal type symbol format')
         self._id = ident
         self._label = label
         self._symbol = symbol
@@ -57,22 +56,22 @@ class TagType:
 
     @property
     def id(self) -> int:
-        """Returns this type's ID."""
+        """Returns this type’s ID."""
         return self._id
 
     @property
     def label(self) -> str:
-        """Returns this type's label."""
+        """Returns this type’s label."""
         return self._label
 
     @property
     def symbol(self) -> str:
-        """Returns this type's symbol."""
+        """Returns this type’s symbol."""
         return self._symbol
 
     @property
     def color(self) -> QtG.QColor:
-        """Returns this type's color."""
+        """Returns this type’s color."""
         return self._color
 
     def __eq__(self, other):
@@ -82,12 +81,11 @@ class TagType:
                 self._color == other.color)
 
     def __repr__(self):
-        return f"TagType{{id={self.id}, label={self.label}, symbol={self.symbol}, color={self.color.name()}}}"
+        return f'TagType{{id={self.id}, label={self.label}, symbol={self.symbol}, color={self.color.name()}}}'
 
     @staticmethod
     def init(types: typ.Iterable[TagType]):
-        """
-        Initializes all available tag types.
+        """Initializes all available tag types.
 
         :param types: The available types.
         """
@@ -99,8 +97,7 @@ class TagType:
 
     @staticmethod
     def is_special_char(c: str) -> bool:
-        """
-        Tells if a character is a type symbol.
+        """Tells if a character is a type symbol.
 
         :param c: The character to check.
         :return: True if the argument is a type symbol.
@@ -109,8 +106,7 @@ class TagType:
 
     @staticmethod
     def from_symbol(symbol: str) -> TagType:
-        """
-        Returns the type with from the given symbol.
+        """Returns the type with from the given symbol.
 
         :param symbol: The type symbol.
         :return: The corresponding type.
@@ -119,8 +115,7 @@ class TagType:
 
     @staticmethod
     def from_id(ident: int) -> TagType:
-        """
-        Returns the type with the given ID.
+        """Returns the type with the given ID.
 
         :param ident: The SQLite ID.
         :return: The corresponding type.
@@ -133,15 +128,14 @@ class Tag:
     LABEL_PATTERN = re.compile(r"^\w+$")
 
     def __init__(self, ident: int, label: str, tag_type: typ.Optional[TagType] = None):
-        """
-        Creates a tag with an optional type.
+        """Creates a tag with an optional type.
 
-        :param ident: Tag's SQLite ID.
-        :param label: Tag's label.
-        :param tag_type: Tag's type?
+        :param ident: Tag’s SQLite ID.
+        :param label: Tag’s label.
+        :param tag_type: Tag’s type?
         """
         if not self.LABEL_PATTERN.match(label):
-            raise ValueError("Illegal tag label format!")
+            raise ValueError('Illegal tag label format')
 
         self._id = ident
         self._label = label
@@ -149,22 +143,22 @@ class Tag:
 
     def raw_label(self) -> str:
         """Returns the raw label, i.e. the name prefixed with its type symbol."""
-        symbol = self._type.symbol if self._type is not None else ""
+        symbol = self._type.symbol if self._type is not None else ''
         return symbol + self._label
 
     @property
     def id(self) -> int:
-        """Returns this tag's SQLite ID."""
+        """Returns this tag’s SQLite ID."""
         return self._id
 
     @property
     def label(self) -> str:
-        """Return this tag's label."""
+        """Return this tag’s label."""
         return self._label
 
     @property
     def type(self) -> TagType:
-        """Returns this tag's type."""
+        """Returns this tag’s type."""
         return self._type
 
     def __repr__(self):
@@ -177,8 +171,7 @@ class Tag:
 
     @classmethod
     def from_string(cls, s: str) -> Tag:
-        """
-        Returns a tag instance from a given string.
+        """Returns a tag instance from a given string.
 
         :param s: The string to parse.
         :return: The corresponding tag.
@@ -191,19 +184,17 @@ class Tag:
 
 
 class CompoundTag(Tag):
-    """
-    A compound tag is a tag defined by a tag query. This type of tags is only used in queries, they cannot be used to
+    """A compound tag is a tag defined by a tag query. This type of tags is only used in queries, they cannot be used to
     tag images directly.
     """
 
     def __init__(self, ident: int, label: str, definition: str, tag_type: typ.Optional[TagType] = None):
-        """
-        Creates a compound tag.
+        """Creates a compound tag.
 
-        :param ident: Tag's SQLite ID.
-        :param label: Tag's label.
-        :param definition: Tag's definition (tag expression).
-        :param tag_type: Tag's optional type.
+        :param ident: Tag’s SQLite ID.
+        :param label: Tag’s label.
+        :param definition: Tag’s definition (tag expression).
+        :param tag_type: Tag’s optional type.
         """
         super().__init__(ident, label, tag_type=tag_type)
         self._definition = definition
