@@ -311,13 +311,16 @@ class Application(QtW.QMainWindow):
                 message = '<html>' + _t('popup.delete_image_warning.text_question_single')
                 message += '<br/><b>' + _t('popup.delete_image_warning.text_warning_single') + '</b></html>'
             if utils.show_question(message, _t('popup.delete_image_warning.title'), parent=self):
+                errors = []
                 for item in images:
                     if self._dao.delete_image(item.id):
                         try:
                             os.remove(item.path)
-                        except FileNotFoundError as e:  # TODO display a single message with all file name in a textarea
+                        except FileNotFoundError as e:
                             logger.exception(e)
-                            utils.show_error(_t('popup.delete_image_error.text', filename=e.filename), parent=self)
+                            errors.append(item.path)
+                if errors:
+                    utils.show_error(_t('popup.delete_image_error.text', files='\n'.join(errors)), parent=self)
                 self._fetch_images()
 
     def _edit_tags(self):

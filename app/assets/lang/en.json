@@ -74,6 +74,12 @@
         "close_button": {
           "label": "Close"
         },
+        "yes_button": {
+          "label": "Yes"
+        },
+        "no_button": {
+          "label": "No"
+        },
         "cancel_button": {
           "label": "Cancel"
         },
@@ -250,7 +256,7 @@
         "text_warning_multiple": "Files will be delete from the disk."
       },
       "delete_image_error": {
-        "text": "Could not delete file:\n{filename}"
+        "text": "Could not delete file(s):\n{files}"
       },
       "load_thumbs_warning": {
         "title": "Load image thumbnails?",

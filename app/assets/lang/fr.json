@@ -74,6 +74,12 @@
         "close_button": {
           "label": "Fermer"
         },
+        "yes_button": {
+          "label": "Oui"
+        },
+        "no_button": {
+          "label": "Non"
+        },
         "cancel_button": {
           "label": "Annuler"
         },
@@ -250,7 +256,7 @@
         "text_warning_multiple": "Les fichiers seront effacés du disque."
       },
       "delete_image_error": {
-        "text": "Le fichier n’a pas pu être supprimé :\n{filename}"
+        "text": "Un ou plusieurs fichiers n’ont pas pu être supprimés :\n{files}"
       },
       "load_thumbs_warning": {
         "title": "Charger les vignettes ?",

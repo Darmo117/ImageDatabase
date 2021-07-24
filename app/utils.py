@@ -3,7 +3,6 @@ import typing as typ
 
 import PyQt5.QtGui as QtGui
 import PyQt5.QtWidgets as QtW
-from PyQt5.QtCore import Qt
 
 from . import constants
 from .i18n import translate as _t
@@ -16,7 +15,9 @@ def show_info(message: str, title='popup.info.title', parent: QtW.QWidget = None
     :param title: Popup’s unlocalized title.
     :param parent: Popup’s parent.
     """
-    QtW.QMessageBox.information(parent, _t(title), message)
+    mb = QtW.QMessageBox(QtW.QMessageBox.Information, _t(title), message, buttons=QtW.QMessageBox.Ok, parent=parent)
+    mb.button(QtW.QMessageBox.Ok).setText(_t('dialog.common.ok_button.label'))
+    mb.exec_()
 
 
 def show_warning(message: str, title: str = 'popup.warning.title', parent: QtW.QWidget = None):
@@ -26,7 +27,9 @@ def show_warning(message: str, title: str = 'popup.warning.title', parent: QtW.Q
     :param title: Popup’s unlocalized title.
     :param parent: Popup’s parent.
     """
-    QtW.QMessageBox.warning(parent, _t(title), message)
+    mb = QtW.QMessageBox(QtW.QMessageBox.Warning, _t(title), message, buttons=QtW.QMessageBox.Ok, parent=parent)
+    mb.button(QtW.QMessageBox.Ok).setText(_t('dialog.common.ok_button.label'))
+    mb.exec_()
 
 
 def show_error(message: str, title: str = 'popup.error.title', parent: QtW.QWidget = None):
@@ -36,7 +39,9 @@ def show_error(message: str, title: str = 'popup.error.title', parent: QtW.QWidg
     :param title: Popup’s unlocalized title.
     :param parent: Popup’s parent.
     """
-    QtW.QMessageBox.critical(parent, _t(title), message)
+    mb = QtW.QMessageBox(QtW.QMessageBox.Critical, _t(title), message, buttons=QtW.QMessageBox.Ok, parent=parent)
+    mb.button(QtW.QMessageBox.Ok).setText(_t('dialog.common.ok_button.label'))
+    mb.exec_()
 
 
 def show_question(message: str, title: str = 'popup.question.title', cancel: bool = False,
@@ -52,12 +57,19 @@ def show_question(message: str, title: str = 'popup.question.title', cancel: boo
     answers = {
         QtW.QMessageBox.Yes: True,
         QtW.QMessageBox.No: False,
-        QtW.QMessageBox.Cancel: None
+        QtW.QMessageBox.Cancel: None,
     }
-    mode = QtW.QMessageBox.Yes | QtW.QMessageBox.No
+    buttons = QtW.QMessageBox.Yes | QtW.QMessageBox.No
     if cancel:
-        mode |= QtW.QMessageBox.Cancel
-    return answers[QtW.QMessageBox.question(parent, _t(title), message, mode)]
+        buttons |= QtW.QMessageBox.Cancel
+
+    mb = QtW.QMessageBox(QtW.QMessageBox.Question, _t(title), message, buttons=buttons, parent=parent)
+    mb.button(QtW.QMessageBox.Yes).setText(_t('dialog.common.yes_button.label'))
+    mb.button(QtW.QMessageBox.No).setText(_t('dialog.common.no_button.label'))
+    if cancel:
+        mb.button(QtW.QMessageBox.Cancel).setText(_t('dialog.common.cancel_button.label'))
+    # noinspection PyTypeChecker
+    return answers[mb.exec_()]
 
 
 def show_text_input(message: str, title: str, text: str = '', parent: QtW.QWidget = None) -> typ.Optional[str]:
@@ -69,11 +81,17 @@ def show_text_input(message: str, title: str, text: str = '', parent: QtW.QWidge
     :param parent: Popup’s parent.
     :return: The typed text or None if the popup was cancelled.
     """
-    text, ok = QtW.QInputDialog.getText(parent, title, message, text=text, flags=Qt.WindowCloseButtonHint)
-    return text if ok else None
+    input_d = QtW.QInputDialog(parent=parent)
+    input_d.setWindowTitle(title)
+    input_d.setLabelText(message)
+    input_d.setTextValue(text)
+    input_d.setOkButtonText(_t('dialog.common.ok_button.label'))
+    input_d.setCancelButtonText(_t('dialog.common.cancel_button.label'))
+    ok = input_d.exec_()
+    return input_d.textValue() if ok else None
 
 
-def show_int_input(message: str, title: str, value: int = 0, min_value: int = -2147483647, max_value: int = 2147483647,
+def show_int_input(message: str, title: str, value: int = 0, min_value: int = None, max_value: int = None,
                    parent: QtW.QWidget = None) -> typ.Optional[int]:
     """Shows an input popup.
 
@@ -85,10 +103,19 @@ def show_int_input(message: str, title: str, value: int = 0, min_value: int = -2
     :param parent: Popup’s parent.
     :return: The typed text or None if the popup was cancelled.
     """
-    # noinspection PyArgumentList
-    value, ok = QtW.QInputDialog.getInt(parent, title, message, value=value, min=min_value, max=max_value,
-                                        flags=Qt.WindowCloseButtonHint)
-    return value if ok else None
+    input_d = QtW.QInputDialog(parent=parent)
+    input_d.setWindowTitle(title)
+    input_d.setLabelText(message)
+    input_d.setInputMode(QtW.QInputDialog.IntInput)
+    if min_value is not None:
+        input_d.setIntMinimum(min_value)
+    if max_value is not None:
+        input_d.setIntMaximum(max_value)
+    input_d.setIntValue(value)
+    input_d.setOkButtonText(_t('dialog.common.ok_button.label'))
+    input_d.setCancelButtonText(_t('dialog.common.cancel_button.label'))
+    ok = input_d.exec_()
+    return input_d.intValue() if ok else None
 
 
 def open_image_chooser(parent: QtW.QWidget = None) -> typ.Optional[str]:

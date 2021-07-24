@@ -58,7 +58,6 @@ class Dialog(QtW.QDialog):
         """
         return None
 
-    # noinspection PyUnresolvedReferences
     def __init_button_box(self) -> QtW.QBoxLayout:
         """Initializes the buttons. Additional buttons can be set by overriding the _init_buttons method. These buttons
         will be added in the order they are returned and to the left of default buttons.
