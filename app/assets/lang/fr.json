@@ -1,0 +1,296 @@
+{
+  "name": "Français",
+  "main_window": {
+    "menu": {
+      "file": {
+        "label": "&Fichier",
+        "item": {
+          "add_file": "Ajouter un &fichier…",
+          "add_directory": "Ajouter un &dossier…",
+          "export_playlist": "Exporter en tant que &playlist…",
+          "exit": "&Quitter"
+        }
+      },
+      "edit": {
+        "label": "&Édition",
+        "item": {
+          "edit_tags": "&Modifier les étiquettes…",
+          "rename_image": "&Renommer l’image…",
+          "replace_image": "Rem&placer l’image…",
+          "edit_images": "M&odifier les images…",
+          "delete_images": "&Supprimer les images"
+        }
+      },
+      "options": {
+        "label": "&Options",
+        "item": {
+          "load_thumbs": "&Charger les vignettes",
+          "thumbs_size": "&Taille des vignettes…",
+          "thumbs_load_threshold": "&Seuil de chargement des vignettes…",
+          "language": "Langue"
+        }
+      },
+      "help": {
+        "label": "&Aide",
+        "item": {
+          "about": "À &propos…"
+        }
+      }
+    },
+    "tags_tree": {
+      "title": "Étiquettes ({amount})",
+      "type_item_unclassified": "Non-classées"
+    },
+    "tab": {
+      "paths_list": {
+        "title": "Chemins ({images_number})"
+      },
+      "thumbnails_list": {
+        "title": "vignettes ({images_number})"
+      }
+    },
+    "query_form": {
+      "ok_button": {
+        "label": "OK"
+      },
+      "text_field": {
+        "placeholder": "Chercher des images avec ces étiquettes…"
+      }
+    },
+    "error": {
+      "remote_URL": "L’URL n’est pas locale !"
+    }
+  },
+  "canvas": {
+    "image_load_error": "Impossible de charger l’image !",
+    "no_image": "Aucune image"
+  },
+  "dialog": {
+    "common": {
+      "ok_button": {
+        "label": "OK"
+      },
+      "close_button": {
+        "label": "Fermer"
+      },
+      "cancel_button": {
+        "label": "Annuler"
+      },
+      "invalid_data": {
+        "text": "Données invalides !"
+      }
+    },
+    "edit_image": {
+      "title_add": "Ajouter des images ({index}/{total})",
+      "title_edit": "Modifier des images ({index}/{total})",
+      "title_replace": "Remplacer des images ({index}/{total})",
+      "replace_button": {
+        "label": "Remplacer par…"
+      },
+      "move_to_button": {
+        "label": "Déplacer vers…"
+      },
+      "tags_button": {
+        "label": "Étiquettes"
+      },
+      "show_directory_button": {
+        "label": "Afficher dans le dossier"
+      },
+      "skip_button": {
+        "label": "Passer"
+      },
+      "next_button": {
+        "label": "Suivant"
+      },
+      "finish_button": {
+        "label": "Terminer"
+      },
+      "target_path": "Chemin : {path}",
+      "error": {
+        "replace_self": "Impossible de remplacer une image par elle-même !",
+        "no_tags": "Aucune étiquette renseignée !",
+        "compound_tags_disallowed": "Étiquettes composées interdites ici !",
+        "invalid_tag_format": "Format d’étiquette invalide !",
+        "changes_not_applied": "Impossible d’appliquer les changements !",
+        "image_not_added": "Impossible d’ajouter l’image !",
+        "file_already_exists": "Un fichier existe déjà dans le dossier cible !"
+      }
+    },
+    "edit_tags": {
+      "title_edit": "Modifier les étiquettes",
+      "title_readonly": "Étiquettes",
+      "add_item_button": {
+        "tooltip": "Ajouter un élément"
+      },
+      "delete_items_button": {
+        "tooltip": "Supprimer les éléments"
+      },
+      "search_field": {
+        "placeholder": "Rechercher une étiquette ou un type…"
+      },
+      "search_button": {
+        "label": "Rechercher"
+      },
+      "apply_button": {
+        "label": "Appliquer"
+      },
+      "delete_warning": {
+        "text": "Supprimer les entrées sélectionnées ?"
+      },
+      "no_match": "Aucune correspondance trouvée.",
+      "tab": {
+        "tag_types": {
+          "title": "Types d’étiquettes",
+          "table": {
+            "header": {
+              "type_id": "ID",
+              "label": "Libellé",
+              "symbol": "Symbole",
+              "color": "Couleur"
+            },
+            "default_label": "Nouveau type"
+          }
+        },
+        "tags_common": {
+          "table": {
+            "header": {
+              "tag_id": "ID",
+              "label": "Libellé",
+              "type": "Type",
+              "usage": "Utilisations"
+            },
+            "combo_no_type": "Aucun"
+          }
+        },
+        "tags": {
+          "title": "Étiquettes"
+        },
+        "compound_tags": {
+          "title": "Étiquettes composées",
+          "table": {
+            "header": {
+              "definition": "Définition"
+            }
+          }
+        }
+      },
+      "error": {
+        "saving": "Une erreur est survenu ! Certains changements n’ont pas pu être appliqués.",
+        "empty_cell": "La cellule est vide !",
+        "duplicate_value": "La valeur est déjà utilisée ! Veuillez en choisir une autre.",
+        "invalid_tag_type_name": "Les libellés de types peuvent comporter uniquement des lettres, des chiffres ou des « _ » !",
+        "invalid_tag_type_symbol": "Les symboles doivent être composés d’un seul caractère. Lettres, chiffres, « _ », « + », « - », « : », « ( » et « ) » ne sont pas autorisés.",
+        "invalid_tag_name": "Les libellés d’étiquettes ne peuvent comporter uniquement des lettres, des chiffres ou des « _ » !",
+        "duplicate_tag_name": "Une étiquette avec le même nom existe déjà !"
+      }
+    },
+    "about": {
+      "title": "À propos de {app_name}"
+    }
+  },
+  "popup": {
+    "info": {
+      "title": "Information"
+    },
+    "warning": {
+      "title": "Avertissement"
+    },
+    "error": {
+      "title": "Erreur"
+    },
+    "question": {
+      "title": "Question"
+    },
+    "empty_directory": {
+      "text": "Ce dossier ne contient aucune image !"
+    },
+    "images_already_registered": {
+      "text": "Ces images sont déjà enregistrées !"
+    },
+    "image_already_registered": {
+      "text": "Cette image est déjà enregistrée !"
+    },
+    "image_chooser": {
+      "caption": "Ouvrir une image",
+      "filter": "Image"
+    },
+    "open_directory_chooser": {
+      "caption": "Ouvrir un dossier"
+    },
+    "directory_chooser": {
+      "caption": "Choisir un dossier"
+    },
+    "playlist_saver": {
+      "caption": "Sauvegarder une playlist",
+      "filter": "Playlist"
+    },
+    "rename_image": {
+      "title": "Renommer l’image",
+      "text": "Entrer le nouveau nom"
+    },
+    "rename_error": {
+      "text": "L’image n’a pas pu être renommée !"
+    },
+    "rename_overwrite": {
+      "title": "Conflit de nom",
+      "text": "Un fichier avec le même nom existe déjà, voulez-vous l’écraser ?"
+    },
+    "tag_load_error": {
+      "text": "Les étiquettes n’ont pas pu être chargées !"
+    },
+    "playlist_exported": {
+      "text": "Playlist exportée !"
+    },
+    "delete_image_warning": {
+      "title": "Supprimmer l’image",
+      "text_question_single": "Êtes-vous sur de vouloir supprimer cette image ?",
+      "text_question_multiple": "Êtes-vous sur de vouloir supprimer ces images ?",
+      "text_warning_single": "Le fichier sera effacé du disque.",
+      "text_warning_multiple": "Les fichiers seront effacés du disque."
+    },
+    "delete_image_error": {
+      "text": "Le fichier n’a pas pu être supprimé :\n{filename}"
+    },
+    "load_thumbs_warning": {
+      "title": "Charger les vignettes ?",
+      "text": "La requête a retourné plus de {threshold} image(s), les vignettes vont être désactivées.\nVoulez-vous les charger quand-même ? L’application risque de planter si vous procédez."
+    },
+    "set_thumbs_size": {
+      "title": "Taille des vignettes",
+      "text": "Entrer la taille en pixels [{min}, {max}]"
+    },
+    "set_thumbs_load_threshold": {
+      "title": "Seuil de chargement des vignettes",
+      "text": "Entrer le nouveau seuil [{min}, {max}]"
+    },
+    "data_loading_error": {
+      "text": "Impossible de charger les données ! Fermeture de l’application."
+    }
+  },
+  "thread": {
+    "search": {
+      "error": {
+        "image_loading_error": "Les images n’ont pas pu être chargées !",
+        "max_recursion": "Profondeur de récursion maximale ({max_depth}) atteinte !"
+      }
+    }
+  },
+  "query_parser": {
+    "error": {
+      "unknown_metatag": "Méta-étiquette « {metatag} » inconnue !",
+      "invalid_metatag_value": "Valeur « {value} » invalide pour la méta-étiquette « {metatag} » !",
+      "syntax_error": "Erreur de syntaxe ! Caractère inattendu : « {token} »",
+      "syntax_error_eol": "Erreur de syntaxe ! Fin de requête prématurée.",
+      "illegal_character": "Caractère invalide : « {char} » (U+{code})"
+    }
+  },
+  "SQL_console": {
+    "exit_notice": "Taper \"exit\" pour quitter la ligne de commande.\n",
+    "connection": "Connexion : {path}",
+    "no_results": "La requête n’a retourné aucun résultat",
+    "display_more": "Afficher plus ? (Y / N)",
+    "results": "Affichage des résultats {start} à {end} sur {total}",
+    "error": "Erreur :",
+    "goodbye": "Au revoir !"
+  }
+}

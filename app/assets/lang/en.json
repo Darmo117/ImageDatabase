@@ -1,18 +1,19 @@
 {
+  "name": "English",
   "main_window": {
     "menu": {
       "file": {
         "label": "&File",
-        "items": {
+        "item": {
           "add_file": "Add &File…",
           "add_directory": "Add &Directory…",
-          "export_playlist": "E&xport As Playlist…",
+          "export_playlist": "Export As &Playlist…",
           "exit": "&Exit"
         }
       },
       "edit": {
         "label": "&Edit",
-        "items": {
+        "item": {
           "edit_tags": "Edit &Tags…",
           "rename_image": "&Rename Image…",
           "replace_image": "Re&place Image…",
@@ -22,15 +23,16 @@
       },
       "options": {
         "label": "&Options",
-        "items": {
+        "item": {
           "load_thumbs": "&Load Thumbnails",
           "thumbs_size": "Thumbnail &Size…",
-          "thumbs_load_threshold": "Thumbnail Load &Threshold…"
+          "thumbs_load_threshold": "Thumbnail Load &Threshold…",
+          "language": "Language"
         }
       },
       "help": {
         "label": "&Help",
-        "items": {
+        "item": {
           "about": "&About…"
         }
       }
@@ -133,7 +135,7 @@
         "label": "Apply"
       },
       "delete_warning": {
-        "text": "Delete these entries?"
+        "text": "Delete selected entries?"
       },
       "no_match": "No match found.",
       "tab": {
@@ -203,7 +205,10 @@
       "text": "No images in this directory!"
     },
     "images_already_registered": {
-      "text": "Image(s) already registered!"
+      "text": "Images already registered!"
+    },
+    "image_already_registered": {
+      "text": "Image already registered!"
     },
     "image_chooser": {
       "caption": "Open Image",
@@ -240,10 +245,11 @@
       "title": "Delete Image",
       "text_question_single": "Are you sure you want to delete this image?",
       "text_question_multiple": "Are you sure you want to delete these images?",
-      "text_warning": "Files will be delete from the disk."
+      "text_warning_single": "File will be delete from the disk.",
+      "text_warning_multiple": "Files will be delete from the disk."
     },
     "delete_image_error": {
-      "text": "Could not delete file!\n{filename}"
+      "text": "Could not delete file:\n{filename}"
     },
     "load_thumbs_warning": {
       "title": "Load image thumbnails?",
@@ -272,7 +278,7 @@
   "query_parser": {
     "error": {
       "unknown_metatag": "Unknown metatag “{metatag}”!",
-      "invalid_metatag_value": "Invalid value '{value}' for metatag '{metatag}'!",
+      "invalid_metatag_value": "Invalid value “{value}” for metatag “{metatag}”!",
       "syntax_error": "Syntax error! Unexpected character “{token}”.",
       "syntax_error_eol": "Syntax error! Unexpected end of query.",
       "illegal_character": "Illegal character ”{char}“ (U+{code})!"

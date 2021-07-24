@@ -9,16 +9,26 @@ class ConfigError(ValueError):
     pass
 
 
+_DEFAULT_LANG_CODE = 'en'
+_DEFAULT_DB_PATH = 'library.sqlite3'
+_DEFAULT_LOAD_THUMBS = True
+_DEFAULT_THUMBS_SIZE = 200
+_DEFAULT_THUMBS_LOAD_THRESHOLD = 50
+
+
 @dc.dataclass
 class Config:
-    lang_code: str = 'en'
-    database_path: str = 'library.sqlite3'
-    load_thumbnails: bool = True
-    thumbnail_size: int = 200
-    thumbnail_load_threshold: int = 50
+    lang_code: str = _DEFAULT_LANG_CODE
+    database_path: str = _DEFAULT_DB_PATH
+    load_thumbnails: bool = _DEFAULT_LOAD_THUMBS
+    thumbnail_size: int = _DEFAULT_THUMBS_SIZE
+    thumbnail_load_threshold: int = _DEFAULT_THUMBS_LOAD_THRESHOLD
 
 
 CONFIG = Config()
+
+_UI_SECTION = 'UI'
+_LANG_KEY = 'Language'
 
 _DB_SECTION = 'Database'
 _FILE_KEY = 'File'
@@ -39,11 +49,15 @@ def load_config():
         config_parser = configparser.ConfigParser()
         config_parser.read(constants.CONFIG_FILE)
         try:
-            images_section = config_parser[_IMAGES_SECTION]
-            load_thumbs = _to_bool(images_section[_LOAD_THUMBS_KEY])
+            # UI section
+            CONFIG.lang_code = config_parser.get(_UI_SECTION, _LANG_KEY, fallback=_DEFAULT_LANG_CODE)
+
+            # Images section
+            load_thumbs = _to_bool(config_parser.get(_IMAGES_SECTION, _LOAD_THUMBS_KEY,
+                                                     fallback=str(_DEFAULT_LOAD_THUMBS)))
 
             try:
-                size = int(images_section.get(_THUMB_SIZE_KEY, '200'))
+                size = int(config_parser.get(_IMAGES_SECTION, _THUMB_SIZE_KEY, fallback=str(_DEFAULT_THUMBS_SIZE)))
             except ValueError as e:
                 raise ConfigError(f'key {_THUMB_SIZE_KEY!r}: {e}')
             if size < constants.MIN_THUMB_SIZE or size > constants.MAX_THUMB_SIZE:
@@ -51,23 +65,27 @@ def load_config():
                                   f'and {constants.MAX_THUMB_SIZE}px')
 
             try:
-                threshold = int(images_section.get(_THUMB_LOAD_THRESHOLD_KEY, '50'))
+                threshold = int(config_parser.get(_IMAGES_SECTION, _THUMB_LOAD_THRESHOLD_KEY,
+                                                  fallback=_DEFAULT_THUMBS_LOAD_THRESHOLD))
             except ValueError as e:
                 raise ConfigError(f'key {_THUMB_LOAD_THRESHOLD_KEY!r}: {e}')
             if threshold < 0:
                 raise ConfigError(f'illegal thumbnail load threshold {threshold}, must be between '
                                   f'{constants.MIN_THUMB_LOAD_THRESHOLD}px and {constants.MAX_THUMB_LOAD_THRESHOLD}px')
 
-            CONFIG.database_path = config_parser[_DB_SECTION][_FILE_KEY]
             CONFIG.load_thumbnails = load_thumbs
             CONFIG.thumbnail_size = size
             CONFIG.thumbnail_load_threshold = threshold
+
+            # Database section
+            CONFIG.database_path = config_parser.get(_DB_SECTION, _FILE_KEY, fallback=_DEFAULT_DB_PATH)
         except ValueError as e:
             raise ConfigError(e)
         except KeyError as e:
             raise ConfigError(f'missing key {e}')
 
-    i18n.load_language(CONFIG.lang_code)
+    if not i18n.load_language(CONFIG.lang_code):
+        raise ConfigError(f'invalid language code "{CONFIG.lang_code}"')
 
 
 def _to_bool(value: str) -> bool:
@@ -83,13 +101,16 @@ def save_config():
     """Saves the config in the file specified in app.constants.CONFIG_FILE."""
     parser = configparser.ConfigParser(strict=True)
     parser.optionxform = str
-    parser[_DB_SECTION] = {
-        _FILE_KEY: CONFIG.database_path,
+    parser[_UI_SECTION] = {
+        _LANG_KEY: CONFIG.lang_code,
     }
     parser[_IMAGES_SECTION] = {
         _LOAD_THUMBS_KEY: str(CONFIG.load_thumbnails).lower(),
         _THUMB_SIZE_KEY: CONFIG.thumbnail_size,
         _THUMB_LOAD_THRESHOLD_KEY: CONFIG.thumbnail_load_threshold,
+    }
+    parser[_DB_SECTION] = {
+        _FILE_KEY: CONFIG.database_path,
     }
     with open(constants.CONFIG_FILE, 'w', encoding='UTF-8') as configfile:
         parser.write(configfile)

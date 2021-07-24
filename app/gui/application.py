@@ -103,13 +103,13 @@ class Application(QtW.QMainWindow):
 
         file_menu = menubar.addMenu(_t('main_window.menu.file.label'))
 
-        add_file_item = QtW.QAction(_t('main_window.menu.file.items.add_file'), self)
+        add_file_item = QtW.QAction(_t('main_window.menu.file.item.add_file'), self)
         add_file_item.setIcon(QtG.QIcon(constants.ICONS_DIR + 'image_add.png'))
         add_file_item.setShortcut('Ctrl+F')
         add_file_item.triggered.connect(self._add_image)
         file_menu.addAction(add_file_item)
 
-        add_directory_item = QtW.QAction(_t('main_window.menu.file.items.add_directory'), self)
+        add_directory_item = QtW.QAction(_t('main_window.menu.file.item.add_directory'), self)
         add_directory_item.setIcon(QtG.QIcon(constants.ICONS_DIR + 'folder_image.png'))
         add_directory_item.setShortcut('Ctrl+D')
         add_directory_item.triggered.connect(self._add_directory)
@@ -117,14 +117,14 @@ class Application(QtW.QMainWindow):
 
         file_menu.addSeparator()
 
-        self._export_item = QtW.QAction(_t('main_window.menu.file.items.export_playlist'), self)
+        self._export_item = QtW.QAction(_t('main_window.menu.file.item.export_playlist'), self)
         self._export_item.setShortcut('Ctrl+Shift+E')
         self._export_item.triggered.connect(self._export_images)
         file_menu.addAction(self._export_item)
 
         file_menu.addSeparator()
 
-        exit_item = QtW.QAction(_t('main_window.menu.file.items.exit'), self)
+        exit_item = QtW.QAction(_t('main_window.menu.file.item.exit'), self)
         exit_item.setIcon(QtG.QIcon(constants.ICONS_DIR + 'door_open.png'))
         exit_item.setShortcut('Ctrl+Q')
         exit_item.triggered.connect(QtW.qApp.quit)
@@ -132,7 +132,7 @@ class Application(QtW.QMainWindow):
 
         edit_menu = menubar.addMenu(_t('main_window.menu.edit.label'))
 
-        edit_tags_item = QtW.QAction(_t('main_window.menu.edit.items.edit_tags'), self)
+        edit_tags_item = QtW.QAction(_t('main_window.menu.edit.item.edit_tags'), self)
         edit_tags_item.setIcon(QtG.QIcon(constants.ICONS_DIR + 'tag_edit.png'))
         edit_tags_item.setShortcut('Ctrl+T')
         edit_tags_item.triggered.connect(self._edit_tags)
@@ -140,25 +140,25 @@ class Application(QtW.QMainWindow):
 
         edit_menu.addSeparator()
 
-        self._rename_image_item = QtW.QAction(_t('main_window.menu.edit.items.rename_image'), self)
+        self._rename_image_item = QtW.QAction(_t('main_window.menu.edit.item.rename_image'), self)
         self._rename_image_item.setIcon(QtG.QIcon(constants.ICONS_DIR + 'textfield_rename.png'))
         self._rename_image_item.setShortcut('Ctrl+R')
         self._rename_image_item.triggered.connect(self._rename_image)
         edit_menu.addAction(self._rename_image_item)
 
-        self._replace_image_item = QtW.QAction(_t('main_window.menu.edit.items.replace_image'), self)
+        self._replace_image_item = QtW.QAction(_t('main_window.menu.edit.item.replace_image'), self)
         self._replace_image_item.setIcon(QtG.QIcon(constants.ICONS_DIR + 'images.png'))
         self._replace_image_item.setShortcut('Ctrl+Shift+R')
         self._replace_image_item.triggered.connect(self._replace_image)
         edit_menu.addAction(self._replace_image_item)
 
-        self._edit_images_item = QtW.QAction(_t('main_window.menu.edit.items.edit_images'), self)
+        self._edit_images_item = QtW.QAction(_t('main_window.menu.edit.item.edit_images'), self)
         self._edit_images_item.setIcon(QtG.QIcon(constants.ICONS_DIR + 'image_edit.png'))
         self._edit_images_item.setShortcut('Ctrl+E')
         self._edit_images_item.triggered.connect(lambda: self._edit_images(self._current_tab().selected_images()))
         edit_menu.addAction(self._edit_images_item)
 
-        self._delete_images_item = QtW.QAction(_t('main_window.menu.edit.items.delete_images'), self)
+        self._delete_images_item = QtW.QAction(_t('main_window.menu.edit.item.delete_images'), self)
         self._delete_images_item.setIcon(QtG.QIcon(constants.ICONS_DIR + 'image_delete.png'))
         self._delete_images_item.setShortcut('Delete')
         self._delete_images_item.triggered.connect(self._delete_images)
@@ -167,22 +167,24 @@ class Application(QtW.QMainWindow):
         options_menu = menubar.addMenu(_t('main_window.menu.options.label'))
 
         # noinspection PyArgumentList
-        self._load_thumbs_item = QtW.QAction(_t('main_window.menu.options.items.load_thumbs'), checkable=True,
+        self._load_thumbs_item = QtW.QAction(_t('main_window.menu.options.item.load_thumbs'), checkable=True,
                                              checked=config.CONFIG.load_thumbnails)
         self._load_thumbs_item.triggered.connect(self._load_thumbs_item_clicked)
         options_menu.addAction(self._load_thumbs_item)
 
-        thumb_size_item = QtW.QAction(_t('main_window.menu.options.items.thumbs_size'), self)
+        thumb_size_item = QtW.QAction(_t('main_window.menu.options.item.thumbs_size'), self)
         thumb_size_item.triggered.connect(self._thumb_size_item_clicked)
         options_menu.addAction(thumb_size_item)
 
-        thumb_load_threshold_item = QtW.QAction(_t('main_window.menu.options.items.thumbs_load_threshold'), self)
+        thumb_load_threshold_item = QtW.QAction(_t('main_window.menu.options.item.thumbs_load_threshold'), self)
         thumb_load_threshold_item.triggered.connect(self._thumb_load_threshold_item_clicked)
         options_menu.addAction(thumb_load_threshold_item)
 
+        language_menu = options_menu.addMenu(_t('main_window.menu.options.item.language'))
+
         help_menu = menubar.addMenu(_t('main_window.menu.help.label'))
 
-        about_item = QtW.QAction(_t('main_window.menu.help.items.about'), self)
+        about_item = QtW.QAction(_t('main_window.menu.help.item.about'), self)
         about_item.setIcon(QtG.QIcon(constants.ICONS_DIR + 'information.png'))
         about_item.triggered.connect(lambda: AboutDialog(self).show())
         help_menu.addAction(about_item)
@@ -195,13 +197,13 @@ class Application(QtW.QMainWindow):
         self.move(qr.topLeft())
 
     def _add_image(self):
-        """Opens a file chooser then add the selected image to the database."""
+        """Opens a file chooser then adds the selected image to the database."""
         file = utils.open_image_chooser(self)
         if file is not None:
             self._add_images([file])
 
     def _add_directory(self):
-        """Opens a file chooser then add the images from the selected directory to the database."""
+        """Opens a file chooser then adds the images from the selected directory to the database."""
         images = utils.open_directory_chooser(self)
         if images is not None:
             if len(images) == 0:
@@ -214,7 +216,10 @@ class Application(QtW.QMainWindow):
         if len(images) > 0:
             images_to_add = [i for i in images if not self._dao.image_registered(i)]
             if len(images_to_add) == 0:
-                text = _t('popup.images_already_registered.text')
+                if len(images) > 1:
+                    text = _t('popup.images_already_registered.text')
+                else:
+                    text = _t('popup.image_already_registered.text')
                 utils.show_info(text, parent=self)
             else:
                 dialog = EditImageDialog(self, show_skip=len(images_to_add) > 1, mode=EditImageDialog.ADD)
@@ -291,9 +296,10 @@ class Application(QtW.QMainWindow):
         if len(images) > 0:
             if len(images) > 1:
                 message = '<html>' + _t('popup.delete_image_warning.text_question_multiple')
+                message += '<br/><b>' + _t('popup.delete_image_warning.text_warning_multiple') + '</b></html>'
             else:
                 message = '<html>' + _t('popup.delete_image_warning.text_question_single')
-            message += '<br/><b>' + _t('popup.delete_image_warning.text_warning') + '</b></html>'
+                message += '<br/><b>' + _t('popup.delete_image_warning.text_warning_single') + '</b></html>'
             if utils.show_question(message, _t('popup.delete_image_warning.title'), parent=self):
                 for item in images:
                     if self._dao.delete_image(item.id):

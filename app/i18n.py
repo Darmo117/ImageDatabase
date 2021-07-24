@@ -20,12 +20,17 @@ def load_language(lang_code: str):
     """Loads the mappings for the given language code.
 
     :param lang_code: Language code.
+    :return: True if the language was loaded; False otherwise.
     """
     global _MAPPINGS
     _MAPPINGS = {}
-    with open(constants.LANG_DIR + lang_code + '.json', encoding='UTF-8') as f:
-        for k, v in _build_mapping(json.load(f)).items():
-            _MAPPINGS[k] = v
+    try:
+        with open(constants.LANG_DIR + lang_code + '.json', encoding='UTF-8') as f:
+            for k, v in _build_mapping(json.load(f)).items():
+                _MAPPINGS[k] = v
+        return True
+    except FileNotFoundError:
+        return False
 
 
 def _build_mapping(json_object: typ.Mapping[str, typ.Union[str, typ.Mapping]], root: str = None) \
