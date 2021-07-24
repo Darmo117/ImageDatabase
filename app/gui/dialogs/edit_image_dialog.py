@@ -132,7 +132,10 @@ class EditImageDialog(Dialog):
         if os_name == 'windows':
             subprocess.Popen(f'explorer /select,"{path}"')
         elif os_name == 'linux':
-            subprocess.Popen(['xdg-open', path])
+            command = ['dbus-send', '--dest=org.freedesktop.FileManager1', '--type=method_call',
+                       '/org/freedesktop/FileManager1', 'org.freedesktop.FileManager1.ShowItems',
+                       f'array:string:{path}', 'string:""']
+            subprocess.Popen(command)
         elif os_name == 'darwin':  # OS-X
             subprocess.Popen(['open', path])
 
