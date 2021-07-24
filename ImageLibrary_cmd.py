@@ -13,7 +13,7 @@ except config.ConfigError as e:
     print(e, file=sys.stderr)
     sys.exit(-1)
 
-print(_t('main_window.title') + ' v' + constants.VERSION)
+print(constants.APP_NAME + ' v' + constants.VERSION)
 print(f'SQLite v{sqlite3.sqlite_version} - PySQLite v{sqlite3.version}')
 print(_t('SQL_console.exit_notice'))
 

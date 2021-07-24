@@ -17,7 +17,7 @@ class AboutDialog(Dialog):
         :param parent: The widget this dialog is attached to.
         """
         super().__init__(parent=parent,
-                         title=_t('dialog.about.title', app_name=_t('main_window.title')),
+                         title=_t('dialog.about.title', app_name=constants.APP_NAME),
                          mode=Dialog.CLOSE)
 
     def _init_body(self) -> QtW.QLayout:

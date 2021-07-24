@@ -1,3 +1,4 @@
+APP_NAME = 'Image Library'
 VERSION = '3.2'
 DB_SETUP_FILE = 'app/setup.sql'
 CONFIG_FILE = 'config.ini'

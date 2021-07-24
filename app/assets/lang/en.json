@@ -1,6 +1,5 @@
 {
   "main_window": {
-    "title": "Image Library",
     "menu": {
       "file": {
         "label": "&File",

@@ -38,7 +38,7 @@ class Application(QtW.QMainWindow):
     # noinspection PyUnresolvedReferences,PyArgumentList
     def _init_ui(self):
         """Initializes the UI."""
-        self.setWindowTitle(_t('main_window.title'))
+        self.setWindowTitle(constants.APP_NAME)
         self.setWindowIcon(QtG.QIcon(constants.ICONS_DIR + 'app_icon.png'))
         self.setGeometry(0, 0, 800, 600)
         self.setMinimumSize(400, 200)
