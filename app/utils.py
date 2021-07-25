@@ -125,7 +125,6 @@ def open_image_chooser(parent: QtW.QWidget = None) -> typ.Optional[str]:
     :return: The selected file or REJECTED if the chooser was cancelled.
     """
     exts = ' '.join(map(lambda e: '*.' + e, constants.FILE_EXTENSIONS))
-    print(_t('popup.image_chooser.filter', extensions=exts))
     file, _ = QtW.QFileDialog.getOpenFileName(
         caption=_t('popup.image_chooser.caption'),
         filter=_t('popup.image_chooser.filter') + f'({exts})',

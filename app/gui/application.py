@@ -9,7 +9,7 @@ import PyQt5.QtGui as QtG
 import PyQt5.QtWidgets as QtW
 
 from .components import TagTree
-from .dialogs import EditImageDialog, EditTagsDialog, AboutDialog
+from .dialogs import EditImageDialog, EditTagsDialog, AboutDialog, DeleteFileConfirmDialog
 from .image_list import ImageList, ImageListView, ThumbnailList
 from .. import config, constants, data_access as da, model, queries, utils
 from ..i18n import translate as _t, get_languages as i18n_get_languages
@@ -304,16 +304,14 @@ class Application(QtW.QMainWindow):
         images = self._current_tab().selected_images()
 
         if len(images) > 0:
-            if len(images) > 1:
-                message = '<html>' + _t('popup.delete_image_warning.text_question_multiple')
-                message += '<br/><b>' + _t('popup.delete_image_warning.text_warning_multiple') + '</b></html>'
-            else:
-                message = '<html>' + _t('popup.delete_image_warning.text_question_single')
-                message += '<br/><b>' + _t('popup.delete_image_warning.text_warning_single') + '</b></html>'
-            if utils.show_question(message, _t('popup.delete_image_warning.title'), parent=self):
+            dialog = DeleteFileConfirmDialog(len(images), parent=self)
+            delete = dialog.exec_()
+            delete_from_disk = delete and dialog.delete_from_disk()
+            if delete:
                 errors = []
                 for item in images:
-                    if self._dao.delete_image(item.id):
+                    ok = self._dao.delete_image(item.id)
+                    if ok and delete_from_disk:
                         try:
                             os.remove(item.path)
                         except FileNotFoundError as e:

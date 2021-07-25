@@ -252,8 +252,7 @@
         "title": "Supprimmer l’image",
         "text_question_single": "Êtes-vous sur de vouloir supprimer cette image ?",
         "text_question_multiple": "Êtes-vous sur de vouloir supprimer ces images ?",
-        "text_warning_single": "Le fichier sera effacé du disque.",
-        "text_warning_multiple": "Les fichiers seront effacés du disque."
+        "checkbox_label": "Effacer du disque"
       },
       "delete_image_error": {
         "text": "Un ou plusieurs fichiers n’ont pas pu être supprimés :\n{files}"
