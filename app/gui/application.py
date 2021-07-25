@@ -8,7 +8,7 @@ import PyQt5.QtCore as QtC
 import PyQt5.QtGui as QtG
 import PyQt5.QtWidgets as QtW
 
-from .components import TagTree
+from .components import TagTree, AutoCompleteLineEdit
 from .dialogs import EditImageDialog, EditTagsDialog, AboutDialog, DeleteFileConfirmDialog
 from .image_list import ImageList, ImageListView, ThumbnailList
 from .. import config, constants, data_access as da, model, queries, utils
@@ -49,7 +49,6 @@ class Application(QtW.QMainWindow):
 
         self._tag_tree = TagTree()
         self._tag_tree.itemDoubleClicked.connect(self._tree_item_clicked)
-        self._refresh_tree()
 
         path_list = ImageList(self._list_selection_changed, lambda image: self._edit_images([image]))
         thumb_list = ThumbnailList(self._list_selection_changed, lambda image: self._edit_images([image]))
@@ -62,7 +61,7 @@ class Application(QtW.QMainWindow):
         self._ok_btn = QtW.QPushButton(_t('main_window.query_form.ok_button.label'))
         self._ok_btn.clicked.connect(self._fetch_images)
 
-        self._input_field = QtW.QLineEdit()
+        self._input_field = AutoCompleteLineEdit()
         self._input_field.setPlaceholderText(_t('main_window.query_form.text_field.placeholder'))
         self._input_field.returnPressed.connect(self._fetch_images)
 
@@ -95,6 +94,7 @@ class Application(QtW.QMainWindow):
         self._input_field.setFocus()
 
         self._update_menus()
+        self._refresh_tree()
 
     # noinspection PyUnresolvedReferences
     def _init_menu(self):
@@ -321,7 +321,7 @@ class Application(QtW.QMainWindow):
                     utils.show_error(_t('popup.delete_image_error.text', files='\n'.join(errors)), parent=self)
                 self._fetch_images()
 
-    def _edit_tags(self):
+    def _edit_tags(self):  # TODO move types into separate dialog
         """Opens the 'Edit Tags' dialog. Tags tree is refreshed afterwards."""
         dialog = EditTagsDialog(self)
         dialog.set_on_close_action(self._refresh_tree)
@@ -335,9 +335,15 @@ class Application(QtW.QMainWindow):
         if item.whatsThis(0) == 'tag':
             self._input_field.setText((self._input_field.text() + ' ' + item.text(0)).lstrip())
 
+    def _update_completer(self):
+        """Resets the query completer with all current tags."""
+        tags = map(lambda t: t.label, self._tags_dao.get_all_tags(sort_by_label=True))
+        self._input_field.set_completer_model(tags)
+
     def _refresh_tree(self):
         """Refreshes the tags tree."""
         self._tag_tree.refresh(model.TagType.SYMBOL_TYPES.values(), self._tags_dao.get_all_tags())
+        self._update_completer()
 
     def _fetch_images(self):
         """Fetches images matching the typed query. Starts a search thread to avoid freezing the whole application."""
@@ -346,12 +352,11 @@ class Application(QtW.QMainWindow):
             self._ok_btn.setEnabled(False)
             self._input_field.setEnabled(False)
             self._thread = _SearchThread(tags)
-            # noinspection PyUnresolvedReferences
             self._thread.finished.connect(self._on_fetch_done)
             self._thread.start()
 
     def _on_fetch_done(self):
-        """Called when images searching is done."""
+        """Called when image searching is done."""
         if self._thread.failed:
             utils.show_error(self._thread.error, parent=self)
             self._ok_btn.setEnabled(True)
@@ -581,7 +586,7 @@ class _SearchThread(QtC.QThread):
                 self._error = _t('thread.search.error.max_recursion', max_depth=self._MAXIMUM_DEPTH)
                 return
 
-        # Restore placeholders' original values
+        # Restore placeholders’ original values
         for index, value in meta_tag_values.items():
             self._query = self._query.replace(f'%%{index}%%', value, 1)
 

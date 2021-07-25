@@ -125,3 +125,65 @@ class EllipsisLabel(QtW.QLabel):
         metrics = QtG.QFontMetrics(self.font())
         elided_text = metrics.elidedText(self.text(), QtC.Qt.ElideRight, self.width())
         painter.drawText(event.rect(), QtC.Qt.AlignCenter, elided_text)
+
+
+# Base code: https://blog.elentok.com/2011/08/autocomplete-textbox-for-multiple.html
+# Code repo: https://bit.ly/3iOzAzA
+class AutoCompleteLineEdit(QtW.QLineEdit):
+    """LineEdit widget with built-in auto-complete."""
+    _SEPARATOR = ' '
+
+    def __init__(self):
+        super().__init__()
+        self._completer = QtW.QCompleter()
+        self._completer.setCaseSensitivity(QtC.Qt.CaseInsensitive)
+        self._completer.setFilterMode(QtC.Qt.MatchStartsWith)
+        self._completer.setWidget(self)
+        self._completer.activated.connect(self._insert_completion)
+        self._keys_to_ignore = [QtC.Qt.Key_Enter, QtC.Qt.Key_Return]
+
+    def set_completer_model(self, values: typ.Iterable[str]):
+        self._completer.setModel(QtC.QStringListModel(values))
+
+    def keyPressEvent(self, event):
+        if self._completer.popup().isVisible() and event.key() in self._keys_to_ignore:
+            event.ignore()
+            return
+
+        super().keyPressEvent(event)
+        completion_prefix = self._text_under_cursor()
+        if completion_prefix != self._completer.completionPrefix():
+            self._update_completer_popup_items(completion_prefix)
+        if len(event.text()) > 0 and len(completion_prefix) > 0:
+            self._completer.complete()
+        if len(completion_prefix) == 0:
+            self._completer.popup().hide()
+
+    def _insert_completion(self, completion: str):
+        cp = self.cursorPosition()
+        text = self.text()
+        extra_length = len(completion) - len(self._completer.completionPrefix())
+        if extra_length:
+            extra_text = completion[-extra_length:]
+            new_text = text[:cp] + extra_text
+            remaining_text = text[cp:]
+            if not remaining_text or remaining_text[0] != self._SEPARATOR:
+                new_text += self._SEPARATOR
+            self.setText(new_text + remaining_text)
+            self.setCursorPosition(len(new_text))
+
+    def _update_completer_popup_items(self, completion_prefix: str):
+        """Filters the completer’s popup items to only show items with the given prefix."""
+        self._completer.setCompletionPrefix(completion_prefix)
+        self._completer.popup().setCurrentIndex(self._completer.completionModel().index(0, 0))
+
+    def _text_under_cursor(self) -> str:
+        text = self.text()
+        text_under_cursor = ''
+        i = self.cursorPosition() - 1
+
+        while i >= 0 and text[i] != self._SEPARATOR:
+            text_under_cursor = text[i] + text_under_cursor
+            i -= 1
+
+        return text_under_cursor
