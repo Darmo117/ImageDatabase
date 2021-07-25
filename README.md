@@ -34,12 +34,6 @@ file if you want to keep the previous configuration.
 
 For versions 3.2+, database files are automatically updated and a back ups are made.
 
-When updating from 2.0 to 3.0, run the following command to update your database:
-
-```
-python ./db_converters/v2.0_to_v3.0.py library.sqlite3
-```
-
 A backup of the old version will be created under the name `library-old_2.0.sqlite3`.
 
 ## Usage
