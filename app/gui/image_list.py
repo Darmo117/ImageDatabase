@@ -297,9 +297,11 @@ class _FlowImageItem(QtW.QFrame, ImageItem):
     def selected(self, value: bool):
         """Toggles selection. Border and background will turn blue whenever this item is selected."""
         self._selected = value
-        color = '#84acdd' if self._selected else '#f0f0f0'
-        bg_color = '#ddecff' if self._selected else '#f0f0f0'
-        self.setStyleSheet(f'_FlowImageItem {{ border: 1px solid {color}; background-color: {bg_color} }}')
+        if self._selected:
+            bg_color = QtW.QApplication.palette().color(QtG.QPalette.Active, QtG.QPalette.Highlight).getRgb()
+        else:
+            bg_color = QtW.QApplication.palette().color(QtG.QPalette.Active, QtG.QPalette.Background).getRgb()
+        self.setStyleSheet(f'background-color: rgba{bg_color}')
 
     def mousePressEvent(self, _):
         self._click_count = 1

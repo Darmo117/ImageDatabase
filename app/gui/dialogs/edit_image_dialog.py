@@ -56,19 +56,22 @@ class EditImageDialog(Dialog):
         self._tags_dialog = None
 
     def _init_body(self) -> QtW.QLayout:
-        self.setGeometry(0, 0, 400, 400)
+        self.setGeometry(0, 0, 600, 600)
+        self.setMinimumSize(400, 400)
 
-        body = QtW.QVBoxLayout()
+        splitter = QtW.QSplitter()
+        splitter.setOrientation(Qt.Vertical)
 
         self._canvas = Canvas()
-        self._canvas.image = None
-        body.addWidget(self._canvas)
+        splitter.addWidget(self._canvas)
 
-        middle = QtW.QHBoxLayout()
-        middle.addStretch(1)
+        bottom_layout = QtW.QVBoxLayout()
+
+        buttons_layout = QtW.QHBoxLayout()
+        buttons_layout.addStretch(1)
 
         self._dest_label = EllipsisLabel()
-        middle.addWidget(self._dest_label)
+        buttons_layout.addWidget(self._dest_label)
 
         if self._mode == EditImageDialog.REPLACE:
             text = _t('dialog.edit_image.replace_button.label')
@@ -76,15 +79,15 @@ class EditImageDialog(Dialog):
             text = _t('dialog.edit_image.move_to_button.label')
         self._dest_btn = QtW.QPushButton(text)
         self._dest_btn.clicked.connect(self._on_dest_button_clicked)
-        middle.addWidget(self._dest_btn)
+        buttons_layout.addWidget(self._dest_btn)
         b = QtW.QPushButton(_t('dialog.edit_image.tags_button.label'))
         b.clicked.connect(self._show_tags_dialog)
-        middle.addWidget(b)
+        buttons_layout.addWidget(b)
         b = QtW.QPushButton(_t('dialog.edit_image.show_directory_button.label'))
         b.clicked.connect(self._open_image_directory)
-        middle.addWidget(b)
+        buttons_layout.addWidget(b)
 
-        body.addLayout(middle)
+        bottom_layout.addLayout(buttons_layout)
 
         class CustomTextEdit(QtW.QTextEdit):
             """Custom class to catch Ctrl+Enter events."""
@@ -103,11 +106,19 @@ class EditImageDialog(Dialog):
         self._tags_input.textChanged.connect(self._text_changed)
         if self._mode == EditImageDialog.REPLACE:
             self._tags_input.setDisabled(True)
-        body.addWidget(self._tags_input)
+        bottom_layout.addWidget(self._tags_input)
 
-        self.setMinimumSize(400, 400)
+        bottom = QtW.QWidget(parent=self)
+        bottom_layout.setContentsMargins(0, 0, 0, 0)
+        bottom.setLayout(bottom_layout)
+        splitter.addWidget(bottom)
 
-        return body
+        splitter.setSizes([500, 100])
+
+        layout = QtW.QHBoxLayout()
+        layout.addWidget(splitter)
+
+        return layout
 
     def _init_buttons(self) -> typ.List[QtW.QAbstractButton]:
         if self._mode == EditImageDialog.REPLACE:

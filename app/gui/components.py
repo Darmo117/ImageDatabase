@@ -91,7 +91,7 @@ class Canvas(QtW.QGraphicsView):
             self._image = QtG.QPixmap(image_path, format=ext)
             self.scene().addPixmap(self._image)
             self.fit()
-            border = 0
+            border = '0'
         else:
             if self._show_errors:
                 utils.show_error(_t('canvas.image_load_error'), parent=self)
@@ -100,12 +100,19 @@ class Canvas(QtW.QGraphicsView):
             border = '1px solid gray'
 
         if not self._keep_border:
-            self.setStyleSheet(f'border: {border}; background-color: transparent')
+            self.setStyleSheet(f'border: {border}')
 
     def fit(self):
         """Fits the image into the canvas."""
-        if self._image is not None and not self.rect().contains(self._image.rect()):
-            self.fitInView(self.scene().sceneRect(), QtC.Qt.KeepAspectRatio)
+        if self._image:
+            if not self.rect().contains(self._image.rect()):
+                self.fitInView(self.scene().sceneRect(), QtC.Qt.KeepAspectRatio)
+            else:
+                self.fitInView(QtC.QRectF(self.rect()), QtC.Qt.KeepAspectRatio)
+
+    def showEvent(self, event: QtG.QShowEvent):
+        self.fit()
+        return super().showEvent(event)
 
     def resizeEvent(self, event: QtG.QResizeEvent):
         self.fit()

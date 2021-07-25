@@ -68,8 +68,8 @@ class Tab(abc.ABC, typ.Generic[_Type]):
         self._valid = True
 
         # Use system colors
-        self._DISABLED_COLOR = QtW.QApplication.palette().color(QtG.QPalette.Disabled, QtG.QPalette.Base)
-        self._NORMAL_COLOR = QtW.QApplication.palette().color(QtG.QPalette.Base)
+        self._DISABLED_COLOR = QtW.QApplication.palette().color(QtG.QPalette.Disabled, QtG.QPalette.Background)
+        self._NORMAL_COLOR = QtW.QApplication.palette().color(QtG.QPalette.Active, QtG.QPalette.Background)
 
     @abc.abstractmethod
     def init(self):
