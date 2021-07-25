@@ -51,8 +51,8 @@
         }
       },
       "query_form": {
-        "ok_button": {
-          "label": "OK"
+        "search_button": {
+          "label": "Search"
         },
         "text_field": {
           "placeholder": "Search images with tags…"
@@ -130,7 +130,7 @@
           "tooltip": "Add Item"
         },
         "delete_items_button": {
-          "tooltip": "Delete Items"
+          "tooltip": "Delete Selected Items"
         },
         "search_field": {
           "placeholder": "Search tag or tag type…"

@@ -1,0 +1,306 @@
+{
+  "name": "Esperanto",
+  "mappings": {
+    "main_window": {
+      "menu": {
+        "file": {
+          "label": "&Dosiero",
+          "item": {
+            "add_file": "&Ovri dosieron…",
+            "add_directory": "Ovri &dosierujon…",
+            "export_playlist": "Eksporti kial &listo…",
+            "exit": "&Eliri"
+          }
+        },
+        "edit": {
+          "label": "&Modifo",
+          "item": {
+            "edit_tags": "Modifi la &etikedojn…",
+            "rename_image": "&Renomigi la blidon…",
+            "replace_image": "&Anstataŭigi la bildon…",
+            "edit_images": "&Modifi la bildojn…",
+            "delete_images": "&Forigi la bildojn"
+          }
+        },
+        "options": {
+          "label": "&Opcioj",
+          "item": {
+            "load_thumbs": "Ŝ&arĝi la bildetojn",
+            "thumbs_size": "&Bildetaj dimensioj…",
+            "thumbs_load_threshold": "Ŝarĝo&sojlo de bildetoj…",
+            "language": "Lingvo"
+          }
+        },
+        "help": {
+          "label": "&Helpo",
+          "item": {
+            "about": "&Pri…"
+          }
+        }
+      },
+      "tags_tree": {
+        "title": "Etikedoj ({amount})",
+        "type_item_unclassified": "Neklasataj"
+      },
+      "tab": {
+        "paths_list": {
+          "title": "Ligiloj ({images_number})"
+        },
+        "thumbnails_list": {
+          "title": "Bildetoj ({images_number})"
+        }
+      },
+      "query_form": {
+        "search_button": {
+          "label": "Serĉi"
+        },
+        "text_field": {
+          "placeholder": "Serĉi bildojn kun tiuj etikedoj…"
+        }
+      },
+      "error": {
+        "remote_URL": "La ligilo ne estas loka!"
+      }
+    },
+    "canvas": {
+      "image_load_error": "Bildo ne eblas ŝarĝi!",
+      "no_image": "Nenio bildo"
+    },
+    "dialog": {
+      "common": {
+        "ok_button": {
+          "label": "OK"
+        },
+        "close_button": {
+          "label": "Fermi"
+        },
+        "yes_button": {
+          "label": "Jes"
+        },
+        "no_button": {
+          "label": "Ne"
+        },
+        "cancel_button": {
+          "label": "Nuligi"
+        },
+        "invalid_data": {
+          "text": "Nevalidaj datumoj!"
+        }
+      },
+      "edit_image": {
+        "title_add": "Aldoni bildojn ({index}/{total})",
+        "title_edit": "Modifi bildojn ({index}/{total})",
+        "title_replace": "Anstataŭigi bildojn ({index}/{total})",
+        "replace_button": {
+          "label": "Anstataŭigi per…"
+        },
+        "move_to_button": {
+          "label": "Movi al…"
+        },
+        "tags_button": {
+          "label": "Etikedoj"
+        },
+        "show_directory_button": {
+          "label": "Afficher dans le dossier"
+        },
+        "skip_button": {
+          "label": "Salti"
+        },
+        "next_button": {
+          "label": "Sekva"
+        },
+        "finish_button": {
+          "label": "Fini"
+        },
+        "target_path": "Destino: {path}",
+        "error": {
+          "replace_self": "Ne povas anstataŭigi bildon per si mem!",
+          "no_tags": "Nenio etikedoj trovitaj!",
+          "compound_tags_disallowed": "Kombinatetikedoj estas malpermesata tie!",
+          "invalid_tag_format": "Nevalida etikedoformato!",
+          "changes_not_applied": "Ne povas apliki la modifaĵojn!",
+          "image_not_added": "Ne povas aldoni la bildon!",
+          "file_already_exists": "Dosiero jam ekzistas en la destina dosierujo!"
+        }
+      },
+      "edit_tags": {
+        "title_edit": "Modifi etikedojn",
+        "title_readonly": "Etikedojn",
+        "add_item_button": {
+          "tooltip": "Aldoni elementon"
+        },
+        "delete_items_button": {
+          "tooltip": "Forigi la selektatajn elementojn"
+        },
+        "search_field": {
+          "placeholder": "Serĉi etikedon aŭ tipon…"
+        },
+        "search_button": {
+          "label": "Serĉi"
+        },
+        "apply_button": {
+          "label": "Apliki"
+        },
+        "delete_warning": {
+          "text": "Forigi selektatajn elementojn?"
+        },
+        "no_match": "Neniom da trafoj.",
+        "tab": {
+          "tag_types": {
+            "title": "Etikedaj tipoj",
+            "table": {
+              "header": {
+                "type_id": "Num.",
+                "label": "Nomo",
+                "symbol": "Simbolo",
+                "color": "Koloro"
+              },
+              "default_label": "Nova tipo"
+            }
+          },
+          "tags_common": {
+            "table": {
+              "header": {
+                "tag_id": "Num.",
+                "label": "Nomo",
+                "type": "Tipo",
+                "usage": "Uznombro"
+              },
+              "combo_no_type": "Nenio"
+            }
+          },
+          "tags": {
+            "title": "Etikedoj"
+          },
+          "compound_tags": {
+            "title": "Kombinatetikedoj",
+            "table": {
+              "header": {
+                "definition": "Difino"
+              }
+            }
+          }
+        },
+        "error": {
+          "saving": "Une erreur est survenu ! Certains changements n’ont pas pu être appliqués.",
+          "empty_cell": "La cellule est vide !",
+          "duplicate_value": "La valeur est déjà utilisée ! Veuillez en choisir une autre.",
+          "invalid_tag_type_name": "Les libellés de types peuvent comporter uniquement des lettres, des chiffres ou des « _ » !",
+          "invalid_tag_type_symbol": "Les symboles doivent être composés d’un seul caractère. Lettres, chiffres, « _ », « + », « - », « : », « ( » et « ) » ne sont pas autorisés.",
+          "invalid_tag_name": "Les libellés d’étiquettes ne peuvent comporter uniquement des lettres, des chiffres ou des « _ » !",
+          "duplicate_tag_name": "Une étiquette avec le même nom existe déjà !"
+        }
+      },
+      "about": {
+        "title": "Pri {app_name}"
+      }
+    },
+    "popup": {
+      "info": {
+        "title": "Informo"
+      },
+      "warning": {
+        "title": "Averto"
+      },
+      "error": {
+        "title": "Eraro"
+      },
+      "question": {
+        "title": "Demando"
+      },
+      "empty_directory": {
+        "text": "Tiu dosierujo ne enhavas bildojn!"
+      },
+      "images_already_registered": {
+        "text": "Tiuj bildoj jam estas registrataj!"
+      },
+      "image_already_registered": {
+        "text": "Tiu bildo jam estas registrata!"
+      },
+      "image_chooser": {
+        "caption": "Ovri bildon",
+        "filter": "Bildo"
+      },
+      "open_directory_chooser": {
+        "caption": "Ovri dosierujon"
+      },
+      "directory_chooser": {
+        "caption": "Selekti dosierujon"
+      },
+      "playlist_saver": {
+        "caption": "Eksporti kial listo",
+        "filter": "Listo"
+      },
+      "rename_image": {
+        "title": "Renomigi la bildon",
+        "text": "Tajpi la novan nomon"
+      },
+      "rename_error": {
+        "text": "La bildon ne povas esti renomitata!"
+      },
+      "rename_overwrite": {
+        "title": "Nomkonflikto",
+        "text": "Samnoma dosiero jam ekzistas, ĉu vi volas surskribi ĝin?"
+      },
+      "tag_load_error": {
+        "text": "La etikedoj ne povas ŝarĝi!"
+      },
+      "playlist_exported": {
+        "text": "La listo estas eksportata!"
+      },
+      "delete_image_warning": {
+        "title": "Forigi la bildo",
+        "text_question_single": "Ĉu vi certe volas forigi tiun bildon?",
+        "text_question_multiple": "Ĉu vi certe volas forigi tiujn bildojn?",
+        "checkbox_label": "Forigi el la diskon"
+      },
+      "delete_image_error": {
+        "text": "Unu au pluraj dosieroj ne povas esti forigataj:\n{files}"
+      },
+      "load_thumbs_warning": {
+        "title": "Ŝarĝi la bildetojn?",
+        "text": "La informpeto trovis pli da {threshold} bildo(j), la bildetoj estos kaŝitaj.\nĈu vi volas kvankam ŝarĝi ĝin? La programo paneus se vi daŭras."
+      },
+      "set_thumbs_size": {
+        "title": "Bildetaj dimensioj",
+        "text": "Tajpi la novan dimension [{min}, {max}]"
+      },
+      "set_thumbs_load_threshold": {
+        "title": "Ŝarĝosojlo de bildetoj",
+        "text": "Tajpi la novan sojlon [{min}, {max}]"
+      },
+      "language_changed": {
+        "text": "Selektita lingvo: {lang_name}.\nLa ŝanĝoj aplikos poste restartigi la programon."
+      },
+      "data_loading_error": {
+        "text": "Ne povas ŝarĝi la datumojn! La programo fermiĝos."
+      }
+    },
+    "thread": {
+      "search": {
+        "error": {
+          "image_loading_error": "La bildoj ne povas ŝarĝi!",
+          "max_recursion": "La maksimuma profundo ({max_depth}) estas atingita!"
+        }
+      }
+    },
+    "query_parser": {
+      "error": {
+        "unknown_metatag": "Nekonata metaetikedo “{metatag}”!",
+        "invalid_metatag_value": "Nevalida valoro “{value}” je la metaetikedo “{metatag}“!",
+        "syntax_error": "Sintakseraro! Neatendita simbolo: “{token}”",
+        "syntax_error_eol": "Sintakseraro! Neatendita fino de informpeto.",
+        "illegal_character": "Nevalida simbolo: “{char}” (U+{code})"
+      }
+    },
+    "SQL_console": {
+      "exit_notice": "Tajpu \"exit\" por fermi la komandlinian interfacon.\n",
+      "connection": "Konekto: {path}",
+      "no_results": "Neniom da trafoj.",
+      "display_more": "Montri pli? (Y / N)",
+      "results": "Trafoj de {start} al {end} el {total}",
+      "error": "Eraro:",
+      "goodbye": "Ĝis revido!"
+    }
+  }
+}

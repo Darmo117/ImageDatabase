@@ -47,12 +47,12 @@
           "title": "Chemins ({images_number})"
         },
         "thumbnails_list": {
-          "title": "vignettes ({images_number})"
+          "title": "Vignettes ({images_number})"
         }
       },
       "query_form": {
-        "ok_button": {
-          "label": "OK"
+        "search_button": {
+          "label": "Rechercher"
         },
         "text_field": {
           "placeholder": "Chercher des images avec ces étiquettes…"
@@ -130,7 +130,7 @@
           "tooltip": "Ajouter un élément"
         },
         "delete_items_button": {
-          "tooltip": "Supprimer les éléments"
+          "tooltip": "Supprimer les éléments sélectionnés"
         },
         "search_field": {
           "placeholder": "Rechercher une étiquette ou un type…"

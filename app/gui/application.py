@@ -58,7 +58,7 @@ class Application(QtW.QMainWindow):
         self._tabbed_pane.addTab(thumb_list, _t(self._TAB_TITLES[1], images_number=0))
         self._tabbed_pane.currentChanged.connect(self._on_tab_changed)
 
-        self._ok_btn = QtW.QPushButton(_t('main_window.query_form.ok_button.label'))
+        self._ok_btn = QtW.QPushButton(_t('main_window.query_form.search_button.label'))
         self._ok_btn.clicked.connect(self._fetch_images)
 
         self._input_field = AutoCompleteLineEdit()
