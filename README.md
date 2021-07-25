@@ -16,12 +16,12 @@ Image Library lets you manage images by associating tags to them.
 
 Image Library is *not* available on PyPI. Might be some day… I dunno… When I take the time to look into that.
 
-### 3.2+
+### Version 3.2+
 
 Download the attached zip file in the release then unpack it where you want to install the app. Once unpacked, run the
 `setup.sh` file to install all required dependencies.
 
-### 3.1 and prior *(obsolete)*
+### Version 3.1 and prior
 
 You need to build the application in order to use it. To do so, run `build.py` and wait for it to complete. Once it is
 done, go into `build/` and copy the application directory (`Image-Library/`) where you want to.
@@ -32,9 +32,9 @@ Delete all files and directories except database (`library.sqlite3`, may differ 
 config (`config.ini`) files. Once done, follow [installation instructions](#Installation). Discard the new `config.ini`
 file if you want to keep the previous configuration.
 
-For versions 3.2+, database files are automatically updated and a back ups are made.
-
-A backup of the old version will be created under the name `library-old_2.0.sqlite3`.
+For versions 3.2+, database files are automatically updated. A backup of the old version will be created under the
+name `<file name>-old_<old version>.sqlite3`. For instance, updating the file `library.sqlite3` from version 3.1 will
+create the backup file `library-old_3.1.sqlite3`.
 
 ## Usage
 

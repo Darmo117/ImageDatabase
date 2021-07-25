@@ -1,4 +1,5 @@
 import os
+import pathlib
 import sqlite3
 
 from .. import config, constants
@@ -23,7 +24,7 @@ def _update(db_file: str, version: str):
     :param db_file: The database file.
     :param version: The version to convert from.
     """
-    name, ext = os.path.splitext(db_file)
+    name, ext = os.path.splitext(pathlib.Path(db_file).name)
     old_db_file = f'{name}-old_{version}{ext}'
     os.rename(db_file, old_db_file)
     if os.path.exists(db_file):
