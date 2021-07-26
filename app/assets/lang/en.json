@@ -25,10 +25,10 @@
         "options": {
           "label": "&Options",
           "item": {
-            "load_thumbs": "&Load Thumbnails",
+            "load_thumbs": "Load &Thumbnails",
             "thumbs_size": "Thumbnail &Size…",
-            "thumbs_load_threshold": "Thumbnail Load &Threshold…",
-            "language": "Language"
+            "thumbs_load_threshold": "T&humbnail Load Threshold…",
+            "language": "&Language"
           }
         },
         "help": {
