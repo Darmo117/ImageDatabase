@@ -321,7 +321,7 @@ class Application(QtW.QMainWindow):
                     utils.show_error(_t('popup.delete_image_error.text', files='\n'.join(errors)), parent=self)
                 self._fetch_images()
 
-    def _edit_tags(self):  # TODO move types into separate dialog
+    def _edit_tags(self):
         """Opens the 'Edit Tags' dialog. Tags tree is refreshed afterwards."""
         dialog = EditTagsDialog(self)
         dialog.set_on_close_action(self._refresh_tree)

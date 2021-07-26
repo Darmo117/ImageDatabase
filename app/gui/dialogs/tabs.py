@@ -74,6 +74,10 @@ class Tab(abc.ABC, typ.Generic[_Type]):
     @abc.abstractmethod
     def init(self):
         """Initializes the inner table."""
+        if self._table:
+            self._initialized = False
+            self._table.destroy()
+
         self._table = QtW.QTableWidget()
         self._table.setSelectionBehavior(QtW.QAbstractItemView.SelectRows)
         self._table.verticalHeader().setDefaultSectionSize(20)
@@ -375,7 +379,7 @@ class TagTypesTab(Tab[model.TagType]):
     def _check_cell_format(self, row: int, col: int) -> (bool, str):
         text = self._table.item(row, col).text()
         if col == 1:
-            return model.TagType.LABEL_PATTERN.match(text) is not None,\
+            return model.TagType.LABEL_PATTERN.match(text) is not None, \
                    _t('dialog.edit_tags.error.invalid_tag_name')
         if col == 2:
             return (model.TagType.SYMBOL_PATTERN.match(text) is not None,

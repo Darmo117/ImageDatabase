@@ -55,9 +55,6 @@ class EditTagsDialog(Dialog):
     def _init_body(self) -> QtW.QLayout:
         self.setGeometry(0, 0, 400, 400)
 
-        for tab in self._tabs:
-            tab.init()
-
         layout = QtW.QVBoxLayout()
 
         buttons = QtW.QHBoxLayout()
@@ -84,8 +81,7 @@ class EditTagsDialog(Dialog):
 
         self._tabbed_pane = QtW.QTabWidget()
         self._tabbed_pane.currentChanged.connect(self._tab_changed)
-        for tab in self._tabs:
-            self._tabbed_pane.addTab(tab.table, tab.title)
+        self._init_tabs()
         layout.addWidget(self._tabbed_pane)
 
         search_layout = QtW.QHBoxLayout()
@@ -111,6 +107,12 @@ class EditTagsDialog(Dialog):
             return [self._apply_btn]
         else:
             return []
+
+    def _init_tabs(self):
+        self._tabbed_pane.clear()
+        for tab in self._tabs:
+            tab.init()
+            self._tabbed_pane.addTab(tab.table, tab.title)
 
     def _add_row(self):
         self._tabs[self._tabbed_pane.currentIndex()].add_row()
@@ -148,6 +150,7 @@ class EditTagsDialog(Dialog):
         else:
             self._apply_btn.setEnabled(False)
             super()._apply()
+            self._init_tabs()
 
         return True
 
