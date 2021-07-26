@@ -191,12 +191,12 @@ class ImageDao(DAO):
         :return: The SQL query or None if the argument is a contradiction.
         """
         if isinstance(sympy_expr, sp.Symbol):
-            s = str(sympy_expr)
+            s = sympy_expr.name
             if ':' in s:
-                metatag, value = s.split(':')
-                if not ImageDao.check_metatag_value(metatag, value):
+                metatag, mode, value = s.split(':', maxsplit=2)
+                if not ImageDao.check_metatag_value(metatag, value, mode):
                     raise ValueError(_t('query_parser.error.invalid_metatag_value', value=value, metatag=metatag))
-                return ImageDao._metatag_query(metatag, value)
+                return ImageDao._metatag_query(metatag, value, mode)
             else:
                 return f"""
                 SELECT I.id, I.path
@@ -228,40 +228,47 @@ class ImageDao(DAO):
         :param metatag: The metatag to check.
         :return: True if the metatag exists.
         """
-        return metatag in ImageDao._METATAGS
+        return metatag in ImageDao._METATAG_QUERIES
 
     @staticmethod
-    def check_metatag_value(metatag: str, value: str) -> bool:
+    def check_metatag_value(metatag: str, value: str, mode: str) -> bool:
         """Checks the validity of a value for the given metatag.
 
         :param metatag: The metatag.
         :param value: Metatag’s value.
+        :param mode: 'plain' for plain text or 'regex' for regex.
         :return: True if the value is valid.
         :exception: ValueError if the given metatag doesn’t exist.
         """
         if not ImageDao.metatag_exists(metatag):
             raise ValueError(_t('query_parser.error.unknown_metatag', metatag=metatag))
-        return ImageDao._METATAGS[metatag][0](value)
+        if mode == 'plain':
+            return not re.search(r'((?<!\\)\\(?:\\\\)*)([^*?\\]|$)', value)
+        else:
+            try:
+                re.compile(value)
+            except re.error:
+                return False
+            return True
 
     @staticmethod
-    def _metatag_query(metatag: str, value: str) -> str:
+    def _metatag_query(metatag: str, value: str, mode: str) -> str:
         """Returns the SQL query for the given metatag.
 
         :param metatag: The metatag.
         :param value: Metatag’s value.
         :return: The SQL query for the metatag.
         """
-        # Unescape space character, escape dot and replace '*' wildcard by a regex
-        escaped_value = value.replace(r'\ ', ' ').replace('.', r'\.').replace('*', '[^/]*')
-        return ImageDao._METATAGS[metatag][1].format(escaped_value)
+        if mode == 'plain':
+            # Escape regex meta-characters except * and ?
+            value = re.sub(r'([\[\]()+{.^$])', r'\\\1', value)
+            # Replace '*' and '?' by a regex
+            value = re.sub(r'((?<!\\)(?:\\\\)*)([*?])', r'\1[^/]\2', value)
+            value = f'^{value}$'
+        value = value.replace('"', '""')  # Escape "
+        return ImageDao._METATAG_QUERIES[metatag].format(value)
 
-    METAVALUE_PATTERN = r'(?:[\w.*-]|\\ )+'
-    _METAVALUE_REGEX = re.compile(f'^{METAVALUE_PATTERN}$')
-
-    # Declared metatags with their value-checking function and database query template.
-    _METATAGS: typ.Dict[str, typ.Tuple[typ.Callable[[str], bool], str]] = {
-        'ext': (lambda v: ImageDao._METAVALUE_REGEX.match(v) is not None,
-                r'SELECT id, path FROM images WHERE path REGEXP "\.{}$"'),
-        'name': (lambda v: ImageDao._METAVALUE_REGEX.match(v) is not None,  # TODO regex instead of simple *
-                 r'SELECT id, path FROM images WHERE path REGEXP "/{}\.\w+$"'),
+    _METATAG_QUERIES = {
+        'ext': r'SELECT id, path FROM images WHERE SUBSTR(path, RINSTR(path, ".") + 1) REGEXP "{}"',
+        'name': r'SELECT id, path FROM images WHERE SUBSTR(path, RINSTR(path, "/") + 1) REGEXP "{}"',
     }

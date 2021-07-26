@@ -26,7 +26,8 @@ class DAO(ABC):
             with open(constants.DB_SETUP_FILE) as db_script_file:
                 self._connection.executescript(db_script_file.read())
 
-        self._connection.create_function('regexp', 2, lambda x, y: re.search(x, y) is not None)
+        self._connection.create_function('REGEXP', 2, self._regexp)
+        self._connection.create_function('RINSTR', 2, self._rinstr)
         self._connection.execute('PRAGMA foreign_keys = ON')
 
     @property
@@ -36,3 +37,32 @@ class DAO(ABC):
     def close(self):
         """Closes database connection."""
         self._connection.close()
+
+    @staticmethod
+    def _regexp(pattern: str, string: str) -> bool:
+        """Implementation of REGEXP function for SQL.
+        Scans through string looking for a match to the pattern.
+
+        @note Uses re.search()
+
+        :param pattern: The regex pattern.
+        :param string: The string to search into.
+        :return: True if the second argument matches the pattern.
+        """
+        return re.search(pattern, string) is not None
+
+    @staticmethod
+    def _rinstr(s: str, sub: str) -> int:
+        """Implementation of RINSTR function for SQL.
+        Returns the highest index in s where substring sub is found.
+
+        @note Uses str.rindex()
+
+        :param s: The string to search into.
+        :param sub: The string to search for.
+        :return: The index, starting at 1; 0 if the substring could not be found.
+        """
+        try:
+            return s.rindex(sub) + 1  # SQLite string indices start from 1
+        except ValueError:
+            return 0

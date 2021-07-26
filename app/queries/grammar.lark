@@ -3,7 +3,8 @@
 %ignore WS_INLINE
 
 NAME: /\w+/
-REGEX: /([\w.*-]|\\ )+/
+PLAIN_TEXT: /"((\\\\)*|(.*?[^\\](\\\\)*))"/
+REGEX: /\/((\\\\)*|(.*?[^\\](\\\\)*))\//
 
 ?query: tag | metatag | or | and | p_query
 
@@ -17,5 +18,6 @@ and: (tag | metatag | p_query) (tag | metatag | p_query)+ -> conjunction
 tag: NAME    -> tag
    | "-" tag -> negation
 
-metatag: NAME ":" REGEX -> metatag
-        | "-" metatag   -> negation
+metatag: NAME ":" PLAIN_TEXT -> metatag_plain
+       | NAME ":" REGEX      -> metatag_regex
+       | "-" metatag         -> negation

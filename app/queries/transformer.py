@@ -34,20 +34,31 @@ class _TreeToBoolean(lark.InlineTransformer):
     def _filter_whitespace(args: tuple) -> list:
         return [arg for arg in args if not isinstance(arg, lark.lexer.Token)]
 
-    # noinspection PyMethodMayBeStatic
     def tag(self, tag):
-        return sp.symbols(str(tag))
+        return self._symbol(str(tag))
 
-    # noinspection PyMethodMayBeStatic
-    def metatag(self, metatag, value):
+    def metatag_plain(self, metatag, value):
+        return self._metatag(metatag, value, 'plain')
+
+    def metatag_regex(self, metatag, value):
+        return self._metatag(metatag, value, 'regex')
+
+    def _metatag(self, metatag, value, mode: str):
         metatag = str(metatag)
-        value = str(value)
-        if not da.ImageDao.check_metatag_value(metatag, value):
-            raise ValueError(_t('query_parser.error.invalid_metatag_value'))
-        # Double-escape backslash
-        return sp.symbols(metatag + r'\:' + value.replace('\\', r'\\'))
+        # Remove enclosing / or "
+        value = str(value)[1:-1]
+        if mode == 'plain':
+            value = value.replace(r'\"', '"')
+        if not da.ImageDao.check_metatag_value(metatag, value, mode):
+            raise ValueError(_t('query_parser.error.invalid_metatag_value', value=value, metatag=metatag))
+        return self._symbol(f'{metatag}:{mode}:{value}')
 
     negation = sp.Not
+
+    @staticmethod
+    def _symbol(name: str):
+        """Creates a new Sympy symbol. Escapes special characters from name: colon, space, comma and parentheses."""
+        return sp.symbols(re.sub('([: ,()])', r'\\\1', name))
 
     def get_sympy(self, query: str, simplify: bool = True) -> sp.Basic:
         """Converts the given string query into a SymPy expression.

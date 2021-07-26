@@ -550,10 +550,10 @@ class _SearchThread(QtC.QThread):
         if not self._error:
             try:
                 expr = queries.query_to_sympy(self._query, simplify=False)
+                self._images = images_dao.get_images(expr)
             except ValueError as e:
                 self._error = str(e)
             else:
-                self._images = images_dao.get_images(expr)
                 images_dao.close()
                 if self._images is None:
                     self._error = _t('thread.search.error.image_loading_error')
@@ -563,7 +563,8 @@ class _SearchThread(QtC.QThread):
         index = 0
         # Replace metatag values with placeholders to avoid them being altered in the next step
         while 'there are matches':
-            if match := re.search(fr'(\w+\s*:\s*{da.ImageDao.METAVALUE_PATTERN})', self._query):
+            # In-quotes pattern *MUST* be the same as PLAIN_TEXT and REGEX in grammar.lark file
+            if match := re.search(fr'(\w+\s*:\s*(["/])((\\\\)*|(.*?[^\\](\\\\)*))\2)', self._query):
                 index += 1
                 meta_tag_values[index] = match[1]
                 # noinspection PyUnresolvedReferences
