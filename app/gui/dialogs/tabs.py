@@ -134,7 +134,7 @@ class Tab(abc.ABC, typ.Generic[_Type]):
         """Deletes all selected rows."""
         selected_rows = {i.row() for i in self._table.selectionModel().selectedRows()}
         if len(selected_rows) > 0:
-            if utils.show_question(_t('dialog.edit_tags.delete_warning.text'), parent=self._owner):
+            if utils.gui.show_question(_t('dialog.edit_tags.delete_warning.text'), parent=self._owner):
                 self._deleted_rows |= selected_rows - self._added_rows
                 self._changed_rows -= selected_rows
                 self._added_rows -= selected_rows
@@ -359,11 +359,11 @@ class TagTypesTab(Tab[model.TagType]):
             if col != 3:
                 _, invalid_row, message = self._check_column(col, False)
                 if invalid_row == row:
-                    utils.show_error(message, parent=self._owner)
+                    utils.gui.show_error(message, parent=self._owner)
                 else:
                     ok, message = self._check_cell_format(row, col)
                     if not ok:
-                        utils.show_error(message, parent=self._owner)
+                        utils.gui.show_error(message, parent=self._owner)
 
             if row not in self._added_rows:
                 if self.get_value(row) != self._values[row]:
@@ -412,7 +412,7 @@ class TagTypesTab(Tab[model.TagType]):
 
         default_color = QtG.QColor(0, 0, 0)
         bg_color = tag_type.color if defined else default_color
-        color = utils.negate(bg_color)
+        color = utils.gui.negate(bg_color)
         color_btn = QtW.QPushButton(tag_type.color.name() if defined else default_color.name())
         color_btn.setWhatsThis('color')
         color_btn.setStyleSheet(f'background-color: {bg_color.name()}; color: {color.name()}')
@@ -431,7 +431,7 @@ class TagTypesTab(Tab[model.TagType]):
         if color.isValid():
             row = button.property('row')
             button.setText(color.name())
-            button.setStyleSheet(f'background-color: {color.name()}; color: {utils.negate(color).name()}')
+            button.setStyleSheet(f'background-color: {color.name()}; color: {utils.gui.negate(color).name()}')
             self._cell_edited(row, 3)
 
 
@@ -492,7 +492,7 @@ class _TagsTab(Tab[_TagType], typ.Generic[_TagType], metaclass=abc.ABCMeta):
                 tag.count = count
                 self._set_row(tag, i)
         else:
-            utils.show_error(_t('popup.tag_load_error.text'), parent=self._owner)
+            utils.gui.show_error(_t('popup.tag_load_error.text'), parent=self._owner)
             self._values = []
 
         self._initialized = True
@@ -642,11 +642,11 @@ class _TagsTab(Tab[_TagType], typ.Generic[_TagType], metaclass=abc.ABCMeta):
             if col != self._type_column:
                 _, invalid_row, message = self._check_column(col, False)
                 if invalid_row == row:
-                    utils.show_error(message, parent=self._owner)
+                    utils.gui.show_error(message, parent=self._owner)
                 else:
                     ok, message = self._check_cell_format(row, col)
                     if not ok:
-                        utils.show_error(message, parent=self._owner)
+                        utils.gui.show_error(message, parent=self._owner)
 
             if row not in self._added_rows:
                 if self.get_value(row) != self._values[row][0]:

@@ -33,7 +33,7 @@ class Application(QtW.QMainWindow):
 
         self.setAcceptDrops(True)
         self._init_ui()
-        utils.center(self)
+        utils.gui.center(self)
 
     # noinspection PyUnresolvedReferences,PyArgumentList
     def _init_ui(self):
@@ -208,16 +208,16 @@ class Application(QtW.QMainWindow):
 
     def _add_image(self):
         """Opens a file chooser then adds the selected image to the database."""
-        file = utils.open_image_chooser(self)
+        file = utils.gui.open_image_chooser(self)
         if file is not None:
             self._add_images([file])
 
     def _add_directory(self):
         """Opens a file chooser then adds the images from the selected directory to the database."""
-        images = utils.open_directory_chooser(self)
+        images = utils.gui.open_directory_chooser(self)
         if images is not None:
             if len(images) == 0:
-                utils.show_info(_t('popup.empty_directory.text'), parent=self)
+                utils.gui.show_info(_t('popup.empty_directory.text'), parent=self)
             else:
                 self._add_images(images)
 
@@ -230,7 +230,7 @@ class Application(QtW.QMainWindow):
                     text = _t('popup.images_already_registered.text')
                 else:
                     text = _t('popup.image_already_registered.text')
-                utils.show_info(text, parent=self)
+                utils.gui.show_info(text, parent=self)
             else:
                 dialog = EditImageDialog(self, show_skip=len(images_to_add) > 1, mode=EditImageDialog.ADD)
                 dialog.set_on_close_action(self._fetch_and_refresh)
@@ -243,17 +243,17 @@ class Application(QtW.QMainWindow):
         if len(images) == 1:
             image = images[0]
             file_name, ext = os.path.splitext(os.path.basename(image.path))
-            text = utils.show_text_input(_t('popup.rename_image.text'), _t('popup.rename_image.title'),
-                                         text=file_name, parent=self)
+            text = utils.gui.show_text_input(_t('popup.rename_image.text'), _t('popup.rename_image.title'),
+                                             text=file_name, parent=self)
             if text is not None and file_name != text:
-                new_path = utils.slashed(os.path.join(os.path.dirname(image.path), text + ext))
+                new_path = utils.gui.slashed(os.path.join(os.path.dirname(image.path), text + ext))
                 if not self._dao.update_image_path(image.id, new_path):
-                    utils.show_error(_t('popup.rename_error.text'), parent=self)
+                    utils.gui.show_error(_t('popup.rename_error.text'), parent=self)
                 else:
                     rename = True
                     if os.path.exists(new_path):
-                        rename &= utils.show_question(_t('popup.rename_overwrite.text'),
-                                                      _t('popup.rename_overwrite.title'), parent=self)
+                        rename &= utils.gui.show_question(_t('popup.rename_overwrite.text'),
+                                                          _t('popup.rename_overwrite.title'), parent=self)
                     if rename:
                         os.rename(image.path, new_path)
                         self._fetch_images()
@@ -267,7 +267,7 @@ class Application(QtW.QMainWindow):
             dialog.set_on_close_action(self._fetch_images)
             tags = self._dao.get_image_tags(image.id)
             if tags is None:
-                utils.show_error(_t('popup.tag_load_error.text'))
+                utils.gui.show_error(_t('popup.tag_load_error.text'))
             dialog.set_image(image, tags)
             dialog.show()
 
@@ -275,10 +275,10 @@ class Application(QtW.QMainWindow):
         """Opens a file saver then writes all images to a playlist file."""
         images = self._current_tab().get_images()
         if len(images) > 0:
-            file = utils.open_playlist_saver(self)
+            file = utils.gui.open_playlist_saver(self)
             if file is not None:
                 da.write_playlist(file, images)
-                utils.show_info(_t('popup.playlist_exported.text'), parent=self)
+                utils.gui.show_info(_t('popup.playlist_exported.text'), parent=self)
 
     def _fetch_and_refresh(self):
         """Fetches images then refreshes the list."""
@@ -294,7 +294,7 @@ class Application(QtW.QMainWindow):
             for image in images:
                 t = self._dao.get_image_tags(image.id)
                 if t is None:
-                    utils.show_error(_t('popup.tag_load_error.text'))
+                    utils.gui.show_error(_t('popup.tag_load_error.text'))
                 tags[image.id] = t
             dialog.set_images(images, tags)
             dialog.show()
@@ -318,7 +318,7 @@ class Application(QtW.QMainWindow):
                             logger.exception(e)
                             errors.append(item.path)
                 if errors:
-                    utils.show_error(_t('popup.delete_image_error.text', files='\n'.join(errors)), parent=self)
+                    utils.gui.show_error(_t('popup.delete_image_error.text', files='\n'.join(errors)), parent=self)
                 self._fetch_images()
 
     def _edit_tags(self):
@@ -358,7 +358,7 @@ class Application(QtW.QMainWindow):
     def _on_fetch_done(self):
         """Called when image searching is done."""
         if self._thread.failed:
-            utils.show_error(self._thread.error, parent=self)
+            utils.gui.show_error(self._thread.error, parent=self)
             self._ok_btn.setEnabled(True)
             self._input_field.setEnabled(True)
         else:
@@ -368,7 +368,7 @@ class Application(QtW.QMainWindow):
             if config.CONFIG.load_thumbnails:
                 load_thumbs = True
                 if len(images) > config.CONFIG.thumbnail_load_threshold:
-                    ok = utils.show_question(
+                    ok = utils.gui.show_question(
                         _t('popup.load_thumbs_warning.text', threshold=config.CONFIG.thumbnail_load_threshold),
                         _t('popup.load_thumbs_warning.title'),
                         parent=self
@@ -394,14 +394,14 @@ class Application(QtW.QMainWindow):
         language = self.sender().data()
         config.CONFIG.change_to_language = language.code
         config.save_config()
-        utils.show_info(_t('popup.language_changed.text', lang_name=language.name), parent=self)
+        utils.gui.show_info(_t('popup.language_changed.text', lang_name=language.name), parent=self)
 
     def _load_thumbs_item_clicked(self):
         config.CONFIG.load_thumbnails = self._load_thumbs_item.isChecked()
         config.save_config()
 
     def _thumb_size_item_clicked(self):
-        value = utils.show_int_input(
+        value = utils.gui.show_int_input(
             _t('popup.set_thumbs_size.text', min=constants.MIN_THUMB_SIZE, max=constants.MAX_THUMB_SIZE),
             _t('popup.set_thumbs_size.title'),
             value=config.CONFIG.thumbnail_size,
@@ -415,7 +415,7 @@ class Application(QtW.QMainWindow):
             self._fetch_and_refresh()
 
     def _thumb_load_threshold_item_clicked(self):
-        value = utils.show_int_input(
+        value = utils.gui.show_int_input(
             _t('popup.set_thumbs_load_threshold.text',
                min=constants.MIN_THUMB_LOAD_THRESHOLD,
                max=constants.MAX_THUMB_LOAD_THRESHOLD),
@@ -515,7 +515,7 @@ class Application(QtW.QMainWindow):
             tags_dao = da.TagsDao(config.CONFIG.database_path)
             types = tags_dao.get_all_types()
             if types is None:
-                utils.show_error(_t('popup.data_loading_error.text'))
+                utils.gui.show_error(_t('popup.data_loading_error.text'))
                 sys.exit(-1)
             model.TagType.init(types)
             tags_dao.close()

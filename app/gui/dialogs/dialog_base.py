@@ -49,7 +49,7 @@ class Dialog(QtW.QDialog):
         body.addLayout(self.__init_button_box())
 
         self.setLayout(body)
-        utils.center(self)
+        utils.gui.center(self)
 
     def _init_body(self) -> typ.Optional[QtW.QLayout]:
         """Initializes this dialog’s body.
@@ -104,7 +104,8 @@ class Dialog(QtW.QDialog):
         else:
             if not self._is_valid():
                 reason = self._get_error()
-                utils.show_error(reason if reason is not None else _t('dialog.common.invalid_data.text'), parent=self)
+                utils.gui.show_error(reason if reason is not None else _t('dialog.common.invalid_data.text'),
+                                     parent=self)
             elif self._apply():
                 self.close()
 

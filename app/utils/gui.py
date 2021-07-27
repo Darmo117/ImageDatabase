@@ -4,8 +4,8 @@ import typing as typ
 import PyQt5.QtGui as QtGui
 import PyQt5.QtWidgets as QtW
 
-from . import constants
-from .i18n import translate as _t
+from .. import constants
+from ..i18n import translate as _t
 
 
 def show_info(message: str, title='popup.info.title', parent: QtW.QWidget = None):

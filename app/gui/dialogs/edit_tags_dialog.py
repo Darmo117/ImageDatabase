@@ -138,7 +138,7 @@ class EditTagsDialog(Dialog):
         if len(text) > 0:
             found = self._tabs[self._tabbed_pane.currentIndex()].search(text)
             if not found:
-                utils.show_info(_t('dialog.edit_tags.no_match'), parent=self)
+                utils.gui.show_info(_t('dialog.edit_tags.no_match'), parent=self)
 
     def _is_valid(self) -> bool:
         return self._valid
@@ -146,7 +146,7 @@ class EditTagsDialog(Dialog):
     def _apply(self) -> bool:
         ok = all(map(lambda t: t.apply(), self._tabs))
         if not ok:
-            utils.show_error(_t('dialog.edit_tags.error.saving'), parent=self)
+            utils.gui.show_error(_t('dialog.edit_tags.error.saving'), parent=self)
         else:
             self._apply_btn.setEnabled(False)
             super()._apply()

@@ -205,16 +205,16 @@ class EditImageDialog(Dialog):
     def _on_dest_button_clicked(self):
         """Opens a directory chooser then sets the destination path to the one selected if any."""
         if self._mode == EditImageDialog.REPLACE:
-            destination = utils.open_image_chooser(self)
+            destination = utils.gui.open_image_chooser(self)
         else:
-            destination = utils.choose_directory(self)
+            destination = utils.gui.choose_directory(self)
         if destination is not None:
             if self._mode == EditImageDialog.REPLACE:
                 img = self._images[0]
                 if self._image_to_replace is None:
                     self._image_to_replace = img.path
                 if self._image_to_replace == destination:
-                    utils.show_error(_t('dialog.edit_image.error.replace_self'), parent=self)
+                    utils.gui.show_error(_t('dialog.edit_image.error.replace_self'), parent=self)
                     return
                 self._destination = destination
                 self._ok_btn.setDisabled(False)
@@ -276,7 +276,7 @@ class EditImageDialog(Dialog):
                 text = _t('dialog.edit_image.error.changes_not_applied')
             else:
                 text = _t('dialog.edit_image.error.image_not_added')
-            utils.show_error(text, parent=self)
+            utils.gui.show_error(text, parent=self)
             close = False
 
         return close
@@ -289,7 +289,7 @@ class EditImageDialog(Dialog):
         """
         if self._mode != EditImageDialog.REPLACE and self._destination is not None \
                 and os.path.dirname(image.path) != self._destination:
-            return utils.slashed(os.path.join(self._destination, os.path.basename(image.path)))
+            return utils.gui.slashed(os.path.join(self._destination, os.path.basename(image.path)))
         else:
             return None
 
@@ -346,7 +346,7 @@ class EditImageDialog(Dialog):
             shutil.move(path, new_path)
             return True
         except FileExistsError:
-            utils.show_error(_t('dialog.edit_image.error.file_already_exists'), parent=self)
+            utils.gui.show_error(_t('dialog.edit_image.error.file_already_exists'), parent=self)
             return False
 
     def _get_title(self) -> str:
