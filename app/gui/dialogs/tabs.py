@@ -442,8 +442,9 @@ class _TagsTab(Tab[_TagType], typ.Generic[_TagType], metaclass=abc.ABCMeta):
     """This class represents a tab containing a table that displays all defined tags."""
     COMBO_ITEM_PATTERN = re.compile(r'^(\d+) - (.+)$')
 
-    def __init__(self, owner: QtW.QWidget, dao: da.TagsDao, title: str, addable: bool, editable: bool, tag_class: type,
-                 additional_columns: typ.List[str], additional_search_columns: typ.List[int],
+    def __init__(self, owner: QtW.QWidget, dao: da.TagsDao, title: str, addable: bool, editable: bool,
+                 tag_class: typ.Type[_TagType], additional_columns: typ.List[str],
+                 additional_search_columns: typ.List[int],
                  selection_changed: typ.Optional[typ.Callable[[None], None]] = None,
                  cell_changed: typ.Optional[typ.Callable[[int, int, str], None]] = None,
                  rows_deleted: typ.Optional[typ.Callable[[typ.List[_TagType]], None]] = None):

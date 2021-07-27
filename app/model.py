@@ -125,7 +125,7 @@ class TagType:
 
 class Tag:
     """This class represents an image tag. Tags can be associated to a type."""
-    LABEL_PATTERN = re.compile(r"^\w+$")
+    LABEL_PATTERN = re.compile(r'^\w+$')
 
     def __init__(self, ident: int, label: str, tag_type: typ.Optional[TagType] = None):
         """Creates a tag with an optional type.
@@ -135,7 +135,7 @@ class Tag:
         :param tag_type: Tag’s type?
         """
         if not self.LABEL_PATTERN.match(label):
-            raise ValueError('Illegal tag label format')
+            raise ValueError('illegal tag label format')
 
         self._id = ident
         self._label = label

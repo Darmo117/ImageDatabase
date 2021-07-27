@@ -3,17 +3,18 @@ import typing as typ
 
 import PyQt5.QtGui as QtGui
 
-from ..logging import logger
 from .dao import DAO
 from .. import model
+from ..logging import logger
+
+_T = typ.TypeVar('_T', model.Tag, model.CompoundTag)
 
 
 class TagsDao(DAO):
     """This class manages tags and tag types."""
 
     def get_all_types(self) -> typ.Optional[typ.List[model.TagType]]:
-        """
-        Returns all tag types.
+        """Returns all tag types.
 
         :return: All tag types or None if an exception occured.
         """
@@ -28,8 +29,7 @@ class TagsDao(DAO):
     COMPOUND = 1
 
     def add_type(self, tag_type: model.TagType) -> bool:
-        """
-        Adds a tag type.
+        """Adds a tag type.
 
         :param tag_type: The type to add.
         :return: True if the type was added or None if an exception occured.
@@ -43,8 +43,7 @@ class TagsDao(DAO):
             return False
 
     def update_type(self, tag_type: model.TagType) -> bool:
-        """
-        Updates a tag type.
+        """Updates a tag type.
 
         :param tag_type: The tag type to update.
         :return: True if the type was updated.
@@ -58,8 +57,7 @@ class TagsDao(DAO):
             return False
 
     def delete_type(self, type_id: int) -> bool:
-        """
-        Deletes the given tag type.
+        """Deletes the given tag type.
 
         :param type_id: ID of the tag type to delete.
         :return: True if the type was deleted.
@@ -71,10 +69,9 @@ class TagsDao(DAO):
             logger.exception(e)
             return False
 
-    def get_all_tags(self, tag_class: typ.Optional[type] = None, sort_by_label=False, get_count=False) \
-            -> typ.Optional[typ.List[typ.Union[typ.Tuple[model.Tag, int], model.Tag]]]:
-        """
-        Returns all tags. Result can be sorted by label. You can also query use count for each tag.
+    def get_all_tags(self, tag_class: typ.Type[_T] = None, sort_by_label: bool = False, get_count: bool = False) \
+            -> typ.Optional[typ.Union[typ.List[typ.Tuple[_T, int]], typ.List[_T]]]:
+        """Returns all tags. Result can be sorted by label. You can also query use count for each tag.
 
         :param tag_class: Sets type of tags to return. If None all tags wil be returned.
         :param sort_by_label: Result will be sorted by label using lexicographical ordering.
@@ -107,11 +104,10 @@ class TagsDao(DAO):
             return None
 
     def tag_exists(self, tag_id: int, tag_name: str) -> typ.Optional[bool]:
-        """
-        Checks wether a tag with the same name exists.
+        """Checks wether a tag with the same name exists.
 
-        :param tag_id: Tag's ID.
-        :param tag_name: Tag's name.
+        :param tag_id: Tag’s ID.
+        :param tag_name: Tag’s name.
         :return: True if a tag with the same name already exists.
         """
         try:
@@ -122,11 +118,10 @@ class TagsDao(DAO):
             return None
 
     def get_tag_class(self, tag_name: str) -> typ.Union[typ.Type[model.Tag], typ.Type[model.CompoundTag], None]:
-        """
-        Returns the type of the given tag if any.
+        """Returns the type of the given tag if any.
 
-        :param tag_name: Tag's name.
-        :return: Tag's class or None if tag doesn't exist.
+        :param tag_name: Tag’s name.
+        :return: Tag’s class or None if tag doesn't exist.
         """
         try:
             cursor = self._connection.execute('SELECT definition FROM tags WHERE label = ?', (tag_name,))
@@ -139,8 +134,7 @@ class TagsDao(DAO):
             return None
 
     def add_compound_tag(self, tag: model.CompoundTag) -> bool:
-        """
-        Adds a compound tag.
+        """Adds a compound tag.
 
         :param tag: The compound tag to add.
         :return: True if the type was added or None if an exception occured.
@@ -154,8 +148,7 @@ class TagsDao(DAO):
             return False
 
     def update_tag(self, tag: model.Tag) -> bool:
-        """
-        Updates the given tag.
+        """Updates the given tag.
 
         :param tag: The tag to update.
         :return: True if the tag was updated.
@@ -174,8 +167,7 @@ class TagsDao(DAO):
             return False
 
     def delete_tag(self, tag_id: int) -> bool:
-        """
-        Deletes the given tag.
+        """Deletes the given tag.
 
         :param tag_id: ID of the tag to delete.
         :return: True if the tag was deleted.

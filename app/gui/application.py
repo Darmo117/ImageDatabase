@@ -573,8 +573,7 @@ class _SearchThread(QtC.QThread):
                 break
 
         tags_dao = da.TagsDao(config.CONFIG.database_path)
-        # noinspection PyTypeChecker
-        compound_tags: typ.List[model.CompoundTag] = tags_dao.get_all_tags(tag_class=model.CompoundTag)
+        compound_tags = tags_dao.get_all_tags(tag_class=model.CompoundTag)
         previous_query = ''
         depth = 0
         # Replace compound tags until none are present

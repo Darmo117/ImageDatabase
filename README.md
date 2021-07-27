@@ -94,12 +94,12 @@ To come…
 
 ## Requirements
 
-- Python 3.8+ (Will *not* work with older versions)
-- [PyQt5](http://pyqt.sourceforge.net/Docs/PyQt5/) (GUI)
-- sqlite3 (Database; generally installed with Python)
-- [Lark](https://github.com/erezsh/lark) (Queries analysis)
-- [SymPy](http://www.sympy.org/fr/index.html) (Queries simplification)
-- OpenCV2 (Image comparison) \[experimental feature]
+- [Python 3.8](https://www.python.org/downloads/release/python-380/) or above (Will *not* work with older versions)
+- [PyQt5](https://pypi.org/project/PyQt5/) (GUI)
+- [Lark](https://pypi.org/project/lark-parser/) (Query parsing)
+- [SymPy](https://pypi.org/project/sympy/) (Query simplification)
+- [scikit-image](https://pypi.org/project/scikit-image/) (Image comparison) \[experimental feature]
+- [OpenCV2](https://pypi.org/project/cv2imageload/) (Image comparison)
 
 See [requirements.txt](https://github.com/Darmo117/ImageDatabase/blob/master/requirements.txt) for full list.
 
