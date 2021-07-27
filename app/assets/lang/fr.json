@@ -106,8 +106,8 @@
         "skip_button": {
           "label": "Passer"
         },
-        "next_button": {
-          "label": "Suivant"
+        "apply_next_button": {
+          "label": "Enregistrer et continuer"
         },
         "finish_button": {
           "label": "Terminer"
@@ -211,14 +211,14 @@
       "empty_directory": {
         "text": "Ce dossier ne contient aucune image !"
       },
-      "images_already_registered": {
-        "text": "Ces images sont déjà enregistrées !"
+      "similar_images_found": {
+        "text": "Certaines images ont peut-être déjà été enregistrées.\nSouhaitez-vous les ajouter quand-même ?"
       },
-      "image_already_registered": {
-        "text": "Cette image est déjà enregistrée !"
+      "similar_image_found": {
+        "text": "Cette image a peut-être déjà été enregistrée.\nSouhaitez-vous l’ajouter quand-même ?"
       },
       "image_chooser": {
-        "caption": "Ouvrir une image",
+        "caption": "Ouvrir des images",
         "filter": "Image"
       },
       "open_directory_chooser": {

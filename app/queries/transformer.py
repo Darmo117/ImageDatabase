@@ -2,7 +2,6 @@ import re
 
 import lark
 import sympy as sp
-from sympy.logic import boolalg as ba
 
 from .. import data_access as da
 from ..i18n import translate as _t
@@ -65,20 +64,14 @@ class _TreeToBoolean(lark.InlineTransformer):
 
         :param query: The query to convert.
         :param simplify: If true (default) the result will be simplified using boolean logic.
-        :return: The SymPy expression.
+        :return: A SymPy expression.
         """
         parsed_query = self._parser.parse(query)
         # noinspection PyUnresolvedReferences
         bool_expr = self.transform(parsed_query)
 
         if simplify:
-            if ba.is_dnf(bool_expr):
-                form = 'dnf'
-            elif ba.is_cnf(bool_expr):
-                form = 'cnf'
-            else:
-                form = None
-            bool_expr = sp.simplify_logic(bool_expr, form=form)
+            bool_expr = sp.simplify_logic(bool_expr)
 
         return bool_expr
 

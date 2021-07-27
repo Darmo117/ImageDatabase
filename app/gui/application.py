@@ -207,10 +207,10 @@ class Application(QtW.QMainWindow):
         self.move(qr.topLeft())
 
     def _add_image(self):
-        """Opens a file chooser then adds the selected image to the database."""
-        file = utils.gui.open_image_chooser(self)
-        if file is not None:
-            self._add_images([file])
+        """Opens a file chooser then adds the selected images to the database."""
+        files = utils.gui.open_image_chooser(self)
+        if files:
+            self._add_images(files)
 
     def _add_directory(self):
         """Opens a file chooser then adds the images from the selected directory to the database."""
@@ -224,18 +224,23 @@ class Application(QtW.QMainWindow):
     def _add_images(self, images: typ.List[str]):
         """Opens the 'Add Images' dialog then adds the images to the database. Checks for duplicates."""
         if len(images) > 0:
-            images_to_add = [i for i in images if not self._dao.image_registered(i)]
-            if len(images_to_add) == 0:
+            add_all = True
+            similarities = [i for i in images if self._dao.image_registered(i)]
+            if any(similarities):
                 if len(images) > 1:
-                    text = _t('popup.images_already_registered.text')
+                    text = _t('popup.similar_images_found.text')
                 else:
-                    text = _t('popup.image_already_registered.text')
-                utils.gui.show_info(text, parent=self)
-            else:
-                dialog = EditImageDialog(self, show_skip=len(images_to_add) > 1, mode=EditImageDialog.ADD)
-                dialog.set_on_close_action(self._fetch_and_refresh)
-                dialog.set_images([model.Image(id=0, path=image_path) for image_path in images_to_add], {})
-                dialog.show()
+                    text = _t('popup.similar_image_found.text')
+                add_all = utils.gui.show_question(text, cancel=True, parent=self)
+
+            if add_all is not None:
+                images_to_add = [model.Image(id=0, path=i, hash=utils.image.get_hash(i))
+                                 for i in images if add_all or i not in similarities]
+                if images_to_add:
+                    dialog = EditImageDialog(self, show_skip=len(images_to_add) > 1, mode=EditImageDialog.ADD)
+                    dialog.set_on_close_action(self._fetch_and_refresh)
+                    dialog.set_images(images_to_add, {})
+                    dialog.show()
 
     def _rename_image(self):
         """Opens the 'Rename Image' dialog then renames the selected image."""
@@ -549,7 +554,7 @@ class _SearchThread(QtC.QThread):
         self._preprocess()
         if not self._error:
             try:
-                expr = queries.query_to_sympy(self._query, simplify=False)
+                expr = queries.query_to_sympy(self._query, simplify=True)
                 self._images = images_dao.get_images(expr)
             except ValueError as e:
                 self._error = str(e)

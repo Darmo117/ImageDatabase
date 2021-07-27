@@ -1,14 +1,11 @@
-import os
 import re
 import sqlite3
 import typing as typ
 
-import cv2
-import skimage.metrics as sk_measure
 import sympy as sp
 
 from .dao import DAO
-from .. import model
+from .. import model, utils
 from ..i18n import translate as _t
 from ..logging import logger
 
@@ -27,7 +24,7 @@ class ImageDao(DAO):
             if query is None:
                 return []
             results = self._connection.execute(query).fetchall()
-            return list(map(lambda r: model.Image(int(r[0]), r[1]), results))
+            return [model.Image(id=r[0], path=r[1], hash=r[2]) for r in results]
         except sqlite3.OperationalError as e:
             logger.exception(e)
             return None
@@ -56,46 +53,22 @@ class ImageDao(DAO):
             return None
 
     def image_registered(self, image_path: str) -> typ.Optional[bool]:
-        """Tells if the given image is already registered. Images are compared based on files names.
+        """Tells whether other similar images may have already been registered.
+        Two images are considered similar if the Hamming distance between their respective hashes is ≤ 10
+        (cf. http://www.hackerfactor.com/blog/index.php?/archives/529-Kind-of-Like-That.html) or if their
+        paths are the exact same. Hashes are computed using the “difference hashing” method
+        (cf. https://www.pyimagesearch.com/2017/11/27/image-hashing-opencv-python/).
 
         :param image_path: Path to the image.
-        :return: True if the image is registered; false otherwise. Returns None if an exception occured.
+        :return: True if similar images were found; false otherwise. Returns None if an error occured.
         """
-        return self._test_image_registered_file_name(image_path)
-
-    def _test_image_registered_file_name(self, image_path):
-        # Only checks if another file in the same directory has the same name
-        try:
-            filename = re.escape(image_path)
-            cursor = self._connection.execute('SELECT COUNT(*) FROM images WHERE path REGEXP ?', (filename,))
-            return cursor.fetchall()[0][0] > 0
-        except sqlite3.OperationalError as e:
-            logger.exception(e)
+        image_hash = utils.image.get_hash(image_path)
+        if image_hash is None:
             return None
-
-    # TEST Experimental, use at your own risk.
-    def _test_image_registered_pixels(self, image_path):
-        # Uses OpenCV2 to compare pixels
-        cursor = self._connection.execute('SELECT path FROM images')
-        array1 = cv2.imread(image_path)
-        size1 = len(array1), len(array1[0])
-
-        for path, in cursor.fetchall():
-            if os.path.exists(path):
-                array2 = cv2.imread(path)
-                size2 = len(array2), len(array2[0])
-                if size1 == size2:
-                    score = sk_measure.structural_similarity(
-                        array1, array2,
-                        multichannel=True,
-                        gaussian_weights=True,
-                        sigma=1.5,
-                        use_sample_covariance=False
-                    )
-                    if score == 1:
-                        return True
-
-        return False
+        return any([image_hash == registered_image.path
+                    or (registered_image.hash is not None
+                        and utils.image.compare_hashes(image_hash, registered_image.hash)[2])
+                    for registered_image in self.get_images(sp.true)])
 
     def add_image(self, image_path: str, tags: typ.List[model.Tag]) -> bool:
         """Adds an image.
@@ -107,7 +80,8 @@ class ImageDao(DAO):
         try:
             self._connection.execute('BEGIN')
             image_cursor = self._connection.cursor()
-            image_cursor.execute('INSERT INTO images(path) VALUES(?)', (image_path,))
+            image_hash = utils.image.get_hash(image_path) or 0
+            image_cursor.execute('INSERT INTO images(path, hash) VALUES(?, ?)', (image_path, image_hash))
             for tag in tags:
                 tag_id = self._insert_tag_if_not_exists(tag)
                 self._connection.execute('INSERT INTO image_tag(image_id, tag_id) VALUES(?, ?)',
@@ -191,31 +165,31 @@ class ImageDao(DAO):
         :return: The SQL query or None if the argument is a contradiction.
         """
         if isinstance(sympy_expr, sp.Symbol):
-            s = sympy_expr.name
-            if ':' in s:
-                metatag, mode, value = s.split(':', maxsplit=2)
+            tag_name = sympy_expr.name
+            if ':' in tag_name:
+                metatag, mode, value = tag_name.split(':', maxsplit=2)
                 if not ImageDao.check_metatag_value(metatag, value, mode):
                     raise ValueError(_t('query_parser.error.invalid_metatag_value', value=value, metatag=metatag))
                 return ImageDao._metatag_query(metatag, value, mode)
             else:
                 return f"""
-                SELECT I.id, I.path
+                SELECT I.id, I.path, I.hash
                 FROM images AS I, tags AS T, image_tag AS IT
-                WHERE T.label = "{s}"
+                WHERE T.label = "{tag_name}"
                   AND T.id = IT.tag_id
                   AND IT.image_id = I.id
                 """
         elif isinstance(sympy_expr, sp.Or):
-            subs = [ImageDao._get_query(arg) for arg in sympy_expr.args]
-            return 'SELECT id, path FROM (' + '\nUNION\n'.join(subs) + ')'
+            subs = [ImageDao._get_query(arg) for arg in sympy_expr.args if arg]
+            return 'SELECT id, path, hash FROM (' + '\nUNION\n'.join(subs) + ')'
         elif isinstance(sympy_expr, sp.And):
-            subs = [ImageDao._get_query(arg) for arg in sympy_expr.args]
-            return 'SELECT id, path FROM (' + '\nINTERSECT\n'.join(subs) + ')'
+            subs = [ImageDao._get_query(arg) for arg in sympy_expr.args if arg]
+            return 'SELECT id, path, hash FROM (' + '\nINTERSECT\n'.join(subs) + ')'
         elif isinstance(sympy_expr, sp.Not):
-            return f'SELECT id, path FROM (SELECT id, path FROM images EXCEPT ' \
-                   f'{ImageDao._get_query(sympy_expr.args[0])})'
+            sub = ImageDao._get_query(sympy_expr.args[0])
+            return f'SELECT id, path, hash FROM images' + (f' EXCEPT {sub}' if sub else '')
         elif sympy_expr == sp.true:
-            return 'SELECT id, path FROM images'
+            return 'SELECT id, path, hash FROM images'
         elif sympy_expr == sp.false:
             return None
 
@@ -269,6 +243,7 @@ class ImageDao(DAO):
         return ImageDao._METATAG_QUERIES[metatag].format(value)
 
     _METATAG_QUERIES = {
-        'ext': r'SELECT id, path FROM images WHERE SUBSTR(path, RINSTR(path, ".") + 1) REGEXP "{}"',
-        'name': r'SELECT id, path FROM images WHERE SUBSTR(path, RINSTR(path, "/") + 1) REGEXP "{}"',
+        'ext': r'SELECT id, path, hash FROM images WHERE SUBSTR(path, RINSTR(path, ".") + 1) REGEXP "{}"',
+        'name': r'SELECT id, path, hash FROM images WHERE SUBSTR(path, RINSTR(path, "/") + 1) REGEXP "{}"',
+        # TODO similar:<image name> -> returns all images that are similar, no joker or regex
     }

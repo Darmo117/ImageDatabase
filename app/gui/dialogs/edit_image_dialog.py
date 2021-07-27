@@ -166,7 +166,7 @@ class EditImageDialog(Dialog):
         """Sets the image to display.
 
         :param image: The image to display.
-        :param tags: The image's tags.
+        :param tags: The image’s tags.
         """
         self.set_images([image], {image.id: tags})
 
@@ -188,12 +188,12 @@ class EditImageDialog(Dialog):
 
         self._canvas.set_image(image.path)
 
-        if self._skip_btn is not None:
-            if self._index == len(self._images) - 1:
+        if self._index == len(self._images) - 1:
+            if self._skip_btn:
                 self._skip_btn.setDisabled(True)
-                self._ok_btn.setText(_t('dialog.edit_image.finish_button.label'))
-            else:
-                self._ok_btn.setText(_t('dialog.edit_image.next_button.label'))
+            self._ok_btn.setText(_t('dialog.edit_image.finish_button.label'))
+        elif self._skip_btn:
+            self._ok_btn.setText(_t('dialog.edit_image.apply_next_button.label'))
 
         self.setWindowTitle(self._get_title())
 
@@ -218,7 +218,7 @@ class EditImageDialog(Dialog):
                     return
                 self._destination = destination
                 self._ok_btn.setDisabled(False)
-                self._images[0] = model.Image(img.id, self._destination)
+                self._images[0] = model.Image(id=img.id, path=self._destination, hash=img.hash)
                 self._set(0)
             else:
                 self._destination = destination
@@ -297,7 +297,7 @@ class EditImageDialog(Dialog):
         """Adds an image to the database.
 
         :param image: The image to add.
-        :param tags: Image's tags.
+        :param tags: Image’s tags.
         :param new_path: If present the image will be moved in this directory.
         :return: True if everything went well.
         """
@@ -310,7 +310,7 @@ class EditImageDialog(Dialog):
         """Edits an image from the database.
 
         :param image: The image to edit.
-        :param tags: Image's tags.
+        :param tags: Image’s tags.
         :param new_path: If present the image will be moved in this directory.
         :return: True if everything went well.
         """
@@ -338,7 +338,7 @@ class EditImageDialog(Dialog):
     def _move_image(self, path: str, new_path: str) -> bool:
         """Moves an image to a specific directory.
 
-        :param path: Image's path.
+        :param path: Image’s path.
         :param new_path: Path to the new directory.
         :return: True if the image was moved.
         """

@@ -4,7 +4,7 @@ import typing as typ
 import PyQt5.QtGui as QtGui
 import PyQt5.QtWidgets as QtW
 
-from .. import constants
+from .. import constants, config
 from ..i18n import translate as _t
 
 
@@ -118,19 +118,20 @@ def show_int_input(message: str, title: str, value: int = 0, min_value: int = No
     return input_d.intValue() if ok else None
 
 
-def open_image_chooser(parent: QtW.QWidget = None) -> typ.Optional[str]:
+def open_image_chooser(parent: QtW.QWidget = None) -> typ.Optional[typ.List[str]]:
     """Opens a file chooser for images.
 
     :param parent: Chooser’s parent.
-    :return: The selected file or REJECTED if the chooser was cancelled.
+    :return: The selected files or None if the chooser was cancelled.
     """
     exts = ' '.join(map(lambda e: '*.' + e, constants.FILE_EXTENSIONS))
-    file, _ = QtW.QFileDialog.getOpenFileName(
+    files, _ = QtW.QFileDialog.getOpenFileNames(
         caption=_t('popup.image_chooser.caption'),
         filter=_t('popup.image_chooser.filter') + f'({exts})',
-        parent=parent
+        parent=parent,
+        options=QtW.QFileDialog.DontUseNativeDialog if config.CONFIG.debug else None
     )
-    return file or None
+    return files or None
 
 
 def open_playlist_saver(parent: typ.Optional[QtW.QWidget] = None) -> typ.Optional[str]:
@@ -143,7 +144,8 @@ def open_playlist_saver(parent: typ.Optional[QtW.QWidget] = None) -> typ.Optiona
     file, _ = QtW.QFileDialog.getSaveFileName(
         caption=_t('popup.playlist_saver.caption'),
         filter=_t('popup.playlist_saver.filter') + f'(*{ext})',
-        parent=parent
+        parent=parent,
+        options=QtW.QFileDialog.DontUseNativeDialog if config.CONFIG.debug else None
     )
     if file and not file.endswith(ext):
         file += ext
@@ -157,7 +159,11 @@ def open_directory_chooser(parent: QtW.QWidget = None) -> typ.Optional[typ.List[
     :return: All files inside the chosen directory or REJECTED if the chooser was cancelled or NO_IMAGES if the
              directory contains no images.
     """
-    directory = QtW.QFileDialog.getExistingDirectory(caption=_t('popup.open_directory_chooser.caption'), parent=parent)
+    directory = QtW.QFileDialog.getExistingDirectory(
+        caption=_t('popup.open_directory_chooser.caption'),
+        parent=parent,
+        options=QtW.QFileDialog.DontUseNativeDialog if config.CONFIG.debug else None
+    )
     if directory != '':
         files = filter(lambda f: os.path.splitext(f)[1].lower()[1:] in constants.FILE_EXTENSIONS, os.listdir(directory))
         files = list(map(lambda f: slashed(os.path.join(directory, f)), files))
@@ -171,7 +177,11 @@ def choose_directory(parent: QtW.QWidget = None) -> typ.Optional[str]:
     :param parent: Chooser’s parent.
     :return: The selected directory or REJECTED if the chooser was cancelled.
     """
-    directory = QtW.QFileDialog.getExistingDirectory(caption=_t('popup.directory_chooser.caption'), parent=parent)
+    directory = QtW.QFileDialog.getExistingDirectory(
+        caption=_t('popup.directory_chooser.caption'),
+        parent=parent,
+        options=QtW.QFileDialog.DontUseNativeDialog if config.CONFIG.debug else None
+    )
     return directory or None
 
 

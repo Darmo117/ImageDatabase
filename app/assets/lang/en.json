@@ -106,8 +106,8 @@
         "skip_button": {
           "label": "Skip"
         },
-        "next_button": {
-          "label": "Next"
+        "apply_next_button": {
+          "label": "Apply && Continue"
         },
         "finish_button": {
           "label": "Finish"
@@ -211,14 +211,14 @@
       "empty_directory": {
         "text": "No images in this directory!"
       },
-      "images_already_registered": {
-        "text": "Images already registered!"
+      "similar_images_found": {
+        "text": "Some images may have already been registered.\nDo you wish to add them anyway?"
       },
-      "image_already_registered": {
-        "text": "Image already registered!"
+      "similar_image_found": {
+        "text": "This image may have already been registered.\nDo you wish to add it anyway?"
       },
       "image_chooser": {
-        "caption": "Open Image",
+        "caption": "Open Images",
         "filter": "Image file"
       },
       "open_directory_chooser": {

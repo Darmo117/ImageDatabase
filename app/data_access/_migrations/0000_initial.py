@@ -11,7 +11,7 @@ def migrate(connection: sqlite3.Connection):
     CREATE TABLE db_version (
       version INTEGER PRIMARY KEY
     );
-    ALTER TABLE images ADD COLUMN hash INTEGER;
+    ALTER TABLE images ADD COLUMN hash BLOB; -- Cannot use INTEGER as hashes are 64-bit *unsigned* integers
     ALTER TABLE tags ADD COLUMN definition TEXT;
     BEGIN;
     INSERT INTO db_version (version) VALUES (1);
@@ -20,8 +20,7 @@ def migrate(connection: sqlite3.Connection):
     cursor = connection.execute('SELECT id, path FROM images')
     for entry in cursor.fetchall():
         ident, path = entry
-        image = cv2.imread(path)
-        image_hash = utils.image.difference_hash(image) if image is not None else None
+        image_hash = utils.image.get_hash(path)
         connection.execute('UPDATE images SET hash = ? WHERE id = ?', (image_hash, ident))
     cursor.close()
 

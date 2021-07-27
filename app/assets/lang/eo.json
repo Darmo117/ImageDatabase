@@ -106,8 +106,8 @@
         "skip_button": {
           "label": "Salti"
         },
-        "next_button": {
-          "label": "Sekva"
+        "apply_next_button": {
+          "label": "Apliki k. daŭrigi"
         },
         "finish_button": {
           "label": "Finigi"
@@ -211,14 +211,14 @@
       "empty_directory": {
         "text": "Tiu dosierujo ne enhavas bildojn!"
       },
-      "images_already_registered": {
-        "text": "Tiuj bildoj jam estas registritaj!"
+      "similar_images_found": {
+        "text": "Kelkaj bildoj eble estas registrataj.\nĈu vi volas kvankam aligi ilin?"
       },
-      "image_already_registered": {
-        "text": "Tiu bildo jam estas registrita!"
+      "similar_image_found": {
+        "text": "Tiu bildo eble estas registrata.\nĈu vi volas kvankam aligi ĝin?"
       },
       "image_chooser": {
-        "caption": "Ovri bildon",
+        "caption": "Ovri bildojn",
         "filter": "Bildo"
       },
       "open_directory_chooser": {

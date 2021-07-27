@@ -24,11 +24,13 @@ class Config:
     load_thumbnails: bool = _DEFAULT_LOAD_THUMBS
     thumbnail_size: int = _DEFAULT_THUMBS_SIZE
     thumbnail_load_threshold: int = _DEFAULT_THUMBS_LOAD_THRESHOLD
+    debug: bool = False
 
 
 CONFIG = Config()
 
 _UI_SECTION = 'UI'
+_DEBUG_KEY = 'Debug'
 _LANG_KEY = 'Language'
 
 _DB_SECTION = 'Database'
@@ -56,6 +58,7 @@ def load_config():
         try:
             # UI section
             lang_code = config_parser.get(_UI_SECTION, _LANG_KEY, fallback=_DEFAULT_LANG_CODE)
+            CONFIG.debug = config_parser.get(_UI_SECTION, _DEBUG_KEY, fallback=False)
 
             # Images section
             load_thumbs = _to_bool(config_parser.get(_IMAGES_SECTION, _LOAD_THUMBS_KEY,
@@ -109,6 +112,7 @@ def save_config():
     parser.optionxform = str
     parser[_UI_SECTION] = {
         _LANG_KEY: CONFIG.change_to_language or CONFIG.language.code,
+        _DEBUG_KEY: CONFIG.debug,
     }
     parser[_IMAGES_SECTION] = {
         _LOAD_THUMBS_KEY: str(CONFIG.load_thumbnails).lower(),

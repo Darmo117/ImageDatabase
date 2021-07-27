@@ -12,6 +12,7 @@ class Image:
     """This class represents an image."""
     id: int
     path: str
+    hash: int
 
     def __lt__(self, other):
         if not isinstance(other, Image):
