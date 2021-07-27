@@ -507,9 +507,9 @@ class Application(QtW.QMainWindow):
 
             config.load_config()
 
-            app = QtW.QApplication(sys.argv)
+            da.update_database_if_needed()
 
-            da.update_if_needed()
+            app = QtW.QApplication(sys.argv)
 
             # Initialize tag types
             tags_dao = da.TagsDao(config.CONFIG.database_path)

@@ -1,6 +1,6 @@
 APP_NAME = 'Image Library'
 VERSION = '3.2'
-DB_SETUP_FILE = 'app/setup.sql'
+DB_SETUP_FILE = 'app/data_access/setup.sql'
 CONFIG_FILE = 'config.ini'
 ERROR_LOG_FILE = 'logs/errors.log'
 ICONS_DIR = 'app/assets/icons/'

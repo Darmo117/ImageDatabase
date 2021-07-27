@@ -94,7 +94,7 @@ class Canvas(QtW.QGraphicsView):
             border = '0'
         else:
             if self._show_errors:
-                utils.show_error(_t('canvas.image_load_error'), parent=self)
+                utils.gui.show_error(_t('canvas.image_load_error'), parent=self)
             self._image = None
             self.scene().addText(_t('canvas.no_image'))
             border = '1px solid gray'
