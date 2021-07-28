@@ -24,7 +24,9 @@ class ImageDao(DAO):
             if query is None:
                 return []
             results = self._connection.execute(query).fetchall()
-            return [model.Image(id=r[0], path=r[1], hash=r[2]) for r in results]
+            return [model.Image(id=r[0], path=r[1],
+                                hash=int.from_bytes(r[2], byteorder='big', signed=False) if r[2] is not None else None)
+                    for r in results]
         except sqlite3.OperationalError as e:
             logger.exception(e)
             return None
@@ -81,7 +83,10 @@ class ImageDao(DAO):
             self._connection.execute('BEGIN')
             image_cursor = self._connection.cursor()
             image_hash = utils.image.get_hash(image_path) or 0
-            image_cursor.execute('INSERT INTO images(path, hash) VALUES(?, ?)', (image_path, image_hash))
+            image_cursor.execute(
+                'INSERT INTO images(path, hash) VALUES(?, ?)',
+                (image_path, image_hash.to_bytes(8, byteorder='big', signed=False) if image_hash is not None else None)
+            )
             for tag in tags:
                 tag_id = self._insert_tag_if_not_exists(tag)
                 self._connection.execute('INSERT INTO image_tag(image_id, tag_id) VALUES(?, ?)',

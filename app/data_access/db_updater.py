@@ -29,7 +29,7 @@ def update_database_if_needed():
 
     # Apply all migrations starting from the DB’s version all the way up to the current version
     for i, migration in enumerate(migrations[db_version:]):
-        if i == 0:
+        if i == 0 and not setup:
             path = pathlib.Path(db_file)
             name, ext = os.path.splitext(path.name)
             shutil.copy(db_file, path.parent / f'{name}-old_{app_version}{ext}')

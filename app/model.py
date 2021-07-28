@@ -34,7 +34,7 @@ class Image:
 class TagType:
     """This class represents a tag type."""
     LABEL_PATTERN = re.compile(r'^\S.*$')
-    SYMBOL_PATTERN = re.compile(r'^[^\w+()/\\:-]$')
+    SYMBOL_PATTERN = re.compile(r'^[^\w+()\\:-]$')
     SYMBOL_TYPES = {}
     ID_TYPES = {}
 
@@ -47,9 +47,9 @@ class TagType:
         :param color: Type’s color.
         """
         if not self.LABEL_PATTERN.match(label):
-            raise ValueError('illegal type label format')
+            raise ValueError(f'illegal type label "{label}"')
         if not self.SYMBOL_PATTERN.match(symbol):
-            raise ValueError('illegal type symbol format')
+            raise ValueError(f'illegal type symbol "{symbol}"')
         self._id = ident
         self._label = label
         self._symbol = symbol
@@ -136,7 +136,7 @@ class Tag:
         :param tag_type: Tag’s type?
         """
         if not self.LABEL_PATTERN.match(label):
-            raise ValueError('illegal tag label format')
+            raise ValueError(f'illegal tag label "{label}"')
 
         self._id = ident
         self._label = label
