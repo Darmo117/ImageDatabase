@@ -39,14 +39,13 @@ def print_rows(rows: list, column_names: iter):
 
 
 while 'user hasn’t typed "exit"':
-    print('SQL>', end=' ')
-    cmd = input().strip()
+    cmd = input('SQL> ').strip()
 
     if cmd.lower() == 'exit':
         break
 
     try:
-        cursor = connection.execute(cmd)
+        cursor = connection.executescript(cmd)
         if cursor.description is not None:
             column_names = tuple(desc[0] for desc in cursor.description)
         else:

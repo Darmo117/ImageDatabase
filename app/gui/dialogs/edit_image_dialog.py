@@ -27,7 +27,7 @@ class EditImageDialog(Dialog):
         'dialog.edit_image.title_replace',
     ]
 
-    def __init__(self, parent: typ.Optional[QtW.QWidget] = None, mode: int = EDIT, show_skip: bool = False):
+    def __init__(self, parent: QtW.QWidget = None, mode: int = EDIT, show_skip: bool = False):
         """Creates an edition dialog.
 
         :param parent: The widget this dialog is attached to.
@@ -74,16 +74,24 @@ class EditImageDialog(Dialog):
         buttons_layout.addWidget(self._dest_label)
 
         if self._mode == EditImageDialog.REPLACE:
+            icon = 'replace_image'
             text = _t('dialog.edit_image.replace_button.label')
         else:
+            icon = 'move_to_directory'
             text = _t('dialog.edit_image.move_to_button.label')
-        self._dest_btn = QtW.QPushButton(text)
+        self._dest_btn = QtW.QPushButton(utils.gui.icon(icon), text)
         self._dest_btn.clicked.connect(self._on_dest_button_clicked)
         buttons_layout.addWidget(self._dest_btn)
-        b = QtW.QPushButton(_t('dialog.edit_image.tags_button.label'))
+        b = QtW.QPushButton(
+            utils.gui.icon('tag'),
+            _t('dialog.edit_image.tags_button.label')
+        )
         b.clicked.connect(self._show_tags_dialog)
         buttons_layout.addWidget(b)
-        b = QtW.QPushButton(_t('dialog.edit_image.show_directory_button.label'))
+        b = QtW.QPushButton(
+            utils.gui.icon('image_in_directory'),
+            _t('dialog.edit_image.show_directory_button.label')
+        )
         b.clicked.connect(self._open_image_directory)
         buttons_layout.addWidget(b)
 
@@ -126,7 +134,10 @@ class EditImageDialog(Dialog):
 
         self._skip_btn = None
         if self._show_skip:
-            self._skip_btn = QtW.QPushButton(_t('dialog.edit_image.skip_button.label'))
+            self._skip_btn = QtW.QPushButton(
+                self.style().standardIcon(QtW.QStyle.SP_ArrowRight),
+                _t('dialog.edit_image.skip_button.label')
+            )
             self._skip_btn.clicked.connect(self._next)
             return [self._skip_btn]
         return []

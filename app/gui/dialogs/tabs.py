@@ -24,7 +24,7 @@ class Tab(abc.ABC, typ.Generic[_Type]):
     _FETCH_COLOR = QtG.QColor(140, 200, 255)
 
     def __init__(self, owner: QtW.QWidget, dao: da.TagsDao, title: str, addable: bool, deletable: bool, editable: bool,
-                 columns_to_check: typ.List[int], search_columns: typ.List[int],
+                 columns_to_check: typ.List[typ.Tuple[int, bool]], search_columns: typ.List[int],
                  selection_changed: typ.Optional[typ.Callable[[None], None]] = None,
                  cell_changed: typ.Optional[typ.Callable[[int, int, str], None]] = None,
                  rows_deleted: typ.Optional[typ.Callable[[typ.List[_Type]], None]] = None):
@@ -48,7 +48,7 @@ class Tab(abc.ABC, typ.Generic[_Type]):
         self._addable = addable
         self._deletable = deletable
         self._editable = editable
-        self._columns_to_check = columns_to_check
+        self._columns_to_check: typ.Dict[int, bool] = {c: b for c, b in columns_to_check}
         self._search_columns = search_columns
         self._selection_changed = selection_changed
         self._cell_changed = cell_changed
@@ -184,8 +184,8 @@ class Tab(abc.ABC, typ.Generic[_Type]):
         :return: True if all cells have valid values.
         """
         ok = True
-        for col in self._columns_to_check:
-            ok &= self._check_column(col, True)[0] == self._OK
+        for col, check_duplicates in self._columns_to_check.items():
+            ok &= self._check_column(col, True, check_duplicates)[0] == self._OK
             if not ok:
                 break
         return ok
@@ -217,11 +217,12 @@ class Tab(abc.ABC, typ.Generic[_Type]):
         """
         pass
 
-    def _check_column(self, column: int, check_format: bool) -> typ.Tuple[int, int, str]:
-        """Checks column’s integrity. If a duplicate value is present or a cell is empty, the corresponding error is
-        returned.
+    def _check_column(self, column: int, check_format: bool, check_duplicates: bool) -> typ.Tuple[int, int, str]:
+        """Checks column’s integrity.
 
         :param column: The column to check.
+        :param check_format: Whether to check the format of cell values.
+        :param check_duplicates: Whether to check for any duplicate cell values.
         :return: A tuple with 3 values: table integrity which is one of OK, DUPLICATE, EMPTY or FORMAT; row of the
                  invalid cell or -1 if whole column is valid; the error message.
                  OK if all cells have valid values;
@@ -238,12 +239,13 @@ class Tab(abc.ABC, typ.Generic[_Type]):
                 ok, message = self._check_cell_format(row, column)
                 if not ok:
                     return self._FORMAT, False, message
-            cell_value = self._table.item(row, column).text()
-            for r in range(self._table.rowCount()):
-                if self._table.isRowHidden(r):
-                    continue
-                if r != row and self._table.item(r, column).text() == cell_value:
-                    return self._DUPLICATE, row, _t('dialog.edit_tags.error.duplicate_value')
+            if check_duplicates:
+                cell_value = self._table.item(row, column).text()
+                for r in range(self._table.rowCount()):
+                    if self._table.isRowHidden(r):
+                        continue
+                    if r != row and self._table.item(r, column).text() == cell_value:
+                        return self._DUPLICATE, row, _t('dialog.edit_tags.error.duplicate_value')
         return self._OK, -1, ''
 
     @abc.abstractmethod
@@ -273,8 +275,19 @@ class TagTypesTab(Tab[model.TagType]):
         :param cell_changed: Action called when a cell has been edited. It takes the cell’s row, column and text.
         :param rows_deleted: Action called when rows have been deleted. It takes the list of deleted values.
         """
-        super().__init__(owner, dao, _t('dialog.edit_tags.tab.tag_types.title'), True, True, editable, [1, 2], [1, 2],
-                         selection_changed=selection_changed, cell_changed=cell_changed, rows_deleted=rows_deleted)
+        super().__init__(
+            owner,
+            dao,
+            _t('dialog.edit_tags.tab.tag_types.title'),
+            addable=True,
+            deletable=True,
+            editable=editable,
+            columns_to_check=[(1, True), (2, True)],
+            search_columns=[1, 2],
+            selection_changed=selection_changed,
+            cell_changed=cell_changed,
+            rows_deleted=rows_deleted
+        )
 
     def init(self):
         super().init()
@@ -357,7 +370,7 @@ class TagTypesTab(Tab[model.TagType]):
     def _cell_edited(self, row: int, col: int):
         if self._initialized and self._editable:
             if col != 3:
-                _, invalid_row, message = self._check_column(col, False)
+                _, invalid_row, message = self._check_column(col, False, self._columns_to_check.get(col, True))
                 if invalid_row == row:
                     utils.gui.show_error(message, parent=self._owner)
                 else:
@@ -412,10 +425,9 @@ class TagTypesTab(Tab[model.TagType]):
 
         default_color = QtG.QColor(0, 0, 0)
         bg_color = tag_type.color if defined else default_color
-        color = utils.gui.negate(bg_color)
         color_btn = QtW.QPushButton(tag_type.color.name() if defined else default_color.name())
         color_btn.setWhatsThis('color')
-        color_btn.setStyleSheet(f'background-color: {bg_color.name()}; color: {color.name()}')
+        self._set_button_bg_color(color_btn, bg_color)
         color_btn.setFocusPolicy(Qt.NoFocus)
         color_btn.clicked.connect(self._show_color_picker)
         color_btn.setProperty('row', row)
@@ -425,14 +437,20 @@ class TagTypesTab(Tab[model.TagType]):
 
     def _show_color_picker(self):
         """Shows a color picker then sets the event button to the selected color."""
-        button = self._owner.sender()
+        # noinspection PyTypeChecker
+        button: QtW.QPushButton = self._owner.sender()
         # Set initial color to the button’s current background color
         color = QtW.QColorDialog.getColor(button.palette().button().color())
         if color.isValid():
             row = button.property('row')
             button.setText(color.name())
-            button.setStyleSheet(f'background-color: {color.name()}; color: {utils.gui.negate(color).name()}')
+            self._set_button_bg_color(button, color)
             self._cell_edited(row, 3)
+
+    @staticmethod
+    def _set_button_bg_color(button: QtW.QPushButton, color: QtG.QColor):
+        button.setStyleSheet(
+            f'background-color: {color.name()}; color: {utils.gui.font_color(color).name()}; border: none')
 
 
 _TagType = typ.TypeVar('_TagType', model.Tag, model.CompoundTag)
@@ -443,7 +461,7 @@ class _TagsTab(Tab[_TagType], typ.Generic[_TagType], metaclass=abc.ABCMeta):
     COMBO_ITEM_PATTERN = re.compile(r'^(\d+) - (.+)$')
 
     def __init__(self, owner: QtW.QWidget, dao: da.TagsDao, title: str, addable: bool, editable: bool,
-                 tag_class: typ.Type[_TagType], additional_columns: typ.List[str],
+                 tag_class: typ.Type[_TagType], additional_columns: typ.List[typ.Tuple[str, bool]],
                  additional_search_columns: typ.List[int],
                  selection_changed: typ.Optional[typ.Callable[[None], None]] = None,
                  cell_changed: typ.Optional[typ.Callable[[int, int, str], None]] = None,
@@ -462,7 +480,10 @@ class _TagsTab(Tab[_TagType], typ.Generic[_TagType], metaclass=abc.ABCMeta):
         :param cell_changed: Action called when a cell has been edited. It takes the cell’s row, column and text.
         :param rows_deleted: Action called when rows have been deleted. It takes the list of deleted values.
         """
-        cols_to_check = [1, *range(2, 2 + len(additional_columns))]
+        cols_to_check = [
+            (1, True),
+            *[(c, additional_columns[c - 2][1]) for c in range(2, 2 + len(additional_columns))]
+        ]
         search_cols = [1, *map(lambda i: i + 2, additional_search_columns)]
         super().__init__(owner, dao, title, addable, True, editable, cols_to_check, search_cols,
                          selection_changed=selection_changed, cell_changed=cell_changed, rows_deleted=rows_deleted)
@@ -470,7 +491,7 @@ class _TagsTab(Tab[_TagType], typ.Generic[_TagType], metaclass=abc.ABCMeta):
         self._columns = [
             _t('dialog.edit_tags.tab.tags_common.table.header.tag_id'),
             _t('dialog.edit_tags.tab.tags_common.table.header.label'),
-            *additional_columns,
+            *[c[0] for c in additional_columns],
             _t('dialog.edit_tags.tab.tags_common.table.header.type'),
             _t('dialog.edit_tags.tab.tags_common.table.header.usage'),
         ]
@@ -629,7 +650,7 @@ class _TagsTab(Tab[_TagType], typ.Generic[_TagType], metaclass=abc.ABCMeta):
         self._table.setItem(row, self._tag_use_count_column, number_item)
 
     def _get_value_for_column(self, column_name: str, value: _TagType, default: bool) -> typ.Tuple[str, str]:
-        """Returns the value for tha given column and tag.
+        """Returns the value for the given column and tag.
 
         :param column_name: Column’s name.
         :param value: The tag.
@@ -640,7 +661,7 @@ class _TagsTab(Tab[_TagType], typ.Generic[_TagType], metaclass=abc.ABCMeta):
     def _cell_edited(self, row: int, col: int):
         if self._initialized and self._editable:
             if col != self._type_column:
-                _, invalid_row, message = self._check_column(col, False)
+                _, invalid_row, message = self._check_column(col, False, self._columns_to_check.get(col, True))
                 if invalid_row == row:
                     utils.gui.show_error(message, parent=self._owner)
                 else:
@@ -721,8 +742,19 @@ class TagsTab(_TagsTab[model.Tag]):
         :param cell_changed: Action called when a cell has been edited. It takes the cell’s row, column and text.
         :param rows_deleted: Action called when rows have been deleted. It takes the list of deleted values.
         """
-        super().__init__(owner, dao, _t('dialog.edit_tags.tab.tags.title'), False, editable, model.Tag, [], [],
-                         selection_changed=selection_changed, cell_changed=cell_changed, rows_deleted=rows_deleted)
+        super().__init__(
+            owner,
+            dao,
+            _t('dialog.edit_tags.tab.tags.title'),
+            addable=False,
+            editable=editable,
+            tag_class=model.Tag,
+            additional_columns=[],
+            additional_search_columns=[],
+            selection_changed=selection_changed,
+            cell_changed=cell_changed,
+            rows_deleted=rows_deleted
+        )
 
 
 class CompoundTagsTab(_TagsTab[model.CompoundTag]):
@@ -739,9 +771,21 @@ class CompoundTagsTab(_TagsTab[model.CompoundTag]):
         :param cell_changed: Action called when a cell has been edited. It takes the cell’s row, column and text.
         :param rows_deleted: Action called when rows have been deleted. It takes the list of deleted values.
         """
-        super().__init__(owner, dao, _t('dialog.edit_tags.tab.compound_tags.title'), True, editable, model.CompoundTag,
-                         [_t('dialog.edit_tags.tab.compound_tags.table.header.definition')], [0],
-                         selection_changed=selection_changed, cell_changed=cell_changed, rows_deleted=rows_deleted)
+        super().__init__(
+            owner,
+            dao,
+            _t('dialog.edit_tags.tab.compound_tags.title'),
+            addable=True,
+            editable=editable,
+            tag_class=model.CompoundTag,
+            additional_columns=[
+                (_t('dialog.edit_tags.tab.compound_tags.table.header.definition'), False),
+            ],
+            additional_search_columns=[0],
+            selection_changed=selection_changed,
+            cell_changed=cell_changed,
+            rows_deleted=rows_deleted
+        )
 
     def init(self):
         super().init()

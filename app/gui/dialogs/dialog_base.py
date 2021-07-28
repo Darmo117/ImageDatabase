@@ -67,10 +67,16 @@ class Dialog(QtW.QDialog):
         box = QtW.QHBoxLayout()
         box.addStretch(1)
 
-        self._ok_btn = QtW.QPushButton(_t('dialog.common.ok_button.label') if self._buttons_mode == Dialog.OK_CANCEL
-                                       else _t('dialog.common.close_button.label'))
+        self._ok_btn = QtW.QPushButton(
+            self.style().standardIcon(QtW.QStyle.SP_DialogOkButton),
+            _t('dialog.common.ok_button.label') if self._buttons_mode == Dialog.OK_CANCEL
+            else _t('dialog.common.close_button.label')
+        )
         self._ok_btn.clicked.connect(self._on_ok_clicked)
-        self._cancel_btn = QtW.QPushButton(_t('dialog.common.cancel_button.label'))
+        self._cancel_btn = QtW.QPushButton(
+            self.style().standardIcon(QtW.QStyle.SP_DialogCancelButton),
+            _t('dialog.common.cancel_button.label')
+        )
         self._cancel_btn.clicked.connect(self.reject)
 
         buttons = self._init_buttons()

@@ -14,24 +14,23 @@ os.makedirs(BUILD_DIR)
 
 print('Copying files…')
 for file in TO_COPY:
-    dest = BUILD_DIR + file
-    if file[-1] == '/':
+    dest = os.path.join(BUILD_DIR, file)
+    if os.path.isdir(file):
         shutil.copytree(file, dest)
     else:
         shutil.copy(file, dest)
 
-print('Creating config…')
-with open(BUILD_DIR + 'config.ini', 'w') as f:
+print('Creating configuration file…')
+with open(os.path.join(BUILD_DIR, 'config.ini'), mode='w', encoding='UTF-8') as f:
     contents = """
 # You can edit this file to change some options.
 # Changing any option while the application is running will have no immediate
 # effect, you’ll have to restart it in order to apply the changes.
 
-[Database]
-# Path to the database file.
-File = library.sqlite3
+[UI]
+# App’s language
+Language = en
 
-# These options should be modified from the application.
 [Images]
 # Load thumbnails: yes or no
 LoadThumbnails = yes
@@ -39,6 +38,10 @@ LoadThumbnails = yes
 ThumbnailSize = 200
 # Minimum number of images in query result to disable thumbnails (to avoid running out of memory)
 ThumbnailLoadThreshold = 50
+
+[Database]
+# Path to the database file. Cannot be changed from within the application.
+File = library.sqlite3
     """.strip()
     f.write(contents)
 

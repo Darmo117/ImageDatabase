@@ -39,7 +39,7 @@ class Application(QtW.QMainWindow):
     def _init_ui(self):
         """Initializes the UI."""
         self.setWindowTitle(constants.APP_NAME)
-        self.setWindowIcon(QtG.QIcon(constants.ICONS_DIR + 'app_icon.png'))
+        self.setWindowIcon(utils.gui.icon('app_icon'))
         self.setGeometry(0, 0, 800, 600)
         self.setMinimumSize(400, 200)
 
@@ -55,11 +55,16 @@ class Application(QtW.QMainWindow):
 
         self._tabbed_pane = QtW.QTabWidget()
         self._tabbed_pane.addTab(path_list, _t(self._TAB_TITLES[0], images_number=0))
+        self._tabbed_pane.setTabWhatsThis(0, 'paths')
         self._tabbed_pane.addTab(thumb_list, _t(self._TAB_TITLES[1], images_number=0))
+        self._tabbed_pane.setTabWhatsThis(1, 'thumbnails')
         self._tabbed_pane.currentChanged.connect(self._on_tab_changed)
 
-        self._ok_btn = QtW.QPushButton(_t('main_window.query_form.search_button.label'))
-        self._ok_btn.clicked.connect(self._fetch_images)
+        self._search_btn = QtW.QPushButton(
+            utils.gui.icon('search'),
+            _t('main_window.query_form.search_button.label')
+        )
+        self._search_btn.clicked.connect(self._fetch_images)
 
         self._input_field = AutoCompleteLineEdit()
         self._input_field.setPlaceholderText(_t('main_window.query_form.text_field.placeholder'))
@@ -73,7 +78,7 @@ class Application(QtW.QMainWindow):
 
         h_box = QtW.QHBoxLayout()
         h_box.addWidget(self._input_field)
-        h_box.addWidget(self._ok_btn)
+        h_box.addWidget(self._search_btn)
 
         v_box = QtW.QVBoxLayout()
         v_box.addWidget(self._tabbed_pane)
@@ -104,13 +109,13 @@ class Application(QtW.QMainWindow):
         file_menu = menubar.addMenu(_t('main_window.menu.file.label'))
 
         add_file_item = QtW.QAction(_t('main_window.menu.file.item.add_file'), self)
-        add_file_item.setIcon(QtG.QIcon(constants.ICONS_DIR + 'image_add.png'))
+        add_file_item.setIcon(utils.gui.icon('image_add'))
         add_file_item.setShortcut('Ctrl+F')
         add_file_item.triggered.connect(self._add_image)
         file_menu.addAction(add_file_item)
 
         add_directory_item = QtW.QAction(_t('main_window.menu.file.item.add_directory'), self)
-        add_directory_item.setIcon(QtG.QIcon(constants.ICONS_DIR + 'folder_image.png'))
+        add_directory_item.setIcon(utils.gui.icon('folder_image'))
         add_directory_item.setShortcut('Ctrl+D')
         add_directory_item.triggered.connect(self._add_directory)
         file_menu.addAction(add_directory_item)
@@ -125,7 +130,7 @@ class Application(QtW.QMainWindow):
         file_menu.addSeparator()
 
         exit_item = QtW.QAction(_t('main_window.menu.file.item.exit'), self)
-        exit_item.setIcon(QtG.QIcon(constants.ICONS_DIR + 'door_open.png'))
+        exit_item.setIcon(utils.gui.icon('door_open'))
         exit_item.setShortcut('Ctrl+Q')
         exit_item.triggered.connect(QtW.qApp.quit)
         file_menu.addAction(exit_item)
@@ -133,7 +138,7 @@ class Application(QtW.QMainWindow):
         edit_menu = menubar.addMenu(_t('main_window.menu.edit.label'))
 
         edit_tags_item = QtW.QAction(_t('main_window.menu.edit.item.edit_tags'), self)
-        edit_tags_item.setIcon(QtG.QIcon(constants.ICONS_DIR + 'tag_edit.png'))
+        edit_tags_item.setIcon(utils.gui.icon('tag_edit'))
         edit_tags_item.setShortcut('Ctrl+T')
         edit_tags_item.triggered.connect(self._edit_tags)
         edit_menu.addAction(edit_tags_item)
@@ -141,25 +146,25 @@ class Application(QtW.QMainWindow):
         edit_menu.addSeparator()
 
         self._rename_image_item = QtW.QAction(_t('main_window.menu.edit.item.rename_image'), self)
-        self._rename_image_item.setIcon(QtG.QIcon(constants.ICONS_DIR + 'textfield_rename.png'))
+        self._rename_image_item.setIcon(utils.gui.icon('textfield_rename'))
         self._rename_image_item.setShortcut('Ctrl+R')
         self._rename_image_item.triggered.connect(self._rename_image)
         edit_menu.addAction(self._rename_image_item)
 
         self._replace_image_item = QtW.QAction(_t('main_window.menu.edit.item.replace_image'), self)
-        self._replace_image_item.setIcon(QtG.QIcon(constants.ICONS_DIR + 'images.png'))
+        self._replace_image_item.setIcon(utils.gui.icon('replace_image'))
         self._replace_image_item.setShortcut('Ctrl+Shift+R')
         self._replace_image_item.triggered.connect(self._replace_image)
         edit_menu.addAction(self._replace_image_item)
 
         self._edit_images_item = QtW.QAction(_t('main_window.menu.edit.item.edit_images'), self)
-        self._edit_images_item.setIcon(QtG.QIcon(constants.ICONS_DIR + 'image_edit.png'))
+        self._edit_images_item.setIcon(utils.gui.icon('image_edit'))
         self._edit_images_item.setShortcut('Ctrl+E')
         self._edit_images_item.triggered.connect(lambda: self._edit_images(self._current_tab().selected_images()))
         edit_menu.addAction(self._edit_images_item)
 
         self._delete_images_item = QtW.QAction(_t('main_window.menu.edit.item.delete_images'), self)
-        self._delete_images_item.setIcon(QtG.QIcon(constants.ICONS_DIR + 'image_delete.png'))
+        self._delete_images_item.setIcon(utils.gui.icon('image_delete'))
         self._delete_images_item.setShortcut('Delete')
         self._delete_images_item.triggered.connect(self._delete_images)
         edit_menu.addAction(self._delete_images_item)
@@ -181,7 +186,7 @@ class Application(QtW.QMainWindow):
         options_menu.addAction(thumb_load_threshold_item)
 
         language_menu = options_menu.addMenu(_t('main_window.menu.options.item.language'))
-        language_menu.setIcon(QtG.QIcon(constants.ICONS_DIR + 'world.png'))
+        language_menu.setIcon(utils.gui.icon('world'))
         langs_group = QtW.QActionGroup(self)
         for lang in i18n_get_languages():
             lang_item = QtW.QAction(lang.name, self)
@@ -195,7 +200,7 @@ class Application(QtW.QMainWindow):
         help_menu = menubar.addMenu(_t('main_window.menu.help.label'))
 
         about_item = QtW.QAction(_t('main_window.menu.help.item.about'), self)
-        about_item.setIcon(QtG.QIcon(constants.ICONS_DIR + 'information.png'))
+        about_item.setIcon(utils.gui.icon('information'))
         about_item.triggered.connect(lambda: AboutDialog(self).show())
         help_menu.addAction(about_item)
 
@@ -354,7 +359,7 @@ class Application(QtW.QMainWindow):
         """Fetches images matching the typed query. Starts a search thread to avoid freezing the whole application."""
         tags = self._input_field.text().strip()
         if len(tags) > 0:
-            self._ok_btn.setEnabled(False)
+            self._search_btn.setEnabled(False)
             self._input_field.setEnabled(False)
             self._thread = _SearchThread(tags)
             self._thread.finished.connect(self._on_fetch_done)
@@ -364,7 +369,7 @@ class Application(QtW.QMainWindow):
         """Called when image searching is done."""
         if self._thread.failed:
             utils.gui.show_error(self._thread.error, parent=self)
-            self._ok_btn.setEnabled(True)
+            self._search_btn.setEnabled(True)
             self._input_field.setEnabled(True)
         else:
             images = self._thread.fetched_images
@@ -385,12 +390,13 @@ class Application(QtW.QMainWindow):
 
             for i in range(2):
                 tab = self._tabbed_pane.widget(i)
-                self._tabbed_pane.setTabText(i, _t(self._TAB_TITLES[i], images_number=len(images)))
+                nb = len(images) if self._tabbed_pane.tabWhatsThis(i) != 'thumbnails' or load_thumbs else 0
+                self._tabbed_pane.setTabText(i, _t(self._TAB_TITLES[i], images_number=nb))
                 tab.clear()
                 if load_thumbs and config.CONFIG.load_thumbnails or not isinstance(tab, ThumbnailList):
                     for image in images:
                         tab.add_image(image)
-            self._ok_btn.setEnabled(True)
+            self._search_btn.setEnabled(True)
             self._input_field.setEnabled(True)
             self._input_field.setFocus()
         self._update_menus()

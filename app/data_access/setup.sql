@@ -16,13 +16,13 @@ create table tags (
   id integer primary key autoincrement,
   label text unique not null,
   type_id integer
-      references tag_types(id) on delete set null
+      references tag_types (id) on delete set null
 );
 
 create table image_tag (
   image_id integer not null
-      references images(id) on delete cascade,
+      references images (id) on delete cascade,
   tag_id integer not null
-      references tags(id) on delete cascade,
+      references tags (id) on delete cascade,
   primary key (image_id, tag_id)
 );

@@ -1,20 +1,20 @@
 """Migrates from database from app version 3.1 to 3.2."""
 import sqlite3
 
-import cv2
-
-from ... import utils
+from ... import utils, constants
 
 
 def migrate(connection: sqlite3.Connection):
-    connection.executescript("""
-    CREATE TABLE db_version (
-      version INTEGER PRIMARY KEY
+    connection.executescript(f"""
+    BEGIN;
+    CREATE TABLE version (
+      db_version INTEGER PRIMARY KEY,
+      app_version TEXT
     );
     ALTER TABLE images ADD COLUMN hash BLOB; -- Cannot use INTEGER as hashes are 64-bit *unsigned* integers
+    CREATE INDEX idx_images_hash ON images (hash); -- Speed up hash querying
     ALTER TABLE tags ADD COLUMN definition TEXT;
-    BEGIN;
-    INSERT INTO db_version (version) VALUES (1);
+    INSERT INTO version (db_version, app_version) VALUES (1, "{constants.VERSION}");
     """)
 
     cursor = connection.execute('SELECT id, path FROM images')

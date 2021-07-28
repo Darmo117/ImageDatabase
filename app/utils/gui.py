@@ -1,7 +1,8 @@
+"""Utility functions to display popup messages and file dialogs, and various functions related to Qt."""
 import os
 import typing as typ
 
-import PyQt5.QtGui as QtGui
+import PyQt5.QtGui as QtG
 import PyQt5.QtWidgets as QtW
 
 from .. import constants, config
@@ -205,10 +206,36 @@ def center(window: QtW.QWidget):
     window.move(rect.topLeft())
 
 
-def negate(color: QtGui.QColor) -> QtGui.QColor:
+def negate(color: QtG.QColor) -> QtG.QColor:
     """Negates the given color.
 
     :param color: The base color.
     :return: The negated color.
     """
-    return QtGui.QColor(255 - color.red(), 255 - color.green(), 255 - color.blue())
+    return QtG.QColor(255 - color.red(), 255 - color.green(), 255 - color.blue())
+
+
+_BLACK = QtG.QColor(0, 0, 0)
+_WHITE = QtG.QColor(255, 255, 255)
+
+
+def font_color(bg_color: QtG.QColor) -> QtG.QColor:
+    """Computes the font color that will yeild the best contrast with the given background color.
+
+    @see
+    https://stackoverflow.com/questions/3942878/how-to-decide-font-color-in-white-or-black-depending-on-background-color
+
+    :param bg_color: Background color.
+    :return: Font color with highest contrast.
+    """
+    luminance = 0.2126 * bg_color.redF() + 0.7152 * bg_color.greenF() + 0.0722 * bg_color.blueF()
+    return _BLACK if luminance > 0.179 else _WHITE
+
+
+def icon(icon_name: str) -> QtG.QIcon:
+    """Returns a QIcon for the given icon name.
+
+    :param icon_name: Icon name.
+    :return: The QIcon object.
+    """
+    return QtG.QIcon(os.path.join(constants.ICONS_DIR, icon_name + '.png'))

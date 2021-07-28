@@ -1,12 +1,11 @@
 import typing as typ
 
-import PyQt5.QtGui as QtG
 import PyQt5.QtWidgets as QtW
 from PyQt5.QtCore import Qt
 
 from .dialog_base import Dialog
 from .tabs import TagsTab, TagTypesTab, CompoundTagsTab
-from ... import config, data_access as da, model, utils, constants
+from ... import config, data_access as da, model, utils
 from ...i18n import translate as _t
 
 
@@ -61,7 +60,7 @@ class EditTagsDialog(Dialog):
         buttons.addStretch(1)
 
         self._add_row_btn = QtW.QPushButton()
-        self._add_row_btn.setIcon(QtG.QIcon(constants.ICONS_DIR + 'plus.png'))
+        self._add_row_btn.setIcon(utils.gui.icon('plus'))
         self._add_row_btn.setToolTip(_t('dialog.edit_tags.add_item_button.tooltip'))
         self._add_row_btn.setFixedSize(24, 24)
         self._add_row_btn.setFocusPolicy(Qt.NoFocus)
@@ -69,7 +68,7 @@ class EditTagsDialog(Dialog):
         buttons.addWidget(self._add_row_btn)
 
         self._delete_row_btn = QtW.QPushButton()
-        self._delete_row_btn.setIcon(QtG.QIcon(constants.ICONS_DIR + 'cross.png'))
+        self._delete_row_btn.setIcon(utils.gui.icon('cross'))
         self._delete_row_btn.setToolTip(_t('dialog.edit_tags.delete_items_button.tooltip'))
         self._delete_row_btn.setFixedSize(24, 24)
         self._delete_row_btn.setFocusPolicy(Qt.NoFocus)
@@ -90,7 +89,10 @@ class EditTagsDialog(Dialog):
         self._search_field.returnPressed.connect(self._search)
         search_layout.addWidget(self._search_field)
 
-        search_btn = QtW.QPushButton(_t('dialog.edit_tags.search_button.label'))
+        search_btn = QtW.QPushButton(
+            utils.gui.icon('search'),
+            _t('dialog.edit_tags.search_button.label')
+        )
         search_btn.clicked.connect(self._search)
         search_layout.addWidget(search_btn)
 
