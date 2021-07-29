@@ -5,7 +5,7 @@ from PyQt5.QtCore import Qt
 
 from .dialog_base import Dialog
 from .tabs import TagsTab, TagTypesTab, CompoundTagsTab
-from ... import config, data_access as da, model, utils
+from ... import data_access as da, model, utils
 from ...i18n import translate as _t
 
 
@@ -15,9 +15,10 @@ class EditTagsDialog(Dialog):
     _COMPOUND_TAGS_TAB = 1
     _TAGS_TAB = 2
 
-    def __init__(self, parent: typ.Optional[QtW.QWidget] = None, editable: bool = True):
+    def __init__(self, tags_dao: da.TagsDao, editable: bool = True, parent: typ.Optional[QtW.QWidget] = None):
         """Creates a dialog.
 
+        :param tags_dao: Tags DAO instance.
         :param parent: The widget this dialog is attached to.
         :param editable: If true tags and types will be editable.
         """
@@ -36,13 +37,12 @@ class EditTagsDialog(Dialog):
             for tab in self._tabs[1:]:
                 tab.delete_types(deleted_types)
 
-        dao = da.TagsDao(config.CONFIG.database_path)
         self._tabs = (
-            TagTypesTab(self, dao, self._editable, selection_changed=self._selection_changed,
+            TagTypesTab(self, tags_dao, self._editable, selection_changed=self._selection_changed,
                         cell_changed=type_cell_changed, rows_deleted=types_deleted),
-            CompoundTagsTab(self, dao, self._editable, selection_changed=self._selection_changed,
+            CompoundTagsTab(self, tags_dao, self._editable, selection_changed=self._selection_changed,
                             cell_changed=self._check_integrity, rows_deleted=self._check_integrity),
-            TagsTab(self, dao, self._editable, selection_changed=self._selection_changed,
+            TagsTab(self, tags_dao, self._editable, selection_changed=self._selection_changed,
                     cell_changed=self._check_integrity, rows_deleted=self._check_integrity)
         )
 

@@ -43,6 +43,11 @@
         "type_item_unclassified": "Non-classées"
       },
       "tab": {
+        "context_menu": {
+          "copy_path": "Copier le chemin",
+          "copy_paths": "Copier les chemins",
+          "select_all": "Tout sélectionner"
+        },
         "paths_list": {
           "title": "Chemins ({images_number})"
         },
@@ -91,6 +96,9 @@
         "title_add": "Ajouter des images ({index}/{total})",
         "title_edit": "Modifier des images ({index}/{total})",
         "title_replace": "Remplacer des images ({index}/{total})",
+        "similarities": {
+          "label": "Images similaires"
+        },
         "replace_button": {
           "label": "Remplacer par…"
         },
@@ -112,7 +120,7 @@
         "finish_button": {
           "label": "Terminer"
         },
-        "target_path": "Chemin : {path}",
+        "target_path": "Dossier cible : {path}",
         "error": {
           "replace_self": "Impossible de remplacer une image par elle-même !",
           "no_tags": "Aucune étiquette renseignée !",
@@ -191,6 +199,29 @@
           "duplicate_tag_name": "Une étiquette avec le même nom existe déjà !"
         }
       },
+      "similar_images": {
+        "title": "Images similaires",
+        "text": "Les images ci-dessous sont peut-être similaires à celle que vous êtes en train d’ajouter.\nLe score de confiance indique à quel point l’application est sure de la similarité de l’image avec celle que vous êtes en train d’ajouter.",
+        "grid": {
+          "header": {
+            "image_path": "Chemin",
+            "image_size": "Taille",
+            "confidence_score": "Confiance"
+          },
+          "open_file_button": {
+            "label": "Afficher"
+          }
+        },
+        "button": {
+          "copy_tags": {
+            "label": "Copier les étiquettes",
+            "tooltip": "Copier les étiquettes de l’image sélectionnée"
+          },
+          "close": {
+            "label": "Fermer"
+          }
+        }
+      },
       "about": {
         "title": "À propos de {app_name}"
       }
@@ -210,6 +241,18 @@
       },
       "empty_directory": {
         "text": "Ce dossier ne contient aucune image !"
+      },
+      "no_files_selected": {
+        "text": "Aucune image sélectionnée !"
+      },
+      "image_registered": {
+        "text": "Cette image a déjà été enregistrée."
+      },
+      "images_registered": {
+        "text": "Toutes ces images ont déjà été enregistrées."
+      },
+      "some_images_registered": {
+        "text": "Certaines de ces images ont déjà été enregistrées ; elles vont être ignorées."
       },
       "similar_images_found": {
         "text": "Certaines images ont peut-être déjà été enregistrées.\nSouhaitez-vous les ajouter quand-même ?"
@@ -257,6 +300,12 @@
       "delete_image_error": {
         "text": "Un ou plusieurs fichiers n’ont pas pu être supprimés :\n{files}"
       },
+      "delete_tag_type_confirm": {
+        "text": "Êtes-vous sur de vouloir supprimer ce type d’étiquettes ?\nLes étiquettes qui présentent se type ne seront pas supprimées."
+      },
+      "delete_tag_confirm": {
+        "text": "Êtes-vous sur de vouloir supprimer cette étiquette ?"
+      },
       "load_thumbs_warning": {
         "title": "Charger les vignettes ?",
         "text": "La requête a retourné plus de {threshold} image(s), les vignettes vont être désactivées.\nVoulez-vous les charger quand-même ? L’application risque de planter si vous procédez."
@@ -271,9 +320,6 @@
       },
       "language_changed": {
         "text": "Nouvelle langue sélectionnée : {lang_name}.\nLe changement ne prendra effet qu’après redémarrage de l’application."
-      },
-      "data_loading_error": {
-        "text": "Impossible de charger les données ! Fermeture de l’application."
       }
     },
     "thread": {

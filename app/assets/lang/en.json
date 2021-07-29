@@ -40,9 +40,22 @@
       },
       "tags_tree": {
         "title": "Tags ({amount})",
-        "type_item_unclassified": "Unclassified"
+        "type_item_unclassified": "Unclassified",
+        "context_menu": {
+          "copy_all": "Copy All",
+          "copy_tags": "Copy Tags",
+          "copy": "Copy",
+          "delete_tag": "Delete Tag",
+          "delete_tag_type": "Delete Tag Type",
+          "insert_tag": "Insert"
+        }
       },
       "tab": {
+        "context_menu": {
+          "copy_path": "Copy Image Path",
+          "copy_paths": "Copy Image Paths",
+          "select_all": "Select All"
+        },
         "paths_list": {
           "title": "Paths ({images_number})"
         },
@@ -91,6 +104,9 @@
         "title_add": "Add Image ({index}/{total})",
         "title_edit": "Edit Image ({index}/{total})",
         "title_replace": "Replace Image ({index}/{total})",
+        "similarities": {
+          "label": "Similar Images"
+        },
         "replace_button": {
           "label": "Replace with…"
         },
@@ -112,7 +128,7 @@
         "finish_button": {
           "label": "Finish"
         },
-        "target_path": "Path: {path}",
+        "target_path": "Destination folder: {path}",
         "error": {
           "replace_self": "Cannot replace image with itself!",
           "no_tags": "No tags specified!",
@@ -191,6 +207,29 @@
           "duplicate_tag_name": "A tag with this name already exists!"
         }
       },
+      "similar_images": {
+        "title": "Similar Images",
+        "text": "The following images may be similar to the one you are currently adding.\nThe confidence score indicates how sure the application is that the image may be similar to the one being added.",
+        "grid": {
+          "header": {
+            "image_path": "Image Path",
+            "image_size": "Image Size",
+            "confidence_score": "Confidence"
+          },
+          "open_file_button": {
+            "label": "Show"
+          }
+        },
+        "button": {
+          "copy_tags": {
+            "label": "Copy tags",
+            "tooltip": "Copy tags of the selected image"
+          },
+          "close": {
+            "label": "Close"
+          }
+        }
+      },
       "about": {
         "title": "About {app_name}"
       }
@@ -210,6 +249,18 @@
       },
       "empty_directory": {
         "text": "No images in this directory!"
+      },
+      "no_files_selected": {
+        "text": "No files selected!"
+      },
+      "image_registered": {
+        "text": "This image has already been registered."
+      },
+      "images_registered": {
+        "text": "All these images have already been registered."
+      },
+      "some_images_registered": {
+        "text": "Some of these images have already been registered; they will be ignored."
       },
       "similar_images_found": {
         "text": "Some images may have already been registered.\nDo you wish to add them anyway?"
@@ -257,6 +308,12 @@
       "delete_image_error": {
         "text": "Could not delete file(s):\n{files}"
       },
+      "delete_tag_type_confirm": {
+        "text": "Are you sure you want to delete this tag type?\nTags that currently have this type will not be deleted."
+      },
+      "delete_tag_confirm": {
+        "text": "Are you sure you want to delete this tag?"
+      },
       "load_thumbs_warning": {
         "title": "Load image thumbnails?",
         "text": "Query returned more than {threshold} image(s), thumbnails will be disabled.\nDo you want to load them anyway? The app may crash as a result."
@@ -271,9 +328,6 @@
       },
       "language_changed": {
         "text": "Language has been set to {lang_name}.\nRestart the application to apply change."
-      },
-      "data_loading_error": {
-        "text": "Could not load data! Shutting down."
       }
     },
     "thread": {

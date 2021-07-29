@@ -1,7 +1,7 @@
 import sqlite3
 import typing as typ
 
-import PyQt5.QtGui as QtGui
+import PyQt5.QtGui as QtG
 
 from .dao import DAO
 from .. import model
@@ -18,15 +18,88 @@ class TagsDao(DAO):
 
         :return: All tag types or None if an exception occured.
         """
+        cursor = self._connection.cursor()
         try:
-            cursor = self._connection.execute('SELECT id, label, symbol, color FROM tag_types')
-            return [model.TagType(t[0], t[1], t[2], QtGui.QColor.fromRgb(t[3])) for t in cursor.fetchall()]
-        except sqlite3.OperationalError as e:
+            cursor.execute('SELECT id, label, symbol, color FROM tag_types')
+        except sqlite3.Error as e:
             logger.exception(e)
+            cursor.close()
+            return None
+        else:
+            types = [model.TagType(t[0], t[1], t[2], QtG.QColor.fromRgb(t[3])) for t in cursor.fetchall()]
+            cursor.close()
+            return types
+
+    def is_special_char(self, c: str) -> bool:
+        """Tells if a character is a type symbol.
+
+        :param c: The character to check.
+        :return: True if the argument is a type symbol.
+        """
+        cursor = self._connection.cursor()
+        try:
+            cursor.execute('SELECT * FROM tag_types WHERE symbol = ?', (c,))
+        except sqlite3.Error as e:
+            logger.exception(e)
+            cursor.close()
+            return False
+        else:
+            special = len(cursor.fetchall()) != 0
+            cursor.close()
+            return special
+
+    def create_tag_from_string(self, s: str) -> model.Tag:
+        """Creates a new Tag instance from a given string.
+
+        :param s: The string to parse.
+        :return: The corresponding tag.
+        """
+        has_type = self.is_special_char(s[0])
+        label = s[1:] if has_type else s
+        tag_type = self.get_tag_type_from_symbol(s[0]) if has_type else None
+        return model.Tag(0, label, tag_type)
+
+    def get_tag_type_from_symbol(self, symbol: str) -> typ.Optional[model.TagType]:
+        """Returns the type with from the given symbol.
+
+        :param symbol: The type symbol.
+        :return: The corresponding type.
+        """
+        cursor = self._connection.cursor()
+        try:
+            cursor.execute('SELECT id, label, symbol, color FROM tag_types WHERE symbol = ?', (symbol,))
+        except sqlite3.Error as e:
+            logger.exception(e)
+            cursor.close()
+            return None
+        else:
+            results = cursor.fetchall()
+            cursor.close()
+            if results:
+                r = results[0]
+                return model.TagType(ident=r[0], label=r[1], symbol=r[2], color=QtG.QColor(r[3]))
             return None
 
-    NORMAL = 0
-    COMPOUND = 1
+    def get_tag_type_from_id(self, ident: int) -> typ.Optional[model.TagType]:
+        """Returns the type with the given ID.
+
+        :param ident: The SQLite ID.
+        :return: The corresponding type.
+        """
+        cursor = self._connection.cursor()
+        try:
+            cursor.execute('SELECT id, label, symbol, color FROM tag_types WHERE id = ?', (ident,))
+        except sqlite3.Error as e:
+            logger.exception(e)
+            cursor.close()
+            return None
+        else:
+            results = cursor.fetchall()
+            cursor.close()
+            if results:
+                r = results[0]
+                return model.TagType(ident=r[0], label=r[1], symbol=r[2], color=QtG.QColor(r[3]))
+            return None
 
     def add_type(self, tag_type: model.TagType) -> bool:
         """Adds a tag type.
@@ -34,13 +107,17 @@ class TagsDao(DAO):
         :param tag_type: The type to add.
         :return: True if the type was added or None if an exception occured.
         """
+        cursor = self._connection.cursor()
         try:
-            self._connection.execute('INSERT INTO tag_types (label, symbol, color) VALUES (?, ?, ?)',
-                                     (tag_type.label, tag_type.symbol, tag_type.color.rgb()))
-            return True
-        except (sqlite3.OperationalError, sqlite3.IntegrityError) as e:
+            cursor.execute('INSERT INTO tag_types (label, symbol, color) VALUES (?, ?, ?)',
+                           (tag_type.label, tag_type.symbol, tag_type.color.rgb()))
+        except sqlite3.Error as e:
             logger.exception(e)
+            cursor.close()
             return False
+        else:
+            cursor.close()
+            return True
 
     def update_type(self, tag_type: model.TagType) -> bool:
         """Updates a tag type.
@@ -48,13 +125,17 @@ class TagsDao(DAO):
         :param tag_type: The tag type to update.
         :return: True if the type was updated.
         """
+        cursor = self._connection.cursor()
         try:
-            self._connection.execute('UPDATE tag_types SET label = ?, symbol = ?, color = ? WHERE id = ?',
-                                     (tag_type.label, tag_type.symbol, tag_type.color.rgb(), tag_type.id))
-            return True
-        except (sqlite3.OperationalError, sqlite3.IntegrityError) as e:
+            cursor.execute('UPDATE tag_types SET label = ?, symbol = ?, color = ? WHERE id = ?',
+                           (tag_type.label, tag_type.symbol, tag_type.color.rgb(), tag_type.id))
+        except sqlite3.Error as e:
             logger.exception(e)
+            cursor.close()
             return False
+        else:
+            cursor.close()
+            return True
 
     def delete_type(self, type_id: int) -> bool:
         """Deletes the given tag type.
@@ -62,12 +143,16 @@ class TagsDao(DAO):
         :param type_id: ID of the tag type to delete.
         :return: True if the type was deleted.
         """
+        cursor = self._connection.cursor()
         try:
-            self._connection.execute('DELETE FROM tag_types WHERE id = ?', (type_id,))
-            return True
-        except sqlite3.OperationalError as e:
+            cursor.execute('DELETE FROM tag_types WHERE id = ?', (type_id,))
+        except sqlite3.Error as e:
             logger.exception(e)
+            cursor.close()
             return False
+        else:
+            cursor.close()
+            return True
 
     def get_all_tags(self, tag_class: typ.Type[_T] = None, sort_by_label: bool = False, get_count: bool = False) \
             -> typ.Optional[typ.Union[typ.List[typ.Tuple[_T, int]], typ.List[_T]]]:
@@ -78,18 +163,23 @@ class TagsDao(DAO):
         :param get_count: If true, result will be a list of tuples containing the tag and its use count.
         :return: The list of tags or tag/count pairs or None if an exception occured.
         """
+        query = 'SELECT id, label, type_id, definition'
+        if get_count:
+            query += ', (SELECT COUNT(tag_id) FROM image_tag WHERE tags.id = tag_id) AS count'
+        query += ' FROM tags'
+        if sort_by_label:
+            query += ' ORDER BY label'
+        cursor = self._connection.cursor()
         try:
-            query = 'SELECT id, label, type_id, definition'
-            if get_count:
-                query += ', (SELECT COUNT(tag_id) FROM image_tag WHERE tags.id = tag_id) AS count'
-            query += ' FROM tags'
-            if sort_by_label:
-                query += ' ORDER BY label'
-            cursor = self._connection.execute(query)
-
+            cursor.execute(query)
+        except sqlite3.Error as e:
+            logger.exception(e)
+            cursor.close()
+            return None
+        else:
             def row_to_tag(row: typ.Tuple[int, str, int, str, int]) \
                     -> typ.Optional[typ.Union[typ.Tuple[model.Tag, int], model.Tag]]:
-                tag_type = model.TagType.from_id(row[2]) if row[2] is not None else None
+                tag_type = self.get_tag_type_from_id(row[2]) if row[2] is not None else None
                 if row[3] is None and (tag_class == model.Tag or tag_class is None):
                     tag = model.Tag(row[0], row[1], tag_type)
                 elif row[3] is not None and (tag_class == model.CompoundTag or tag_class is None):
@@ -98,10 +188,32 @@ class TagsDao(DAO):
                     return None
                 return (tag, int(row[4])) if get_count else tag
 
-            return list(filter(lambda t: t is not None, map(row_to_tag, cursor.fetchall())))
-        except sqlite3.OperationalError as e:
+            tags = list(filter(lambda t: t is not None, map(row_to_tag, cursor.fetchall())))
+            cursor.close()
+            return tags
+
+    def get_all_tag_types(self, sort_by_symbol: bool = False) -> typ.List[model.TagType]:
+        """Returns all tag types.
+
+        :param sort_by_symbol: Whether to sort types by symbol along with labels.
+        :return: All currently defined tag types.
+        """
+        cursor = self._connection.cursor()
+        try:
+            cursor.execute(
+                'SELECT id, label, symbol, color FROM tag_types ORDER BY label' + (', symbol' if sort_by_symbol else '')
+            )
+        except sqlite3.Error as e:
             logger.exception(e)
-            return None
+            cursor.close()
+            return []
+        else:
+            results = cursor.fetchall()
+            cursor.close()
+            types = []
+            for ident, label, symbol, color in results:
+                types.append(model.TagType(ident=ident, label=label, symbol=symbol, color=QtG.QColor(color)))
+            return types
 
     def tag_exists(self, tag_id: int, tag_name: str) -> typ.Optional[bool]:
         """Checks wether a tag with the same name exists.
@@ -110,12 +222,17 @@ class TagsDao(DAO):
         :param tag_name: Tag’s name.
         :return: True if a tag with the same name already exists.
         """
+        cursor = self._connection.cursor()
         try:
-            return self._connection.execute('SELECT COUNT(*) FROM tags WHERE label = ? AND id != ?',
-                                            (tag_name, tag_id)).fetchall()[0][0] != 0
-        except sqlite3.OperationalError as e:
+            cursor.execute('SELECT COUNT(*) FROM tags WHERE label = ? AND id != ?', (tag_name, tag_id))
+        except sqlite3.Error as e:
             logger.exception(e)
+            cursor.close()
             return None
+        else:
+            exists = cursor.fetchall()[0][0] != 0
+            cursor.close()
+            return exists
 
     def get_tag_class(self, tag_name: str) -> typ.Union[typ.Type[model.Tag], typ.Type[model.CompoundTag], None]:
         """Returns the type of the given tag if any.
@@ -123,15 +240,19 @@ class TagsDao(DAO):
         :param tag_name: Tag’s name.
         :return: Tag’s class or None if tag doesn't exist.
         """
+        cursor = self._connection.cursor()
         try:
-            cursor = self._connection.execute('SELECT definition FROM tags WHERE label = ?', (tag_name,))
+            cursor.execute('SELECT definition FROM tags WHERE label = ?', (tag_name,))
+        except sqlite3.Error as e:
+            logger.exception(e)
+            cursor.close()
+            return None
+        else:
             results = cursor.fetchall()
+            cursor.close()
             if len(results) == 0:
                 return None
             return model.Tag if results[0][0] is None else model.CompoundTag
-        except (sqlite3.OperationalError, sqlite3.IntegrityError) as e:
-            logger.exception(e)
-            return None
 
     def add_compound_tag(self, tag: model.CompoundTag) -> bool:
         """Adds a compound tag.
@@ -139,13 +260,17 @@ class TagsDao(DAO):
         :param tag: The compound tag to add.
         :return: True if the type was added or None if an exception occured.
         """
+        cursor = self._connection.cursor()
         try:
-            self._connection.execute('INSERT INTO tags (label, type_id, definition) VALUES (?, ?, ?)',
-                                     (tag.label, tag.type.id if tag.type is not None else None, tag.definition))
-            return True
-        except (sqlite3.OperationalError, sqlite3.IntegrityError) as e:
+            cursor.execute('INSERT INTO tags (label, type_id, definition) VALUES (?, ?, ?)',
+                           (tag.label, tag.type.id if tag.type is not None else None, tag.definition))
+        except sqlite3.Error as e:
             logger.exception(e)
+            cursor.close()
             return False
+        else:
+            cursor.close()
+            return True
 
     def update_tag(self, tag: model.Tag) -> bool:
         """Updates the given tag.
@@ -153,18 +278,22 @@ class TagsDao(DAO):
         :param tag: The tag to update.
         :return: True if the tag was updated.
         """
+        tag_type = tag.type.id if tag.type is not None else None
+        cursor = self._connection.cursor()
         try:
-            tag_type = tag.type.id if tag.type is not None else None
             if isinstance(tag, model.CompoundTag):
-                self._connection.execute('UPDATE tags SET label = ?, type_id = ?, definition = ? WHERE id = ?',
-                                         (tag.label, tag_type, tag.definition, tag.id))
+                cursor.execute('UPDATE tags SET label = ?, type_id = ?, definition = ? WHERE id = ?',
+                               (tag.label, tag_type, tag.definition, tag.id))
             else:
-                self._connection.execute('UPDATE tags SET label = ?, type_id = ? WHERE id = ?',
-                                         (tag.label, tag_type, tag.id))
-            return True
-        except (sqlite3.OperationalError, sqlite3.IntegrityError) as e:
+                cursor.execute('UPDATE tags SET label = ?, type_id = ? WHERE id = ?',
+                               (tag.label, tag_type, tag.id))
+        except sqlite3.Error as e:
             logger.exception(e)
+            cursor.close()
             return False
+        else:
+            cursor.close()
+            return True
 
     def delete_tag(self, tag_id: int) -> bool:
         """Deletes the given tag.
@@ -172,9 +301,13 @@ class TagsDao(DAO):
         :param tag_id: ID of the tag to delete.
         :return: True if the tag was deleted.
         """
+        cursor = self._connection.cursor()
         try:
-            self._connection.execute('DELETE FROM tags WHERE id = ?', (tag_id,))
-            return True
-        except sqlite3.OperationalError as e:
+            cursor.execute('DELETE FROM tags WHERE id = ?', (tag_id,))
+        except sqlite3.Error as e:
             logger.exception(e)
+            cursor.close()
             return False
+        else:
+            cursor.close()
+            return True

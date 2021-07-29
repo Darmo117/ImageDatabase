@@ -35,8 +35,6 @@ class TagType:
     """This class represents a tag type."""
     LABEL_PATTERN = re.compile(r'^\S.*$')
     SYMBOL_PATTERN = re.compile(r'^[^\w+()\\:-]$')
-    SYMBOL_TYPES = {}
-    ID_TYPES = {}
 
     def __init__(self, ident: int, label: str, symbol: str, color: QtG.QColor = QtG.QColor(0, 0, 0)):
         """Creates a tag type.
@@ -84,45 +82,6 @@ class TagType:
     def __repr__(self):
         return f'TagType{{id={self.id}, label={self.label}, symbol={self.symbol}, color={self.color.name()}}}'
 
-    @staticmethod
-    def init(types: typ.Iterable[TagType]):
-        """Initializes all available tag types.
-
-        :param types: The available types.
-        """
-        TagType.SYMBOL_TYPES.clear()
-        TagType.ID_TYPES.clear()
-        for tag_type in types:
-            TagType.SYMBOL_TYPES[tag_type.symbol] = tag_type
-            TagType.ID_TYPES[tag_type.id] = tag_type
-
-    @staticmethod
-    def is_special_char(c: str) -> bool:
-        """Tells if a character is a type symbol.
-
-        :param c: The character to check.
-        :return: True if the argument is a type symbol.
-        """
-        return c in TagType.SYMBOL_TYPES
-
-    @staticmethod
-    def from_symbol(symbol: str) -> TagType:
-        """Returns the type with from the given symbol.
-
-        :param symbol: The type symbol.
-        :return: The corresponding type.
-        """
-        return TagType.SYMBOL_TYPES[symbol]
-
-    @staticmethod
-    def from_id(ident: int) -> TagType:
-        """Returns the type with the given ID.
-
-        :param ident: The SQLite ID.
-        :return: The corresponding type.
-        """
-        return TagType.ID_TYPES[ident]
-
 
 class Tag:
     """This class represents an image tag. Tags can be associated to a type."""
@@ -169,19 +128,6 @@ class Tag:
         if not isinstance(other, Tag):
             return False
         return self.id == other.id and self.label == other.label and self.type == other.type
-
-    @classmethod
-    def from_string(cls, s: str) -> Tag:
-        """Returns a tag instance from a given string.
-
-        :param s: The string to parse.
-        :return: The corresponding tag.
-        :rtype: Tag
-        """
-        has_type = TagType.is_special_char(s[0])
-        label = s[1:] if has_type else s
-        tag_type = TagType.from_symbol(s[0]) if has_type else None
-        return cls(0, label, tag_type)
 
 
 class CompoundTag(Tag):

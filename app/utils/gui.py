@@ -1,5 +1,7 @@
 """Utility functions to display popup messages and file dialogs, and various functions related to Qt."""
 import os
+import platform
+import subprocess
 import typing as typ
 
 import PyQt5.QtGui as QtG
@@ -206,6 +208,21 @@ def center(window: QtW.QWidget):
     window.move(rect.topLeft())
 
 
+def show_file(file_path: str):
+    """Shows the given file in the system’s file explorer."""
+    path = os.path.realpath(file_path)
+    os_name = platform.system().lower()
+    if os_name == 'windows':
+        subprocess.Popen(f'explorer /select,"{path}"')
+    elif os_name == 'linux':
+        command = ['dbus-send', '--dest=org.freedesktop.FileManager1', '--type=method_call',
+                   '/org/freedesktop/FileManager1', 'org.freedesktop.FileManager1.ShowItems',
+                   f'array:string:{path}', 'string:""']
+        subprocess.Popen(command)
+    elif os_name == 'darwin':  # OS-X
+        subprocess.Popen(['open', path])
+
+
 def negate(color: QtG.QColor) -> QtG.QColor:
     """Negates the given color.
 
@@ -235,7 +252,19 @@ def font_color(bg_color: QtG.QColor) -> QtG.QColor:
 def icon(icon_name: str) -> QtG.QIcon:
     """Returns a QIcon for the given icon name.
 
-    :param icon_name: Icon name.
+    :param icon_name: Icon name, without file extension.
     :return: The QIcon object.
     """
     return QtG.QIcon(os.path.join(constants.ICONS_DIR, icon_name + '.png'))
+
+
+def get_key_sequence(event: QtG.QKeyEvent) -> QtG.QKeySequence:
+    """Returns a QKeySequence object for the keystroke of the given event."""
+    # noinspection PyTypeChecker
+    return QtG.QKeySequence(event.modifiers() | event.key())
+
+
+def event_matches_action(event: QtG.QKeyEvent, action: QtW.QAction) -> bool:
+    """Checks whether the keystroke of the given event exactly matches any of the shortcuts of the given action."""
+    ks = get_key_sequence(event)
+    return any([s.matches(ks) == QtG.QKeySequence.ExactMatch for s in action.shortcuts()])

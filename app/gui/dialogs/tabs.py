@@ -43,7 +43,7 @@ class Tab(abc.ABC, typ.Generic[_Type]):
         """
         self._initialized = False
         self._owner = owner
-        self._dao = dao
+        self._tags_dao = dao
         self._title = title
         self._addable = addable
         self._deletable = deletable
@@ -303,7 +303,7 @@ class TagTypesTab(Tab[model.TagType]):
             _t('dialog.edit_tags.tab.tag_types.table.header.color'),
         ])
 
-        self._values = sorted(model.TagType.SYMBOL_TYPES.values(), key=lambda t: t.label)
+        self._values = self._tags_dao.get_all_tag_types()
         self._table.setRowCount(len(self._values))
 
         for i, tag_type in enumerate(self._values):
@@ -313,12 +313,10 @@ class TagTypesTab(Tab[model.TagType]):
 
     def apply(self) -> bool:
         ok = True
-        update = False
 
         to_keep = []
         for row in self._added_rows:
-            update = True
-            res = self._dao.add_type(self.get_value(row))
+            res = self._tags_dao.add_type(self.get_value(row))
             if not res:
                 to_keep.append(row)
             ok &= res
@@ -326,8 +324,7 @@ class TagTypesTab(Tab[model.TagType]):
 
         to_keep = []
         for row in self._deleted_rows:
-            update = True
-            res = self._dao.delete_type(self.get_value(row).id)
+            res = self._tags_dao.delete_type(self.get_value(row).id)
             if not res:
                 to_keep.append(row)
             ok &= res
@@ -335,15 +332,11 @@ class TagTypesTab(Tab[model.TagType]):
 
         to_keep = []
         for row in self._changed_rows:
-            update = True
-            res = self._dao.update_type(self.get_value(row))
+            res = self._tags_dao.update_type(self.get_value(row))
             if not res:
                 to_keep.append(row)
             ok &= res
         self._changed_rows = set(to_keep)
-
-        if update:
-            model.TagType.init(self._dao.get_all_types())
 
         return ok
 
@@ -505,7 +498,7 @@ class _TagsTab(Tab[_TagType], typ.Generic[_TagType], metaclass=abc.ABCMeta):
         self._table.setColumnWidth(0, 30)
         self._table.setHorizontalHeaderLabels(self._columns)
 
-        self._values = self._dao.get_all_tags(self._tag_class, sort_by_label=True, get_count=True)
+        self._values = self._tags_dao.get_all_tags(self._tag_class, sort_by_label=True, get_count=True)
         self._table.setRowCount(len(self._values) if self._values is not None else 0)
 
         if self._values is not None:
@@ -523,7 +516,7 @@ class _TagsTab(Tab[_TagType], typ.Generic[_TagType], metaclass=abc.ABCMeta):
 
         to_keep = []
         for row in self._added_rows:
-            res = self._dao.add_compound_tag(self.get_value(row))
+            res = self._tags_dao.add_compound_tag(self.get_value(row))
             if not res:
                 to_keep.append(row)
             ok &= res
@@ -531,7 +524,7 @@ class _TagsTab(Tab[_TagType], typ.Generic[_TagType], metaclass=abc.ABCMeta):
 
         to_keep = []
         for row in self._deleted_rows:
-            res = self._dao.delete_tag(self.get_value(row).id)
+            res = self._tags_dao.delete_tag(self.get_value(row).id)
             if not res:
                 to_keep.append(row)
             ok &= res
@@ -539,7 +532,7 @@ class _TagsTab(Tab[_TagType], typ.Generic[_TagType], metaclass=abc.ABCMeta):
 
         to_keep = []
         for row in self._changed_rows:
-            res = self._dao.update_tag(self.get_value(row))
+            res = self._tags_dao.update_tag(self.get_value(row))
             if not res:
                 to_keep.append(row)
             ok &= res
@@ -561,7 +554,7 @@ class _TagsTab(Tab[_TagType], typ.Generic[_TagType], metaclass=abc.ABCMeta):
                 if cell.currentIndex() != 0:
                     ident = self._id_from_combo(cell.currentText())
                     if ident is not None:
-                        args[arg] = model.TagType.from_id(ident)
+                        args[arg] = self._tags_dao.get_tag_type_from_id(ident)
             else:
                 args[arg] = cell.text() if arg != 'ident' else int(cell.text())
 
@@ -635,8 +628,7 @@ class _TagsTab(Tab[_TagType], typ.Generic[_TagType], metaclass=abc.ABCMeta):
             combo.setWhatsThis('tag_type')
             combo.setProperty('row', row)
             combo.addItem(_t('dialog.edit_tags.tab.tags_common.table.combo_no_type'))
-            types = sorted(model.TagType.SYMBOL_TYPES.values(), key=lambda t: t.label)
-            for tag_type in types:
+            for tag_type in self._tags_dao.get_all_tag_types():
                 combo.addItem(self._get_combo_text(tag_type.id, tag_type.label))
             if defined and tag.type is not None:
                 combo.setCurrentIndex(combo.findText(self._get_combo_text(tag.type.id, tag.type.label)))
@@ -685,7 +677,7 @@ class _TagsTab(Tab[_TagType], typ.Generic[_TagType], metaclass=abc.ABCMeta):
             if model.Tag.LABEL_PATTERN.match(text) is None:
                 return False, _t('dialog.edit_tags.error.invalid_tag_name')
             tag_id = int(self._table.item(row, 0).text())
-            if self._dao.tag_exists(tag_id, text):
+            if self._tags_dao.tag_exists(tag_id, text):
                 return False, _t('dialog.edit_tags.error.duplicate_tag_name')
         return True, ''
 

@@ -1,7 +1,5 @@
 import os
-import platform
 import shutil
-import subprocess
 import typing as typ
 
 import PyQt5.QtGui as QtG
@@ -10,8 +8,9 @@ from PyQt5.QtCore import Qt
 
 from .dialog_base import Dialog
 from .edit_tags_dialog import EditTagsDialog
+from .similar_images_dialog import SimilarImagesDialog
 from ..components import Canvas, EllipsisLabel
-from ... import config, data_access as da, model, utils
+from ... import data_access as da, model, utils
 from ...i18n import translate as _t
 
 
@@ -27,9 +26,12 @@ class EditImageDialog(Dialog):
         'dialog.edit_image.title_replace',
     ]
 
-    def __init__(self, parent: QtW.QWidget = None, mode: int = EDIT, show_skip: bool = False):
+    def __init__(self, image_dao: da.ImageDao, tags_dao: da.TagsDao, parent: QtW.QWidget = None, mode: int = EDIT,
+                 show_skip: bool = False):
         """Creates an edition dialog.
 
+        :param image_dao: Image DAO instance.
+        :param tags_dao: Tags DAO instance.
         :param parent: The widget this dialog is attached to.
         :param mode: Either EDIT, ADD or REPLACE.
         :param show_skip: If true a 'Skip' button will be added.
@@ -44,34 +46,55 @@ class EditImageDialog(Dialog):
 
         self._index = -1
         self._images: typ.List[model.Image] = []
-        self._tags = {}
+        self._tags: typ.Dict[int, typ.List[model.Tag]] = {}
 
         super().__init__(parent=parent, title=self._get_title(), modal=True)
 
         self._destination = None
         self._tags_changed = False
         self._image_to_replace = None
+        self._similar_images: typ.List[typ.Tuple[model.Image, float]] = []
 
-        self._dao = da.ImageDao(config.CONFIG.database_path)
+        self._image_dao = image_dao
+        self._tags_dao = tags_dao
         self._tags_dialog = None
 
     def _init_body(self) -> QtW.QLayout:
-        self.setGeometry(0, 0, 600, 600)
-        self.setMinimumSize(400, 400)
+        self.setGeometry(0, 0, 800, 600)
+        self.setMinimumSize(800, 600)
 
-        splitter = QtW.QSplitter()
+        splitter = QtW.QSplitter(parent=self)
         splitter.setOrientation(Qt.Vertical)
 
+        top_layout = QtW.QVBoxLayout()
+        self._image_path_lbl = EllipsisLabel('', parent=self)
+        top_layout.addWidget(self._image_path_lbl)
+
         self._canvas = Canvas()
-        splitter.addWidget(self._canvas)
+        top_layout.addWidget(self._canvas)
+
+        top_widget = QtW.QWidget(parent=self)
+        top_widget.setLayout(top_layout)
+
+        splitter.addWidget(top_widget)
 
         bottom_layout = QtW.QVBoxLayout()
 
         buttons_layout = QtW.QHBoxLayout()
-        buttons_layout.addStretch(1)
 
-        self._dest_label = EllipsisLabel()
+        self._dest_label = EllipsisLabel(parent=self)
         buttons_layout.addWidget(self._dest_label)
+
+        buttons_layout.addStretch()
+
+        self._similarities_btn = QtW.QPushButton(
+            utils.gui.icon('compare_images'),
+            _t('dialog.edit_image.similarities.label'),
+            parent=self
+        )
+        self._similarities_btn.clicked.connect(self._on_show_similarities_dialog)
+        buttons_layout.addWidget(self._similarities_btn)
+        self._similarities_btn.hide()  # Show only when relevant
 
         if self._mode == EditImageDialog.REPLACE:
             icon = 'replace_image'
@@ -79,18 +102,20 @@ class EditImageDialog(Dialog):
         else:
             icon = 'move_to_directory'
             text = _t('dialog.edit_image.move_to_button.label')
-        self._dest_btn = QtW.QPushButton(utils.gui.icon(icon), text)
+        self._dest_btn = QtW.QPushButton(utils.gui.icon(icon), text, parent=self)
         self._dest_btn.clicked.connect(self._on_dest_button_clicked)
         buttons_layout.addWidget(self._dest_btn)
         b = QtW.QPushButton(
             utils.gui.icon('tag'),
-            _t('dialog.edit_image.tags_button.label')
+            _t('dialog.edit_image.tags_button.label'),
+            parent=self
         )
         b.clicked.connect(self._show_tags_dialog)
         buttons_layout.addWidget(b)
         b = QtW.QPushButton(
             utils.gui.icon('image_in_directory'),
-            _t('dialog.edit_image.show_directory_button.label')
+            _t('dialog.edit_image.show_directory_button.label'),
+            parent=self
         )
         b.clicked.connect(self._open_image_directory)
         buttons_layout.addWidget(b)
@@ -100,8 +125,8 @@ class EditImageDialog(Dialog):
         class CustomTextEdit(QtW.QTextEdit):
             """Custom class to catch Ctrl+Enter events."""
 
-            def __init__(self, dialog: EditImageDialog):
-                super().__init__()
+            def __init__(self, dialog: EditImageDialog, parent: QtW.QWidget = None):
+                super().__init__(parent=parent)
                 self._dialog = dialog
 
             def keyPressEvent(self, e):
@@ -110,7 +135,7 @@ class EditImageDialog(Dialog):
                 else:
                     super().keyPressEvent(e)
 
-        self._tags_input = CustomTextEdit(self)
+        self._tags_input = CustomTextEdit(self, parent=self)
         self._tags_input.textChanged.connect(self._text_changed)
         if self._mode == EditImageDialog.REPLACE:
             self._tags_input.setDisabled(True)
@@ -136,7 +161,8 @@ class EditImageDialog(Dialog):
         if self._show_skip:
             self._skip_btn = QtW.QPushButton(
                 self.style().standardIcon(QtW.QStyle.SP_ArrowRight),
-                _t('dialog.edit_image.skip_button.label')
+                _t('dialog.edit_image.skip_button.label'),
+                parent=self
             )
             self._skip_btn.clicked.connect(self._next)
             return [self._skip_btn]
@@ -144,22 +170,12 @@ class EditImageDialog(Dialog):
 
     def _show_tags_dialog(self):
         if self._tags_dialog is None:
-            self._tags_dialog = EditTagsDialog(parent=self, editable=False)
+            self._tags_dialog = EditTagsDialog(self._tags_dao, editable=False, parent=self)
         self._tags_dialog.show()
 
     def _open_image_directory(self):
         """Shows the current image in the system’s file explorer."""
-        path = os.path.realpath(self._images[self._index].path)
-        os_name = platform.system().lower()
-        if os_name == 'windows':
-            subprocess.Popen(f'explorer /select,"{path}"')
-        elif os_name == 'linux':
-            command = ['dbus-send', '--dest=org.freedesktop.FileManager1', '--type=method_call',
-                       '/org/freedesktop/FileManager1', 'org.freedesktop.FileManager1.ShowItems',
-                       f'array:string:{path}', 'string:""']
-            subprocess.Popen(command)
-        elif os_name == 'darwin':  # OS-X
-            subprocess.Popen(['open', path])
+        utils.gui.show_file(self._images[self._index].path)
 
     def set_images(self, images: typ.List[model.Image], tags: typ.Dict[int, typ.List[model.Tag]]):
         """Sets the images to display. If more than one image are given, they will be displayed one after another when
@@ -185,19 +201,29 @@ class EditImageDialog(Dialog):
         """Sets the current image."""
         image = self._images[index]
 
+        self._image_path_lbl.setText(image.path)
+        self._image_path_lbl.setToolTip(image.path)
+
         if self._mode == EditImageDialog.REPLACE:
             self._tags_input.setDisabled(False)
         if self._mode != EditImageDialog.ADD:
-            self._tags_input.clear()
             tags = []
             if image.id in self._tags:
-                tags = sorted([tag.raw_label() for tag in self._tags[image.id]])
-            self._tags_input.append(' '.join(tags))
+                tags = self._tags[image.id]
+            self._set_tags(tags)
         if self._mode == EditImageDialog.REPLACE:
             self._tags_input.setDisabled(True)
         self._tags_changed = False
 
         self._canvas.set_image(image.path)
+
+        if self._mode == EditImageDialog.ADD:
+            similar_images = self._image_dao.get_similar_images(image.path)
+            self._similar_images = [(image, score) for image, _, score, same_path in similar_images if not same_path]
+            if self._similar_images:
+                self._similarities_btn.show()
+            else:
+                self._similarities_btn.hide()
 
         if self._index == len(self._images) - 1:
             if self._skip_btn:
@@ -208,10 +234,21 @@ class EditImageDialog(Dialog):
 
         self.setWindowTitle(self._get_title())
 
+    def _set_tags(self, tags: typ.List[model.Tag]):
+        self._tags_input.setText(' '.join(sorted([tag.raw_label() for tag in tags])))
+
     def _next(self):
         """Goes to the next image."""
         self._index += 1
         self._set(self._index)
+
+    def _on_show_similarities_dialog(self):
+        dialog = SimilarImagesDialog(self._similar_images, self._image_dao, self._tags_dao, parent=self)
+        dialog.set_on_close_action(self._on_similarities_dialog_closed)
+        dialog.show()
+
+    def _on_similarities_dialog_closed(self, dialog: SimilarImagesDialog):
+        self._set_tags(dialog.get_tags())
 
     def _on_dest_button_clicked(self):
         """Opens a directory chooser then sets the destination path to the one selected if any."""
@@ -240,13 +277,12 @@ class EditImageDialog(Dialog):
         self._tags_changed = True
 
     def _get_tags(self) -> typ.List[model.Tag]:
-        return [model.Tag.from_string(t) for t in self._tags_input.toPlainText().split()]
+        return [self._tags_dao.create_tag_from_string(t) for t in self._tags_input.toPlainText().split()]
 
     def _ensure_no_compound_tags(self) -> bool:
-        tags_dao = da.TagsDao(database=config.CONFIG.database_path)
         for tag in self._tags_input.toPlainText().split():
             t = tag if tag[0].isalnum() or tag[0] == '_' else tag[1:]
-            if tags_dao.get_tag_class(t) == model.CompoundTag:
+            if self._tags_dao.get_tag_class(t) == model.CompoundTag:
                 return False
         return True
 
@@ -312,7 +348,7 @@ class EditImageDialog(Dialog):
         :param new_path: If present the image will be moved in this directory.
         :return: True if everything went well.
         """
-        ok = self._dao.add_image(image.path if new_path is None else new_path, tags)
+        ok = self._image_dao.add_image(image.path if new_path is None else new_path, tags)
         if new_path is not None and ok:
             ok = self._move_image(image.path, new_path)
         return ok
@@ -326,11 +362,11 @@ class EditImageDialog(Dialog):
         :return: True if everything went well.
         """
         if self._tags_changed:
-            ok = self._dao.update_image_tags(image.id, tags)
+            ok = self._image_dao.update_image_tags(image.id, tags)
         else:
             ok = True
         if ok and new_path is not None:
-            ok = self._dao.update_image_path(image.id, new_path)
+            ok = self._image_dao.update_image_path(image.id, new_path)
             if ok:
                 ok = self._move_image(image.path, new_path)
         return ok
@@ -344,7 +380,7 @@ class EditImageDialog(Dialog):
             os.remove(self._image_to_replace)
         except FileNotFoundError:
             return False
-        return self._dao.update_image_path(self._images[0].id, self._destination)
+        return self._image_dao.update_image_path(self._images[0].id, self._destination)
 
     def _move_image(self, path: str, new_path: str) -> bool:
         """Moves an image to a specific directory.

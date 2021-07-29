@@ -19,7 +19,9 @@ from ..logging import logger
 class Application(QtW.QMainWindow):
     """Application's main class."""
 
-    # noinspection PyArgumentList
+    _PATHS_TAB = 'paths'
+    _THUMBS_TAB = 'thumnails'
+
     def __init__(self):
         super().__init__()
 
@@ -28,7 +30,7 @@ class Application(QtW.QMainWindow):
             'main_window.tab.thumbnails_list.title',
         )
 
-        self._dao = da.ImageDao(config.CONFIG.database_path)
+        self._image_dao = da.ImageDao(config.CONFIG.database_path)
         self._tags_dao = da.TagsDao(config.CONFIG.database_path)
 
         self.setAcceptDrops(True)
@@ -47,30 +49,30 @@ class Application(QtW.QMainWindow):
 
         self.setCentralWidget(QtW.QWidget())
 
-        self._tag_tree = TagTree()
-        self._tag_tree.itemDoubleClicked.connect(self._tree_item_clicked)
+        self._tag_tree = TagTree(self._on_delete_item, self._on_insert_tag, parent=self)
 
-        path_list = ImageList(self._list_selection_changed, lambda image: self._edit_images([image]))
-        thumb_list = ThumbnailList(self._list_selection_changed, lambda image: self._edit_images([image]))
+        path_list = ImageList(self._list_selection_changed, lambda image: self._edit_images([image]), parent=self)
+        thumb_list = ThumbnailList(self._list_selection_changed, lambda image: self._edit_images([image]), parent=self)
 
-        self._tabbed_pane = QtW.QTabWidget()
+        self._tabbed_pane = QtW.QTabWidget(parent=self)
         self._tabbed_pane.addTab(path_list, _t(self._TAB_TITLES[0], images_number=0))
-        self._tabbed_pane.setTabWhatsThis(0, 'paths')
+        self._tabbed_pane.setTabWhatsThis(0, self._PATHS_TAB)
         self._tabbed_pane.addTab(thumb_list, _t(self._TAB_TITLES[1], images_number=0))
-        self._tabbed_pane.setTabWhatsThis(1, 'thumbnails')
+        self._tabbed_pane.setTabWhatsThis(1, self._THUMBS_TAB)
         self._tabbed_pane.currentChanged.connect(self._on_tab_changed)
 
         self._search_btn = QtW.QPushButton(
             utils.gui.icon('search'),
-            _t('main_window.query_form.search_button.label')
+            _t('main_window.query_form.search_button.label'),
+            parent=self
         )
         self._search_btn.clicked.connect(self._fetch_images)
 
-        self._input_field = AutoCompleteLineEdit()
+        self._input_field = AutoCompleteLineEdit(parent=self)
         self._input_field.setPlaceholderText(_t('main_window.query_form.text_field.placeholder'))
         self._input_field.returnPressed.connect(self._fetch_images)
 
-        splitter = QtW.QSplitter()
+        splitter = QtW.QSplitter(parent=self)
 
         left_layout = QtW.QHBoxLayout()
         left_layout.addWidget(self._tag_tree)
@@ -214,35 +216,60 @@ class Application(QtW.QMainWindow):
     def _add_image(self):
         """Opens a file chooser then adds the selected images to the database."""
         files = utils.gui.open_image_chooser(self)
-        if files:
-            self._add_images(files)
+        if files is not None:
+            if len(files) == 0:
+                utils.gui.show_info(_t('popup.no_files_selected.text'), parent=self)
+            else:
+                self._add_images(files)
 
     def _add_directory(self):
         """Opens a file chooser then adds the images from the selected directory to the database."""
-        images = utils.gui.open_directory_chooser(self)
-        if images is not None:
-            if len(images) == 0:
+        files = utils.gui.open_directory_chooser(self)
+        if files is not None:
+            if len(files) == 0:
                 utils.gui.show_info(_t('popup.empty_directory.text'), parent=self)
             else:
-                self._add_images(images)
+                self._add_images(files)
 
-    def _add_images(self, images: typ.List[str]):
-        """Opens the 'Add Images' dialog then adds the images to the database. Checks for duplicates."""
-        if len(images) > 0:
+    def _add_images(self, image_paths: typ.List[str]):
+        """Opens the 'Add Images' dialog then adds the images to the database.
+        Checks for potential duplicates.
+        """
+        if image_paths:
+            similarities = {i: s for i in image_paths
+                            if (s := self._image_dao.image_registered(i)) != self._image_dao.IMG_NOT_REGISTERED}
+            registered = [s == self._image_dao.IMG_REGISTERED for s in similarities.values()]
+
+            if registered and all(registered):  # If list is empty, all() returns True
+                if len(registered) > 1:
+                    text = _t('popup.images_registered.text')
+                else:
+                    text = _t('popup.image_registered.text')
+                utils.gui.show_info(text)
+                return
+
+            if any(registered):
+                utils.gui.show_info(_t('popup.some_images_registered.text'))
+
             add_all = True
-            similarities = [i for i in images if self._dao.image_registered(i)]
-            if any(similarities):
-                if len(images) > 1:
+            similar = map(lambda s: s == self._image_dao.IMG_SIMILAR, similarities.values())
+            if any(similar):
+                if len(image_paths) > 1:
                     text = _t('popup.similar_images_found.text')
                 else:
                     text = _t('popup.similar_image_found.text')
                 add_all = utils.gui.show_question(text, cancel=True, parent=self)
 
             if add_all is not None:
-                images_to_add = [model.Image(id=0, path=i, hash=utils.image.get_hash(i))
-                                 for i in images if add_all or i not in similarities]
+                images_to_add = []
+                for i in image_paths:
+                    s = similarities.get(i)
+                    if s != self._image_dao.IMG_REGISTERED and (add_all or s != self._image_dao.IMG_SIMILAR):
+                        images_to_add.append(model.Image(id=0, path=i, hash=utils.image.get_hash(i)))
+
                 if images_to_add:
-                    dialog = EditImageDialog(self, show_skip=len(images_to_add) > 1, mode=EditImageDialog.ADD)
+                    dialog = EditImageDialog(self._image_dao, self._tags_dao, show_skip=len(images_to_add) > 1,
+                                             mode=EditImageDialog.ADD, parent=self)
                     dialog.set_on_close_action(self._fetch_and_refresh)
                     dialog.set_images(images_to_add, {})
                     dialog.show()
@@ -257,7 +284,7 @@ class Application(QtW.QMainWindow):
                                              text=file_name, parent=self)
             if text is not None and file_name != text:
                 new_path = utils.gui.slashed(os.path.join(os.path.dirname(image.path), text + ext))
-                if not self._dao.update_image_path(image.id, new_path):
+                if not self._image_dao.update_image_path(image.id, new_path):
                     utils.gui.show_error(_t('popup.rename_error.text'), parent=self)
                 else:
                     rename = True
@@ -273,9 +300,9 @@ class Application(QtW.QMainWindow):
         images = self._current_tab().selected_images()
         if len(images) == 1:
             image = images[0]
-            dialog = EditImageDialog(self, mode=EditImageDialog.REPLACE)
+            dialog = EditImageDialog(self._image_dao, self._tags_dao, mode=EditImageDialog.REPLACE, parent=self)
             dialog.set_on_close_action(self._fetch_images)
-            tags = self._dao.get_image_tags(image.id)
+            tags = self._image_dao.get_image_tags(image.id, self._tags_dao)
             if tags is None:
                 utils.gui.show_error(_t('popup.tag_load_error.text'))
             dialog.set_image(image, tags)
@@ -290,7 +317,7 @@ class Application(QtW.QMainWindow):
                 da.write_playlist(file, images)
                 utils.gui.show_info(_t('popup.playlist_exported.text'), parent=self)
 
-    def _fetch_and_refresh(self):
+    def _fetch_and_refresh(self, *_):
         """Fetches images then refreshes the list."""
         self._fetch_images()
         self._refresh_tree()
@@ -298,11 +325,11 @@ class Application(QtW.QMainWindow):
     def _edit_images(self, images: typ.List[model.Image]):
         """Opens the 'Edit Images' dialog then updates all edited images."""
         if len(images) > 0:
-            dialog = EditImageDialog(self, show_skip=len(images) > 1)
+            dialog = EditImageDialog(self._image_dao, self._tags_dao, show_skip=len(images) > 1, parent=self)
             dialog.set_on_close_action(self._fetch_and_refresh)
             tags = {}
             for image in images:
-                t = self._dao.get_image_tags(image.id)
+                t = self._image_dao.get_image_tags(image.id, self._tags_dao)
                 if t is None:
                     utils.gui.show_error(_t('popup.tag_load_error.text'))
                 tags[image.id] = t
@@ -320,7 +347,7 @@ class Application(QtW.QMainWindow):
             if delete:
                 errors = []
                 for item in images:
-                    ok = self._dao.delete_image(item.id)
+                    ok = self._image_dao.delete_image(item.id)
                     if ok and delete_from_disk:
                         try:
                             os.remove(item.path)
@@ -333,35 +360,53 @@ class Application(QtW.QMainWindow):
 
     def _edit_tags(self):
         """Opens the 'Edit Tags' dialog. Tags tree is refreshed afterwards."""
-        dialog = EditTagsDialog(self)
+        dialog = EditTagsDialog(self._tags_dao, parent=self)
         dialog.set_on_close_action(self._refresh_tree)
         dialog.show()
 
-    def _tree_item_clicked(self, item: QtW.QTreeWidgetItem):
-        """Called when a item in the tags tree is clicked.
+    def _on_delete_item(self, item: QtW.QTreeWidgetItem):
+        """Called when a tag or tag type from the tags tree has to be deleted.
+        Asks for user confirmation.
 
-        :param item: The clicked item.
+        :param item: The item to delete.
         """
-        if item.whatsThis(0) == 'tag':
-            self._input_field.setText((self._input_field.text() + ' ' + item.text(0)).lstrip())
+        o = item.data(0, TagTree.DATA_OBJECT)
+        label = TagTree.get_item_label(item)
+        if item.whatsThis(0) == TagTree.TAG_TYPE:
+            delete = utils.gui.show_question(_t('popup.delete_tag_type_confirm.text', label=label), parent=self)
+            if delete:
+                self._tags_dao.delete_type(o.id)
+                self._refresh_tree()
+        else:
+            delete = utils.gui.show_question(_t('popup.delete_tag_confirm.text', label=label), parent=self)
+            if delete:
+                self._tags_dao.delete_tag(o.id)
+                self._refresh_tree()
+
+    def _on_insert_tag(self, item: QtW.QTreeWidgetItem):
+        """Called when a tag from the tags tree has to be inserted.
+
+        :param item: The item to insert.
+        """
+        self._input_field.setText((self._input_field.text() + ' ' + item.text(0)).lstrip())
 
     def _update_completer(self):
         """Resets the query completer with all current tags."""
         tags = map(lambda t: t.label, self._tags_dao.get_all_tags(sort_by_label=True))
         self._input_field.set_completer_model(tags)
 
-    def _refresh_tree(self):
+    def _refresh_tree(self, *_):
         """Refreshes the tags tree."""
-        self._tag_tree.refresh(model.TagType.SYMBOL_TYPES.values(), self._tags_dao.get_all_tags())
+        self._tag_tree.refresh(self._tags_dao.get_all_tag_types(), self._tags_dao.get_all_tags())
         self._update_completer()
 
-    def _fetch_images(self):
+    def _fetch_images(self, *_):
         """Fetches images matching the typed query. Starts a search thread to avoid freezing the whole application."""
         tags = self._input_field.text().strip()
         if len(tags) > 0:
             self._search_btn.setEnabled(False)
             self._input_field.setEnabled(False)
-            self._thread = _SearchThread(tags)
+            self._thread = _SearchThread(tags, self._image_dao, self._tags_dao)
             self._thread.finished.connect(self._on_fetch_done)
             self._thread.start()
 
@@ -390,7 +435,7 @@ class Application(QtW.QMainWindow):
 
             for i in range(2):
                 tab = self._tabbed_pane.widget(i)
-                nb = len(images) if self._tabbed_pane.tabWhatsThis(i) != 'thumbnails' or load_thumbs else 0
+                nb = len(images) if self._tabbed_pane.tabWhatsThis(i) != self._THUMBS_TAB or load_thumbs else 0
                 self._tabbed_pane.setTabText(i, _t(self._TAB_TITLES[i], images_number=nb))
                 tab.clear()
                 if load_thumbs and config.CONFIG.load_thumbnails or not isinstance(tab, ThumbnailList):
@@ -522,15 +567,6 @@ class Application(QtW.QMainWindow):
 
             app = QtW.QApplication(sys.argv)
 
-            # Initialize tag types
-            tags_dao = da.TagsDao(config.CONFIG.database_path)
-            types = tags_dao.get_all_types()
-            if types is None:
-                utils.gui.show_error(_t('popup.data_loading_error.text'))
-                sys.exit(-1)
-            model.TagType.init(types)
-            tags_dao.close()
-
             cls().show()
         except BaseException as e:
             logger.exception(e)
@@ -545,27 +581,28 @@ class _SearchThread(QtC.QThread):
 
     _MAXIMUM_DEPTH = 20
 
-    def __init__(self, query: str):
+    def __init__(self, query: str, image_dao: da.ImageDao, tags_dao: da.TagsDao):
         """Creates a search thread for a query.
 
         :param query: The query.
         """
         super().__init__()
         self._query = query
+        self._image_dao = image_dao
+        self._tags_dao = tags_dao
         self._images = []
         self._error = None
 
     def run(self):
-        images_dao = da.ImageDao(config.CONFIG.database_path)
         self._preprocess()
         if not self._error:
             try:
                 expr = queries.query_to_sympy(self._query, simplify=True)
-                self._images = images_dao.get_images(expr)
+                self._images = self._image_dao.get_images(expr)
             except ValueError as e:
                 self._error = str(e)
             else:
-                images_dao.close()
+                self._image_dao.close()
                 if self._images is None:
                     self._error = _t('thread.search.error.image_loading_error')
 
@@ -583,8 +620,7 @@ class _SearchThread(QtC.QThread):
             else:
                 break
 
-        tags_dao = da.TagsDao(config.CONFIG.database_path)
-        compound_tags = tags_dao.get_all_tags(tag_class=model.CompoundTag)
+        compound_tags = self._tags_dao.get_all_tags(tag_class=model.CompoundTag)
         previous_query = ''
         depth = 0
         # Replace compound tags until none are present

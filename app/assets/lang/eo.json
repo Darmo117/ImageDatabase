@@ -8,7 +8,7 @@
           "item": {
             "add_file": "&Ovri dosieron…",
             "add_directory": "Ovri &dosierujon…",
-            "export_playlist": "Eksporti kial &bildolisto…",
+            "export_playlist": "Eksporti kiel &bildolisto…",
             "exit": "&Eliri"
           }
         },
@@ -43,6 +43,11 @@
         "type_item_unclassified": "Neklasataj"
       },
       "tab": {
+        "context_menu": {
+          "copy_path": "Kopii bildindikon",
+          "copy_paths": "Kopii bildindikojn",
+          "select_all": "Selekti ĉion"
+        },
         "paths_list": {
           "title": "Dosierindikoj ({images_number})"
         },
@@ -91,6 +96,9 @@
         "title_add": "Aldoni bildojn ({index}/{total})",
         "title_edit": "Redakti bildojn ({index}/{total})",
         "title_replace": "Anstataŭigi bildojn ({index}/{total})",
+        "similarities": {
+          "label": "Similaj bildoj"
+        },
         "replace_button": {
           "label": "Anstataŭigi per…"
         },
@@ -101,7 +109,7 @@
           "label": "Etikedoj"
         },
         "show_directory_button": {
-          "label": "Afficher dans le dossier"
+          "label": "Montri en la dosierujo"
         },
         "skip_button": {
           "label": "Salti"
@@ -186,9 +194,32 @@
           "empty_cell": "La ĉelo malplenas!",
           "duplicate_value": "Tiu valoro jam estas uzata! Bonvolu elekti alian.",
           "invalid_tag_type_name": "Tipnomoj nur povas enhavi leterojn, ciferojn aŭ “_”!",
-          "invalid_tag_type_symbol": "Tipsimboloj devas enhavi nur unu signo. Leteroj, ciferoj, “_”, “+”, “-”, “:”, “(” kaj “)” estas malpermesitaj.",
+          "invalid_tag_type_symbol": "Tipsimboloj devas enhavi nur unu signon. Leteroj, ciferoj, “_”, “+”, “-”, “:”, “(” kaj “)” estas malpermesitaj.",
           "invalid_tag_name": "Etikednomoj nur povas enhavi leterojn, ciferojn aŭ “_”!",
           "duplicate_tag_name": "Samnoma etikedo jam ekzistas!"
+        }
+      },
+      "similar_images": {
+        "title": "Similaj bildoj",
+        "text": "La ĉi-sube bildoj eble similas al la bildo, ke vi nuntempe aldonas.\nLa konfida elcento indikas, kiom la programo certas, ke la bildo simalas al tio, ke vi nuntempe aldonas.",
+        "grid": {
+          "header": {
+            "image_path": "Bildindiko",
+            "image_size": "Dimensioj",
+            "confidence_score": "Konfido"
+          },
+          "open_file_button": {
+            "label": "Montri"
+          }
+        },
+        "button": {
+          "copy_tags": {
+            "label": "Kopii la etikedojn",
+            "tooltip": "Kopii la etikedojn de la selektita bildo"
+          },
+          "close": {
+            "label": "Fermi"
+          }
         }
       },
       "about": {
@@ -211,6 +242,18 @@
       "empty_directory": {
         "text": "Tiu dosierujo ne enhavas bildojn!"
       },
+      "no_files_selected": {
+        "text": "Neniom da dosieroj selektitaj!"
+      },
+      "image_registered": {
+        "text": "Tiu bildo estas registrata."
+      },
+      "images_registered": {
+        "text": "Tiuj bildoj estas registrataj."
+      },
+      "some_images_registered": {
+        "text": "Kelkaj bildoj estas registrataj; ĉi-tiuj estos ignorataj."
+      },
       "similar_images_found": {
         "text": "Kelkaj bildoj eble estas registrataj.\nĈu vi volas kvankam aligi ilin?"
       },
@@ -228,7 +271,7 @@
         "caption": "Selekti dosierujon"
       },
       "playlist_saver": {
-        "caption": "Eksporti kial bildolisto",
+        "caption": "Eksporti kiel bildolisto",
         "filter": "Bildolisto"
       },
       "rename_image": {
@@ -257,6 +300,12 @@
       "delete_image_error": {
         "text": "Unu au pluraj dosieroj ne povas esti forigataj:\n{files}"
       },
+      "delete_tag_type_confirm": {
+        "text": "Ĉu vi certe volas forigi tiun etikedan tipon?\nLa etikedoj, kiuj havas tiun tipon, ne estos forigitaj."
+      },
+      "delete_tag_confirm": {
+        "text": "Ĉu vi certe volas forigi tiun etikedon?"
+      },
       "load_thumbs_warning": {
         "title": "Ŝargi la bildetojn?",
         "text": "La informpeto trovis pli da {threshold} bildo(j), la bildetoj estos kaŝitaj.\nĈu vi volas kvankam ŝargi ĝin? La programo paneus se vi daŭras."
@@ -271,9 +320,6 @@
       },
       "language_changed": {
         "text": "Selektita lingvo: {lang_name}.\nLa ŝanĝoj aplikos poste restartigi la programon."
-      },
-      "data_loading_error": {
-        "text": "Ne povas ŝargi la datumojn! La programo fermiĝos."
       }
     },
     "thread": {

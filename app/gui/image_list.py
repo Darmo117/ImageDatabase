@@ -7,10 +7,12 @@ import typing as typ
 import PyQt5.QtCore as QtC
 import PyQt5.QtGui as QtG
 import PyQt5.QtWidgets as QtW
+import pyperclip
 
 from .components import Canvas, EllipsisLabel
 from .flow_layout import ScrollingFlowWidget
-from .. import config, model
+from .. import config, model, utils
+from ..i18n import translate as _t
 
 SelectionChangeListener = typ.Callable[[typ.Iterable[model.Image]], None]
 ItemDoubleClickListener = typ.Callable[[model.Image], None]
@@ -34,6 +36,44 @@ class ImageItem:
 
 
 class ImageListView:
+    def _init_contextual_menu(self):
+        # noinspection PyTypeChecker
+        self._menu = QtW.QMenu(parent=self)
+
+        self._copy_paths_action = self._menu.addAction(_t('main_window.tab.context_menu.copy_path'))
+        self._copy_paths_action.setShortcut('Ctrl+C')
+        self._copy_paths_action.triggered.connect(self.copy_image_paths)
+
+        self._select_all_action = self._menu.addAction(_t('main_window.tab.context_menu.select_all'))
+        self._select_all_action.setShortcut('Ctrl+A')
+        self._select_all_action.triggered.connect(self.select_all)
+
+        # noinspection PyUnresolvedReferences
+        self.setContextMenuPolicy(QtC.Qt.CustomContextMenu)
+        # noinspection PyUnresolvedReferences
+        self.customContextMenuRequested.connect(self._show_context_menu)
+        self._update_actions()
+
+    def _show_context_menu(self):
+        self._menu.exec_(QtG.QCursor.pos())
+
+    def _update_actions(self):
+        selected_items = len(self.selected_items())
+        self._copy_paths_action.setDisabled(not selected_items)
+        if selected_items > 1:
+            self._copy_paths_action.setText(_t('main_window.tab.context_menu.copy_paths'))
+        else:
+            self._copy_paths_action.setText(_t('main_window.tab.context_menu.copy_path'))
+
+    def copy_image_paths(self):
+        if self._copy_paths_action.isEnabled():
+            text = '\n'.join([image.path for image in self.selected_images()])
+            pyperclip.copy(text)
+
+    @abc.abstractmethod
+    def select_all(self):
+        pass
+
     @abc.abstractmethod
     def selected_items(self) -> typ.List[ImageItem]:
         """Returns selected items."""
@@ -46,7 +86,7 @@ class ImageListView:
 
     @abc.abstractmethod
     def selected_indexes(self) -> typ.List[int]:
-        """Returns selected indexes."""
+        """Returns selected indexes sorted in ascending order."""
         pass
 
     @abc.abstractmethod
@@ -93,15 +133,32 @@ class ImageList(QtW.QListWidget, ImageListView):
         self.setSelectionMode(QtW.QAbstractItemView.ExtendedSelection)
         self.selectionModel().selectionChanged.connect(lambda _: on_selection_changed(self.selected_images()))
         self.itemDoubleClicked.connect(lambda i: on_item_double_clicked(i.image))
+        self._init_contextual_menu()
+
+    def keyPressEvent(self, event: QtG.QKeyEvent):
+        """Overrides “Ctrl+C“ action."""
+        if utils.gui.event_matches_action(event, self._select_all_action):
+            self.select_all()
+        if utils.gui.event_matches_action(event, self._copy_paths_action):
+            self.copy_image_paths()
+        else:
+            super().keyPressEvent(event)
+
+    def selectionChanged(self, selected: QtC.QItemSelection, deselected: QtC.QItemSelection):
+        super().selectionChanged(selected, deselected)
+        self._update_actions()
+
+    def select_all(self):
+        self.selectAll()
 
     def selected_items(self) -> typ.List[ImageItem]:
-        return [self.item(i.row()) for i in self.selectedIndexes()]
+        return [self.item(i) for i in self.selected_indexes()]
 
     def selected_images(self) -> typ.List[model.Image]:
-        return [self.item(i.row()).image for i in self.selectedIndexes()]
+        return [self.item(i).image for i in self.selected_indexes()]
 
     def selected_indexes(self) -> typ.List[int]:
-        return self.selectedIndexes()
+        return sorted(map(QtC.QModelIndex.row, self.selectedIndexes()))
 
     def get_images(self) -> typ.List[model.Image]:
         return [self.item(i).image for i in range(self.count())]
@@ -140,9 +197,19 @@ class ThumbnailList(ScrollingFlowWidget, ImageListView):
         :param parent: The widget this list belongs to.
         """
         super().__init__(parent)
-        self._on_selection_changed = on_selection_changed
+        self._selection_changed = on_selection_changed
         self._on_item_double_clicked = on_item_double_clicked
         self._last_index = -1
+        self._init_contextual_menu()
+
+    def _on_selection_changed(self):
+        self._update_actions()
+        self._selection_changed(self.selected_images())
+
+    def select_all(self):
+        for item in self._flow_layout.items:
+            item.selected = True
+        self._on_selection_changed()
 
     def selected_items(self) -> typ.List[ImageItem]:
         return [item for item in self._flow_layout.items if item.selected]
@@ -170,19 +237,22 @@ class ThumbnailList(ScrollingFlowWidget, ImageListView):
     def count(self) -> int:
         return self._flow_layout.count()
 
-    def mousePressEvent(self, _):
-        self._last_index = -1
-        self._deselect_except(None)
+    def mousePressEvent(self, event: QtG.QMouseEvent):
+        if event.button() != QtC.Qt.RightButton:
+            self._last_index = -1
+            self._deselect_except(None)
 
     def keyPressEvent(self, event: QtG.QKeyEvent):
-        """Handles “select all“ action."""
+        """Handles “Ctrl+A“ and “Ctrl+C“ actions."""
         key = event.key()
         modifiers = event.modifiers()
 
-        if key == QtC.Qt.Key_A and modifiers == QtC.Qt.ControlModifier:
-            for item in self._flow_layout.items:
-                item.selected = True
-            self._on_selection_changed(self.selected_images())
+        if utils.gui.event_matches_action(event, self._select_all_action):
+            self.select_all()
+        elif utils.gui.event_matches_action(event, self._copy_paths_action):
+            self.copy_image_paths()
+        else:
+            super().keyPressEvent(event)
 
     def _item_clicked(self, item: _FlowImageItem):
         """Called when an item is clicked once. It handles Ctrl+Click and Shift+Click actions.
@@ -190,15 +260,14 @@ class ThumbnailList(ScrollingFlowWidget, ImageListView):
         :param item: The clicked item.
         """
         modifiers = QtW.QApplication.keyboardModifiers()
-        # noinspection PyTypeChecker
-        if modifiers & QtC.Qt.ControlModifier:
+        if modifiers == QtC.Qt.ControlModifier:
             if item.selected:
                 item.selected = False
                 self._last_index = -1
             else:
                 item.selected = True
                 self._last_index = item.index
-        elif modifiers & QtC.Qt.ShiftModifier:
+        elif modifiers == QtC.Qt.ShiftModifier:
             self._deselect_except(item)
             if self._last_index != -1:
                 if self._last_index <= item.index:
@@ -214,8 +283,7 @@ class ThumbnailList(ScrollingFlowWidget, ImageListView):
             self._last_index = item.index
             item.selected = True
             self._deselect_except(item)
-        # noinspection PyTypeChecker
-        self._on_selection_changed(self.selected_images())
+        self._on_selection_changed()
 
     def _item_double_clicked(self, item: _FlowImageItem):
         self._deselect_except(item)
@@ -231,8 +299,7 @@ class ThumbnailList(ScrollingFlowWidget, ImageListView):
         for i in self.selected_items():
             if i is not item:
                 i.selected = False
-        # noinspection PyTypeChecker
-        self._on_selection_changed(self.selected_images())
+        self._on_selection_changed()
 
 
 class _FlowImageItem(QtW.QFrame, ImageItem):
@@ -303,8 +370,10 @@ class _FlowImageItem(QtW.QFrame, ImageItem):
             bg_color = QtW.QApplication.palette().color(QtG.QPalette.Active, QtG.QPalette.Background).getRgb()
         self.setStyleSheet(f'background-color: rgba{bg_color}')
 
-    def mousePressEvent(self, _):
+    def mousePressEvent(self, event: QtG.QMouseEvent):
         self._click_count = 1
+        if event.button() == QtC.Qt.RightButton and not self._selected:
+            self._on_click(self)
 
     def mouseDoubleClickEvent(self, _):
         self._click_count = 2

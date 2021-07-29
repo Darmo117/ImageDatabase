@@ -44,13 +44,20 @@ while 'user hasn’t typed "exit"':
     if cmd.lower() == 'exit':
         break
 
+    cursor = connection.cursor()
     try:
-        cursor = connection.executescript(cmd)
+        cursor.execute(cmd)
+    except sqlite3.Error as e:
+        print('\033[31m' + _t('SQL_console.error'))
+        print(f'{e}\033[0m')
+        cursor.close()
+    else:
+        results = cursor.fetchall()
         if cursor.description is not None:
             column_names = tuple(desc[0] for desc in cursor.description)
         else:
             column_names = []
-        results = cursor.fetchall()
+        cursor.close()
 
         if cmd.startswith('select'):
             if len(results) == 0:
@@ -67,8 +74,7 @@ while 'user hasn’t typed "exit"':
                             rows.clear()
                             while 'user enters neither Y or N':
                                 print(_t('SQL_console.display_more'))
-                                print('?>', end=' ')
-                                choice = input().upper()
+                                choice = input('?> ').upper()
                                 if choice.upper() == 'Y':
                                     proceed = True
                                     break
@@ -83,9 +89,6 @@ while 'user hasn’t typed "exit"':
                     i += 1
                 else:
                     print_rows(rows, column_names)
-    except (sqlite3.OperationalError, sqlite3.IntegrityError) as e:
-        print('\033[31m' + _t('SQL_console.error'))
-        print(f'{e}\033[0m')
 
 print(_t('SQL_console.goodbye'))
 

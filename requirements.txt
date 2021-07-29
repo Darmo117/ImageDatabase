@@ -3,6 +3,7 @@ lark-parser==0.11.3
 # Versions 4.2+ do not work.
 # See https://stackoverflow.com/questions/60042568/this-application-failed-to-start-because-no-qt-platform-plugin-could-be-initiali
 opencv-contrib-python==4.1.2.30
+pyperclip==1.8.2
 PyQt5==5.15.4
 scikit-image==0.18.2
 sympy==1.8

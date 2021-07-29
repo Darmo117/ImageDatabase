@@ -1,5 +1,5 @@
 APP_NAME = 'Image Library'
-VERSION = '3.2'
+VERSION = '4.0'
 DB_SETUP_FILE = 'app/data_access/setup.sql'
 CONFIG_FILE = 'config.ini'
 ERROR_LOG_FILE = 'logs/errors.log'

@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import typing as typ
 
 import PyQt5.QtGui as QtG
@@ -6,6 +8,9 @@ from PyQt5.QtCore import Qt
 
 from ... import utils
 from ...i18n import translate as _t
+
+
+_T = typ.TypeVar('_T', bound='Dialog')
 
 
 class Dialog(QtW.QDialog):
@@ -96,10 +101,11 @@ class Dialog(QtW.QDialog):
         """
         return []
 
-    def set_on_close_action(self, action: typ.Callable[[None], None]):
-        """Sets the action that will be called when this dialog closes.
+    def set_on_close_action(self, action: typ.Callable[[_T], None]):
+        """Sets the action that will be called when this dialog closes after the user clicked OK/Apply.
 
         :param action: The action to call when this dialog closes.
+            The dialog instance will be passed as the single argument.
         """
         self._close_action = action
 
@@ -110,8 +116,10 @@ class Dialog(QtW.QDialog):
         else:
             if not self._is_valid():
                 reason = self._get_error()
-                utils.gui.show_error(reason if reason is not None else _t('dialog.common.invalid_data.text'),
-                                     parent=self)
+                utils.gui.show_error(
+                    reason if reason is not None else _t('dialog.common.invalid_data.text'),
+                    parent=self
+                )
             elif self._apply():
                 self.close()
 
@@ -137,4 +145,4 @@ class Dialog(QtW.QDialog):
 
     def closeEvent(self, event: QtG.QCloseEvent):
         if self._close_action is not None and self._applied:
-            self._close_action()
+            self._close_action(self)
