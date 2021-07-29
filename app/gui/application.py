@@ -406,7 +406,7 @@ class Application(QtW.QMainWindow):
         if len(tags) > 0:
             self._search_btn.setEnabled(False)
             self._input_field.setEnabled(False)
-            self._thread = _SearchThread(tags, self._image_dao, self._tags_dao)
+            self._thread = _SearchThread(tags)
             self._thread.finished.connect(self._on_fetch_done)
             self._thread.start()
 
@@ -581,28 +581,28 @@ class _SearchThread(QtC.QThread):
 
     _MAXIMUM_DEPTH = 20
 
-    def __init__(self, query: str, image_dao: da.ImageDao, tags_dao: da.TagsDao):
+    def __init__(self, query: str):
         """Creates a search thread for a query.
 
         :param query: The query.
         """
         super().__init__()
         self._query = query
-        self._image_dao = image_dao
-        self._tags_dao = tags_dao
         self._images = []
         self._error = None
 
     def run(self):
+        # Cannot use application’s as SQLite connections cannot be shared between threads
+        images_dao = da.ImageDao(config.CONFIG.database_path)
         self._preprocess()
         if not self._error:
             try:
                 expr = queries.query_to_sympy(self._query, simplify=True)
-                self._images = self._image_dao.get_images(expr)
+                self._images = images_dao.get_images(expr)
             except ValueError as e:
                 self._error = str(e)
             else:
-                self._image_dao.close()
+                images_dao.close()
                 if self._images is None:
                     self._error = _t('thread.search.error.image_loading_error')
 
@@ -620,7 +620,9 @@ class _SearchThread(QtC.QThread):
             else:
                 break
 
-        compound_tags = self._tags_dao.get_all_tags(tag_class=model.CompoundTag)
+        # Cannot use application’s as SQLite connections cannot be shared between threads
+        tags_dao = da.TagsDao(config.CONFIG.database_path)
+        compound_tags = tags_dao.get_all_tags(tag_class=model.CompoundTag)
         previous_query = ''
         depth = 0
         # Replace compound tags until none are present
