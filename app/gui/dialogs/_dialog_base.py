@@ -80,12 +80,13 @@ class Dialog(QtW.QDialog):
             parent=self
         )
         self._ok_btn.clicked.connect(self._on_ok_clicked)
-        self._cancel_btn = QtW.QPushButton(
-            self.style().standardIcon(QtW.QStyle.SP_DialogCancelButton),
-            _t('dialog.common.cancel_button.label'),
-            parent=self
-        )
-        self._cancel_btn.clicked.connect(self.reject)
+        if self._buttons_mode == Dialog.OK_CANCEL:
+            self._cancel_btn = QtW.QPushButton(
+                self.style().standardIcon(QtW.QStyle.SP_DialogCancelButton),
+                _t('dialog.common.cancel_button.label'),
+                parent=self
+            )
+            self._cancel_btn.clicked.connect(self.reject)
 
         buttons = self._init_buttons()
         for b in buttons:
