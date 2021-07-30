@@ -2,19 +2,17 @@ import os
 import shutil
 import typing as typ
 
+import PyQt5.QtCore as QtC
 import PyQt5.QtGui as QtG
 import PyQt5.QtWidgets as QtW
-from PyQt5.QtCore import Qt
 
-from .dialog_base import Dialog
-from .edit_tags_dialog import EditTagsDialog
-from .similar_images_dialog import SimilarImagesDialog
-from ..components import Canvas, EllipsisLabel
-from ... import data_access as da, model, utils
-from ...i18n import translate as _t
+from app import data_access as da, model, utils
+from app.i18n import translate as _t
+from . import _dialog_base, edit_tags_dialog, similar_images_dialog
+from .. import components
 
 
-class EditImageDialog(Dialog):
+class EditImageDialog(_dialog_base.Dialog):
     """This dialog is used to edit information on an image."""
     EDIT = 0
     ADD = 1
@@ -64,13 +62,13 @@ class EditImageDialog(Dialog):
         self.setMinimumSize(800, 600)
 
         splitter = QtW.QSplitter(parent=self)
-        splitter.setOrientation(Qt.Vertical)
+        splitter.setOrientation(QtC.Qt.Vertical)
 
         top_layout = QtW.QVBoxLayout()
-        self._image_path_lbl = EllipsisLabel('', parent=self)
+        self._image_path_lbl = components.EllipsisLabel('', parent=self)
         top_layout.addWidget(self._image_path_lbl)
 
-        self._canvas = Canvas()
+        self._canvas = components.Canvas(parent=self)
         top_layout.addWidget(self._canvas)
 
         top_widget = QtW.QWidget(parent=self)
@@ -82,7 +80,7 @@ class EditImageDialog(Dialog):
 
         buttons_layout = QtW.QHBoxLayout()
 
-        self._dest_label = EllipsisLabel(parent=self)
+        self._dest_label = components.EllipsisLabel(parent=self)
         buttons_layout.addWidget(self._dest_label)
 
         buttons_layout.addStretch()
@@ -93,8 +91,8 @@ class EditImageDialog(Dialog):
             parent=self
         )
         self._similarities_btn.clicked.connect(self._on_show_similarities_dialog)
-        buttons_layout.addWidget(self._similarities_btn)
         self._similarities_btn.hide()  # Show only when relevant
+        buttons_layout.addWidget(self._similarities_btn)
 
         if self._mode == EditImageDialog.REPLACE:
             icon = 'replace_image'
@@ -129,11 +127,12 @@ class EditImageDialog(Dialog):
                 super().__init__(parent=parent)
                 self._dialog = dialog
 
-            def keyPressEvent(self, e):
-                if e.key() in (Qt.Key_Return, Qt.Key_Enter) and e.modifiers() & Qt.ControlModifier:
+            def keyPressEvent(self, event: QtG.QKeyEvent):
+                # noinspection PyTypeChecker
+                if event.key() in (QtC.Qt.Key_Return, QtC.Qt.Key_Enter) and event.modifiers() & QtC.Qt.ControlModifier:
                     self._dialog._ok_btn.click()
-                else:
-                    super().keyPressEvent(e)
+                    event.ignore()
+                super().keyPressEvent(event)
 
         self._tags_input = CustomTextEdit(self, parent=self)
         self._tags_input.textChanged.connect(self._text_changed)
@@ -170,7 +169,7 @@ class EditImageDialog(Dialog):
 
     def _show_tags_dialog(self):
         if self._tags_dialog is None:
-            self._tags_dialog = EditTagsDialog(self._tags_dao, editable=False, parent=self)
+            self._tags_dialog = edit_tags_dialog.EditTagsDialog(self._tags_dao, editable=False, parent=self)
         self._tags_dialog.show()
 
     def _open_image_directory(self):
@@ -217,13 +216,12 @@ class EditImageDialog(Dialog):
 
         self._canvas.set_image(image.path)
 
-        if self._mode == EditImageDialog.ADD:
-            similar_images = self._image_dao.get_similar_images(image.path)
-            self._similar_images = [(image, score) for image, _, score, same_path in similar_images if not same_path]
-            if self._similar_images:
-                self._similarities_btn.show()
-            else:
-                self._similarities_btn.hide()
+        similar_images = self._image_dao.get_similar_images(image.path)
+        self._similar_images = [(image, score) for image, _, score, same_path in similar_images if not same_path]
+        if self._similar_images:
+            self._similarities_btn.show()
+        else:
+            self._similarities_btn.hide()
 
         if self._index == len(self._images) - 1:
             if self._skip_btn:
@@ -243,19 +241,20 @@ class EditImageDialog(Dialog):
         self._set(self._index)
 
     def _on_show_similarities_dialog(self):
-        dialog = SimilarImagesDialog(self._similar_images, self._image_dao, self._tags_dao, parent=self)
+        dialog = similar_images_dialog.SimilarImagesDialog(self._similar_images, self._image_dao, self._tags_dao,
+                                                           parent=self)
         dialog.set_on_close_action(self._on_similarities_dialog_closed)
         dialog.show()
 
-    def _on_similarities_dialog_closed(self, dialog: SimilarImagesDialog):
+    def _on_similarities_dialog_closed(self, dialog: similar_images_dialog.SimilarImagesDialog):
         self._set_tags(dialog.get_tags())
 
     def _on_dest_button_clicked(self):
         """Opens a directory chooser then sets the destination path to the one selected if any."""
         if self._mode == EditImageDialog.REPLACE:
-            destination = utils.gui.open_image_chooser(self)
+            destination = utils.gui.open_file_chooser(single_selection=True, mode=utils.gui.FILTER_IMAGES, parent=self)
         else:
-            destination = utils.gui.choose_directory(self)
+            destination = utils.gui.choose_directory(parent=self)
         if destination is not None:
             if self._mode == EditImageDialog.REPLACE:
                 img = self._images[0]
@@ -270,7 +269,8 @@ class EditImageDialog(Dialog):
                 self._set(0)
             else:
                 self._destination = destination
-            self._dest_label.setText(_t('dialog.edit_image.target_path', path=self._destination))
+            key = 'target_image' if self._mode == EditImageDialog.REPLACE else 'target_path'
+            self._dest_label.setText(_t('dialog.edit_image.' + key, path=self._destination))
             self._dest_label.setToolTip(self._destination)
 
     def _text_changed(self):
@@ -378,9 +378,11 @@ class EditImageDialog(Dialog):
         """
         try:
             os.remove(self._image_to_replace)
-        except FileNotFoundError:
+        except OSError:
             return False
-        return self._image_dao.update_image_path(self._images[0].id, self._destination)
+        else:
+            ok = self._image_dao.update_image_path(self._images[0].id, self._destination)
+            return ok
 
     def _move_image(self, path: str, new_path: str) -> bool:
         """Moves an image to a specific directory.
@@ -391,10 +393,11 @@ class EditImageDialog(Dialog):
         """
         try:
             shutil.move(path, new_path)
-            return True
-        except FileExistsError:
+        except shutil.Error:
             utils.gui.show_error(_t('dialog.edit_image.error.file_already_exists'), parent=self)
             return False
+        else:
+            return True
 
     def _get_title(self) -> str:
         return _t(self._TITLES[self._mode], index=self._index + 1, total=len(self._images))

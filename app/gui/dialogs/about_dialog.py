@@ -3,12 +3,12 @@ from datetime import datetime
 
 import PyQt5.QtWidgets as QtW
 
-from .dialog_base import Dialog
-from ... import constants
-from ...i18n import translate as _t
+from app import constants
+from app.i18n import translate as _t
+from . import _dialog_base
 
 
-class AboutDialog(Dialog):
+class AboutDialog(_dialog_base.Dialog):
     """This dialog shows information about the application."""
 
     def __init__(self, parent: typ.Optional[QtW.QWidget] = None):
@@ -18,14 +18,15 @@ class AboutDialog(Dialog):
         """
         super().__init__(parent=parent,
                          title=_t('dialog.about.title', app_name=constants.APP_NAME),
-                         mode=Dialog.CLOSE)
+                         modal=True,
+                         mode=_dialog_base.Dialog.CLOSE)
 
     def _init_body(self) -> QtW.QLayout:
         self.setMinimumSize(280, 170)
 
         body = QtW.QHBoxLayout()
 
-        label = QtW.QLabel()
+        label = QtW.QLabel(parent=self)
         year = datetime.now().year
         copyright_year = '' if year == 2018 else ' - ' + str(year)
         label.setText(f"""

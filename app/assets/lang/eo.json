@@ -6,7 +6,7 @@
         "file": {
           "label": "&Dosiero",
           "item": {
-            "add_file": "&Ovri dosieron…",
+            "add_files": "&Ovri dosierojn…",
             "add_directory": "Ovri &dosierujon…",
             "export_playlist": "Eksporti kiel &bildolisto…",
             "exit": "&Eliri"
@@ -22,18 +22,10 @@
             "delete_images": "&Forigi la bildojn"
           }
         },
-        "options": {
-          "label": "&Opcioj",
-          "item": {
-            "load_thumbs": "Ŝ&arĝi la bildetojn",
-            "thumbs_size": "&Bildetaj dimensioj…",
-            "thumbs_load_threshold": "Ŝarga &sojlo de bildetoj…",
-            "language": "&Lingvo"
-          }
-        },
         "help": {
           "label": "&Helpo",
           "item": {
+            "settings": "&Opcioj…",
             "about": "&Pri…"
           }
         }
@@ -79,6 +71,9 @@
         "close_button": {
           "label": "Fermi"
         },
+        "apply_button": {
+          "label": "Apliki"
+        },
         "yes_button": {
           "label": "Jes"
         },
@@ -90,6 +85,33 @@
         },
         "invalid_data": {
           "text": "Nevalidaj datumoj!"
+        }
+      },
+      "settings": {
+        "title": "Opcioj",
+        "box": {
+          "database": {
+            "title": "Datumbazo",
+            "db_path_warning": "Tiu datumbaza dosiero ne ekzistas.",
+            "db_path": {
+              "label": "Datumbaza diosiero"
+            },
+            "choose_file_button": {
+              "tooltip": "Selekti dosieron"
+            }
+          },
+          "thumbnails": {
+            "title": "Bildetoj",
+            "load_thumbs_button": {
+              "label": "Ŝargi bildetojn"
+            },
+            "thumbs_size": "Dimensioj (rastrumere)",
+            "thumbs_threshold": "Ŝarga sojlo"
+          },
+          "language": {
+            "title": "Lingvo",
+            "language": "Fasadlingvo"
+          }
         }
       },
       "edit_image": {
@@ -121,6 +143,7 @@
           "label": "Finigi"
         },
         "target_path": "Celdosierujo: {path}",
+        "target_image": "Bildo: {path}",
         "error": {
           "replace_self": "Ne povas anstataŭigi bildon per si mem!",
           "no_tags": "Nenio etikedoj trovitaj!",
@@ -145,9 +168,6 @@
         },
         "search_button": {
           "label": "Serĉi"
-        },
-        "apply_button": {
-          "label": "Apliki"
         },
         "delete_warning": {
           "text": "Forigi selektatajn elementojn?"
@@ -260,9 +280,16 @@
       "similar_image_found": {
         "text": "Tiu bildo eble estas registrata.\nĈu vi volas kvankam aligi ĝin?"
       },
-      "image_chooser": {
-        "caption": "Ovri bildojn",
-        "filter": "Bildo"
+      "file_chooser": {
+        "caption": {
+          "image": "Ovri bildon",
+          "images": "Ovri bildojn",
+          "database": "Selekti datumabazan dosieron"
+        },
+        "filter": {
+          "images": "Bildo",
+          "database": "Datumbazo"
+        }
       },
       "open_directory_chooser": {
         "caption": "Ovri dosierujon"
@@ -310,16 +337,11 @@
         "title": "Ŝargi la bildetojn?",
         "text": "La informpeto trovis pli da {threshold} bildo(j), la bildetoj estos kaŝitaj.\nĈu vi volas kvankam ŝargi ĝin? La programo paneus se vi daŭras."
       },
-      "set_thumbs_size": {
-        "title": "Bildetaj dimensioj",
-        "text": "Tajpi la novan dimension [{min}, {max}]"
-      },
-      "set_thumbs_load_threshold": {
-        "title": "Ŝarga sojlo de bildetoj",
-        "text": "Tajpi la novan sojlon [{min}, {max}]"
-      },
       "language_changed": {
         "text": "Selektita lingvo: {lang_name}.\nLa ŝanĝoj aplikos poste restartigi la programon."
+      },
+      "app_needs_restart": {
+        "text": "Kelkaj ŝanĝoj necesas restartigi la programon."
       }
     },
     "thread": {

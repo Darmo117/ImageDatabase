@@ -1,6 +1,6 @@
 import PyQt5.QtWidgets as QtW
 
-from ...i18n import translate as _t
+from app.i18n import translate as _t
 
 
 class DeleteFileConfirmDialog(QtW.QMessageBox):

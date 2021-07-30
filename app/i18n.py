@@ -25,6 +25,9 @@ class Language:
         """
         return self._mappings.get(key, default or key).format(**kwargs)
 
+    def __eq__(self, other):
+        return isinstance(other, Language) and self.code == other.code
+
 
 def translate(key: str, default: str = None, **kwargs):
     """Translates the given key in the current language.

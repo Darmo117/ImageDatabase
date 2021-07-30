@@ -6,8 +6,8 @@ import PyQt5.QtGui as QtG
 import PyQt5.QtWidgets as QtW
 from PyQt5.QtCore import Qt
 
-from ... import data_access as da, model, queries, utils
-from ...i18n import translate as _t
+from app import data_access as da, model, queries, utils
+from app.i18n import translate as _t
 
 _Type = typ.TypeVar('_Type')
 
@@ -78,7 +78,7 @@ class Tab(abc.ABC, typ.Generic[_Type]):
             self._initialized = False
             self._table.destroy()
 
-        self._table = QtW.QTableWidget()
+        self._table = QtW.QTableWidget(parent=self._owner)
         self._table.setSelectionBehavior(QtW.QAbstractItemView.SelectRows)
         self._table.verticalHeader().setDefaultSectionSize(20)
         self._table.horizontalHeader().setStretchLastSection(True)
@@ -88,7 +88,7 @@ class Tab(abc.ABC, typ.Generic[_Type]):
         if not self._editable:
             self._table.setSelectionMode(QtW.QAbstractItemView.SingleSelection)
         else:
-            delete_action = QtW.QAction(self._owner)
+            delete_action = QtW.QAction(parent=self._owner)
             delete_action.setShortcut('Delete')
             delete_action.triggered.connect(self.delete_selected_rows)
             self._table.addAction(delete_action)
@@ -418,7 +418,7 @@ class TagTypesTab(Tab[model.TagType]):
 
         default_color = QtG.QColor(0, 0, 0)
         bg_color = tag_type.color if defined else default_color
-        color_btn = QtW.QPushButton(tag_type.color.name() if defined else default_color.name())
+        color_btn = QtW.QPushButton(tag_type.color.name() if defined else default_color.name(), parent=self._owner)
         color_btn.setWhatsThis('color')
         self._set_button_bg_color(color_btn, bg_color)
         color_btn.setFocusPolicy(Qt.NoFocus)
@@ -433,7 +433,7 @@ class TagTypesTab(Tab[model.TagType]):
         # noinspection PyTypeChecker
         button: QtW.QPushButton = self._owner.sender()
         # Set initial color to the button’s current background color
-        color = QtW.QColorDialog.getColor(button.palette().button().color())
+        color = QtW.QColorDialog.getColor(button.palette().button().color(), parent=self._owner)
         if color.isValid():
             row = button.property('row')
             button.setText(color.name())
@@ -623,7 +623,7 @@ class _TagsTab(Tab[_TagType], typ.Generic[_TagType], metaclass=abc.ABCMeta):
             type_item.setFlags(type_item.flags() & ~Qt.ItemIsEditable & ~Qt.ItemIsSelectable)
             self._table.setItem(row, self._type_column, type_item)
         else:
-            combo = QtW.QComboBox()
+            combo = QtW.QComboBox(parent=self._owner)
             combo.currentIndexChanged.connect(self._combo_changed)
             combo.setWhatsThis('tag_type')
             combo.setProperty('row', row)

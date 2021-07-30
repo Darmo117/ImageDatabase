@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import os
 import typing as typ
 
@@ -19,7 +21,8 @@ class TagTree(QtW.QTreeWidget):
     DATA_OBJECT = QtC.Qt.UserRole
 
     def __init__(self, on_delete_item: typ.Callable[[QtW.QTreeWidgetItem], None],
-                 on_insert_tag: typ.Callable[[QtW.QTreeWidgetItem], None], parent: typ.Optional[QtW.QWidget] = None):
+                 on_insert_tag: typ.Callable[[QtW.QTreeWidgetItem], None],
+                 parent: typ.Optional[QtW.QWidget] = None):
         """Creates a tag tree widget.
 
         :param parent: The widget this tree belongs to.
@@ -34,29 +37,37 @@ class TagTree(QtW.QTreeWidget):
 
         self._menu = QtW.QMenu(parent=self)
 
-        self._copy_all_tags_action = self._menu.addAction(_t('main_window.tags_tree.context_menu.copy_all'))
-        self._copy_all_tags_action.setShortcut('Ctrl+Shift+C')
-        self._copy_all_tags_action.triggered.connect(self._on_copy_all)
-
-        self._copy_tags_action = self._menu.addAction(_t('main_window.tags_tree.context_menu.copy_tags'))
-        self._copy_tags_action.setShortcut('Ctrl+Alt+C')
-        self._copy_tags_action.triggered.connect(self._on_copy_tags)
-
-        self._copy_label_action = self._menu.addAction(_t('main_window.tags_tree.context_menu.copy'))
-        self._copy_label_action.setShortcut('Ctrl+C')
-        self._copy_label_action.triggered.connect(self._on_copy_label)
-
-        self._menu.addSeparator()
-
-        self._delete_item_action = self._menu.addAction(_t('main_window.tags_tree.context_menu.delete_tag'))
-        self._delete_item_action.setShortcut('Delete')
-        self._delete_item_action.triggered.connect(self._on_delete_item)
+        self._copy_all_tags_action = self._menu.addAction(
+            _t('main_window.tags_tree.context_menu.copy_all'),
+            self._on_copy_all,
+            'Ctrl+Shift+C'
+        )
+        self._copy_tags_action = self._menu.addAction(
+            _t('main_window.tags_tree.context_menu.copy_tags'),
+            self._on_copy_tags,
+            'Ctrl+Alt+C'
+        )
+        self._copy_label_action = self._menu.addAction(
+            _t('main_window.tags_tree.context_menu.copy'),
+            self._on_copy_label,
+            'Ctrl+C'
+        )
 
         self._menu.addSeparator()
 
-        self._insert_tag_action = self._menu.addAction(_t('main_window.tags_tree.context_menu.insert_tag'))
+        self._delete_item_action = self._menu.addAction(
+            _t('main_window.tags_tree.context_menu.delete_tag'),
+            self._on_delete_item,
+            'Delete'
+        )
+
+        self._menu.addSeparator()
+
+        self._insert_tag_action = self._menu.addAction(
+            _t('main_window.tags_tree.context_menu.insert_tag'),
+            self._on_insert_tag
+        )
         self._insert_tag_action.setShortcuts(['Return', 'Num+Enter'])
-        self._insert_tag_action.triggered.connect(self._on_insert_tag)
 
         self.setContextMenuPolicy(QtC.Qt.CustomContextMenu)
         self.customContextMenuRequested.connect(self._show_context_menu)
@@ -113,16 +124,20 @@ class TagTree(QtW.QTreeWidget):
     def keyPressEvent(self, event: QtG.QKeyEvent):
         if utils.gui.event_matches_action(event, self._copy_all_tags_action):
             self._on_copy_all()
+            event.ignore()
         elif utils.gui.event_matches_action(event, self._copy_tags_action):
             self._on_copy_tags()
+            event.ignore()
         elif utils.gui.event_matches_action(event, self._copy_label_action):
             self._on_copy_label()
+            event.ignore()
         elif utils.gui.event_matches_action(event, self._delete_item_action):
             self._on_delete_item()
+            event.ignore()
         elif utils.gui.event_matches_action(event, self._insert_tag_action):
             self._on_insert_tag()
-        else:
-            super().keyPressEvent(event)
+            event.ignore()
+        super().keyPressEvent(event)
 
     def selectionChanged(self, selected: QtC.QItemSelection, deselected: QtC.QItemSelection):
         super().selectionChanged(selected, deselected)
@@ -196,14 +211,15 @@ class TagTree(QtW.QTreeWidget):
 class Canvas(QtW.QGraphicsView):
     """This class is a canvas in which images can be displayed."""
 
-    def __init__(self, keep_border: bool = True, show_errors: bool = True):
+    def __init__(self, keep_border: bool = True, show_errors: bool = True, parent: QtW.QWidget = None):
         """Creates an empty canvas with no image.
 
         :param keep_border: If true the default border and bakground will be kept;
                             otherwise they will both be transparent unless there is no image.
         :param show_errors: If true a popup will appear when an image cannot be loaded.
+        :param parent: This widget’s parent.
         """
-        super().__init__()
+        super().__init__(parent=parent)
         self._image = None
         self._keep_border = keep_border
         self._show_errors = show_errors
@@ -250,6 +266,8 @@ class Canvas(QtW.QGraphicsView):
 class EllipsisLabel(QtW.QLabel):
     """This custom label adds an ellipsis (…) if the text doesn’t fit."""
 
+    _on_click = None
+
     def paintEvent(self, event: QtG.QPaintEvent):
         painter = QtG.QPainter()
         painter.begin(self)
@@ -261,6 +279,12 @@ class EllipsisLabel(QtW.QLabel):
         elided_text = metrics.elidedText(self.text(), QtC.Qt.ElideRight, self.width())
         painter.drawText(event.rect(), QtC.Qt.AlignCenter, elided_text)
 
+    def set_on_click(self, callback: typ.Callable[[EllipsisLabel], None]):
+        self._on_click = callback
+
+    def mouseReleaseEvent(self, event: QtG.QMouseEvent):
+        self._on_click(self)
+
 
 # Base code: https://blog.elentok.com/2011/08/autocomplete-textbox-for-multiple.html
 # Code repo: https://bit.ly/3iOzAzA
@@ -270,7 +294,7 @@ class AutoCompleteLineEdit(QtW.QLineEdit):
 
     def __init__(self, parent: QtW.QWidget = None):
         super().__init__(parent=parent)
-        self._completer = QtW.QCompleter()
+        self._completer = QtW.QCompleter(parent=self)
         self._completer.setCaseSensitivity(QtC.Qt.CaseInsensitive)
         self._completer.setFilterMode(QtC.Qt.MatchStartsWith)
         self._completer.setWidget(self)
@@ -278,9 +302,9 @@ class AutoCompleteLineEdit(QtW.QLineEdit):
         self._keys_to_ignore = [QtC.Qt.Key_Enter, QtC.Qt.Key_Return]
 
     def set_completer_model(self, values: typ.Iterable[str]):
-        self._completer.setModel(QtC.QStringListModel(values))
+        self._completer.setModel(QtC.QStringListModel(values, parent=self))
 
-    def keyPressEvent(self, event):
+    def keyPressEvent(self, event: QtG.QKeyEvent):
         if self._completer.popup().isVisible() and event.key() in self._keys_to_ignore:
             event.ignore()
             return
@@ -322,3 +346,50 @@ class AutoCompleteLineEdit(QtW.QLineEdit):
             i -= 1
 
         return text_under_cursor
+
+
+class IntLineEdit(QtW.QLineEdit):
+    """Text input that only accepts integer values in a given range."""
+
+    class Validator(QtG.QIntValidator):
+        """Custom validator that brings outlying values back into the defined range."""
+
+        def fixup(self, s: str) -> str:
+            if not s:
+                return str(self.bottom())
+            i = int(s)
+            if i < self.bottom():
+                return str(self.bottom())
+            elif i > self.top():
+                return str(self.top())
+            return s
+
+    def __init__(self, bottom: int, top: int, parent: QtW.QWidget = None):
+        """Text input that only accepts integer values in a given range.
+
+        :param bottom: Minimum accepted value.
+        :param top: Maximum accepted value.
+        :param parent: Parent widget.
+        """
+        super().__init__(parent=parent)
+        self.setValidator(self.Validator(bottom, top, parent=self))
+
+    def set_value(self, i: int):
+        """Sets the integer value."""
+        self.setText(str(i))
+
+    def value(self) -> typ.Optional[int]:
+        """Returns the current value or None if it is not an integer."""
+        try:
+            return int(self.text())
+        except ValueError:
+            return None
+
+    def keyPressEvent(self, event: QtG.QKeyEvent):
+        if event.key() == QtC.Qt.Key_Up and self.value() is not None and self.value() < self.validator().top():
+            self.set_value(self.value() + 1)
+            event.ignore()
+        elif event.key() == QtC.Qt.Key_Down and self.value() is not None and self.value() > self.validator().bottom():
+            self.set_value(self.value() - 1)
+            event.ignore()
+        super().keyPressEvent(event)

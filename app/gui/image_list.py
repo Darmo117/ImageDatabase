@@ -40,13 +40,16 @@ class ImageListView:
         # noinspection PyTypeChecker
         self._menu = QtW.QMenu(parent=self)
 
-        self._copy_paths_action = self._menu.addAction(_t('main_window.tab.context_menu.copy_path'))
-        self._copy_paths_action.setShortcut('Ctrl+C')
-        self._copy_paths_action.triggered.connect(self.copy_image_paths)
-
-        self._select_all_action = self._menu.addAction(_t('main_window.tab.context_menu.select_all'))
-        self._select_all_action.setShortcut('Ctrl+A')
-        self._select_all_action.triggered.connect(self.select_all)
+        self._copy_paths_action = self._menu.addAction(
+            _t('main_window.tab.context_menu.copy_path'),
+            self.copy_image_paths,
+            'Ctrl+C'
+        )
+        self._select_all_action = self._menu.addAction(
+            _t('main_window.tab.context_menu.select_all'),
+            self.select_all,
+            'Ctrl+A'
+        )
 
         # noinspection PyUnresolvedReferences
         self.setContextMenuPolicy(QtC.Qt.CustomContextMenu)
@@ -139,10 +142,11 @@ class ImageList(QtW.QListWidget, ImageListView):
         """Overrides “Ctrl+C“ action."""
         if utils.gui.event_matches_action(event, self._select_all_action):
             self.select_all()
+            event.ignore()
         if utils.gui.event_matches_action(event, self._copy_paths_action):
             self.copy_image_paths()
-        else:
-            super().keyPressEvent(event)
+            event.ignore()
+        super().keyPressEvent(event)
 
     def selectionChanged(self, selected: QtC.QItemSelection, deselected: QtC.QItemSelection):
         super().selectionChanged(selected, deselected)
@@ -241,18 +245,17 @@ class ThumbnailList(ScrollingFlowWidget, ImageListView):
         if event.button() != QtC.Qt.RightButton:
             self._last_index = -1
             self._deselect_except(None)
+        super().mousePressEvent(event)
 
     def keyPressEvent(self, event: QtG.QKeyEvent):
         """Handles “Ctrl+A“ and “Ctrl+C“ actions."""
-        key = event.key()
-        modifiers = event.modifiers()
-
         if utils.gui.event_matches_action(event, self._select_all_action):
             self.select_all()
+            event.ignore()
         elif utils.gui.event_matches_action(event, self._copy_paths_action):
             self.copy_image_paths()
-        else:
-            super().keyPressEvent(event)
+            event.ignore()
+        super().keyPressEvent(event)
 
     def _item_clicked(self, item: _FlowImageItem):
         """Called when an item is clicked once. It handles Ctrl+Click and Shift+Click actions.
@@ -327,7 +330,7 @@ class _FlowImageItem(QtW.QFrame, ImageItem):
         layout = QtW.QVBoxLayout()
         layout.setContentsMargins(2, 2, 2, 2)
 
-        self._image_view = Canvas(keep_border=False, show_errors=False)
+        self._image_view = Canvas(keep_border=False, show_errors=False, parent=self)
         # Allows file drag-and-drop
         self._image_view.dragEnterEvent = self.dragEnterEvent
         self._image_view.dragMoveEvent = self.dragMoveEvent
@@ -349,7 +352,6 @@ class _FlowImageItem(QtW.QFrame, ImageItem):
 
         self.setLayout(layout)
 
-        self._click_count = None
         self.selected = False
 
     @property
@@ -371,20 +373,9 @@ class _FlowImageItem(QtW.QFrame, ImageItem):
         self.setStyleSheet(f'background-color: rgba{bg_color}')
 
     def mousePressEvent(self, event: QtG.QMouseEvent):
-        self._click_count = 1
-        if event.button() == QtC.Qt.RightButton and not self._selected:
+        # Do not deselect other items if right click on already selected item
+        if event.button() != QtC.Qt.RightButton or not self._selected:
             self._on_click(self)
 
-    def mouseDoubleClickEvent(self, _):
-        self._click_count = 2
+    def mouseDoubleClickEvent(self, event: QtG.QMouseEvent):
         self._on_double_click(self)
-
-    def mouseReleaseEvent(self, _):
-        if self._click_count == 1:
-            # Delays the click action, waiting for an eventual second click.
-            QtC.QTimer.singleShot(QtW.QApplication.instance().doubleClickInterval() // 4,
-                                  self._perform_single_click_action)
-
-    def _perform_single_click_action(self):
-        if self._click_count == 1:
-            self._on_click(self)

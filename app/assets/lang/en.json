@@ -6,7 +6,7 @@
         "file": {
           "label": "&File",
           "item": {
-            "add_file": "Add &File…",
+            "add_files": "Add &Files…",
             "add_directory": "Add &Directory…",
             "export_playlist": "Export As &Playlist…",
             "exit": "&Exit"
@@ -22,18 +22,10 @@
             "delete_images": "&Delete Images"
           }
         },
-        "options": {
-          "label": "&Options",
-          "item": {
-            "load_thumbs": "Load &Thumbnails",
-            "thumbs_size": "Thumbnail &Size…",
-            "thumbs_load_threshold": "T&humbnail Load Threshold…",
-            "language": "&Language"
-          }
-        },
         "help": {
           "label": "&Help",
           "item": {
+            "settings": "&Settings…",
             "about": "&About…"
           }
         }
@@ -87,6 +79,9 @@
         "close_button": {
           "label": "Close"
         },
+        "apply_button": {
+          "label": "Apply"
+        },
         "yes_button": {
           "label": "Yes"
         },
@@ -98,6 +93,33 @@
         },
         "invalid_data": {
           "text": "Invalid data!"
+        }
+      },
+      "settings": {
+        "title": "Settings",
+        "box": {
+          "database": {
+            "title": "Database",
+            "db_path_warning": "This database file does not exist.",
+            "db_path": {
+              "label": "Database file"
+            },
+            "choose_file_button": {
+              "tooltip": "Select a file"
+            }
+          },
+          "thumbnails": {
+            "title": "Thumbnails",
+            "load_thumbs_button": {
+              "label": "Load thumbnails"
+            },
+            "thumbs_size": "Size (in pixels)",
+            "thumbs_threshold": "Load threshold"
+          },
+          "language": {
+            "title": "Interface Language",
+            "language": "Language"
+          }
         }
       },
       "edit_image": {
@@ -129,6 +151,7 @@
           "label": "Finish"
         },
         "target_path": "Destination folder: {path}",
+        "target_image": "Image: {path}",
         "error": {
           "replace_self": "Cannot replace image with itself!",
           "no_tags": "No tags specified!",
@@ -153,9 +176,6 @@
         },
         "search_button": {
           "label": "Search"
-        },
-        "apply_button": {
-          "label": "Apply"
         },
         "delete_warning": {
           "text": "Delete selected entries?"
@@ -268,9 +288,16 @@
       "similar_image_found": {
         "text": "This image may have already been registered.\nDo you wish to add it anyway?"
       },
-      "image_chooser": {
-        "caption": "Open Images",
-        "filter": "Image file"
+      "file_chooser": {
+        "caption": {
+          "image": "Open Image",
+          "images": "Open Images",
+          "database": "Choose Database File"
+        },
+        "filter": {
+          "images": "Image file",
+          "database": "Database file"
+        }
       },
       "open_directory_chooser": {
         "caption": "Open Directory"
@@ -318,16 +345,8 @@
         "title": "Load image thumbnails?",
         "text": "Query returned more than {threshold} image(s), thumbnails will be disabled.\nDo you want to load them anyway? The app may crash as a result."
       },
-      "set_thumbs_size": {
-        "title": "Thumbnails Size",
-        "text": "Enter the new size in pixels [{min}, {max}]"
-      },
-      "set_thumbs_load_threshold": {
-        "title": "Thumbnails Load Threshold",
-        "text": "Enter the new threshold [{min}, {max}]"
-      },
-      "language_changed": {
-        "text": "Language has been set to {lang_name}.\nRestart the application to apply change."
+      "app_needs_restart": {
+        "text": "Some changes need the application to restart to apply."
       }
     },
     "thread": {

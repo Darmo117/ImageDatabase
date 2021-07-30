@@ -2,13 +2,12 @@ from __future__ import annotations
 
 import typing as typ
 
+import PyQt5.QtCore as QtC
 import PyQt5.QtGui as QtG
 import PyQt5.QtWidgets as QtW
-from PyQt5.QtCore import Qt
 
-from ... import utils
-from ...i18n import translate as _t
-
+from app import utils
+from app.i18n import translate as _t
 
 _T = typ.TypeVar('_T', bound='Dialog')
 
@@ -30,8 +29,10 @@ class Dialog(QtW.QDialog):
         super().__init__(parent)
         # Remove "?" button but keep "close" button.
         # noinspection PyTypeChecker
-        self.setWindowFlags(self.windowFlags() & ~Qt.WindowContextHelpButtonHint)
+        self.setWindowFlags(self.windowFlags() & ~QtC.Qt.WindowContextHelpButtonHint)
         self.setModal(modal)
+        if modal:
+            self.setAttribute(QtC.Qt.WA_DeleteOnClose)
 
         self._buttons_mode = mode
 
@@ -75,12 +76,14 @@ class Dialog(QtW.QDialog):
         self._ok_btn = QtW.QPushButton(
             self.style().standardIcon(QtW.QStyle.SP_DialogOkButton),
             _t('dialog.common.ok_button.label') if self._buttons_mode == Dialog.OK_CANCEL
-            else _t('dialog.common.close_button.label')
+            else _t('dialog.common.close_button.label'),
+            parent=self
         )
         self._ok_btn.clicked.connect(self._on_ok_clicked)
         self._cancel_btn = QtW.QPushButton(
             self.style().standardIcon(QtW.QStyle.SP_DialogCancelButton),
-            _t('dialog.common.cancel_button.label')
+            _t('dialog.common.cancel_button.label'),
+            parent=self
         )
         self._cancel_btn.clicked.connect(self.reject)
 

@@ -121,34 +121,54 @@ def show_int_input(message: str, title: str, value: int = 0, min_value: int = No
     return input_d.intValue() if ok else None
 
 
-def open_image_chooser(parent: QtW.QWidget = None) -> typ.Optional[typ.List[str]]:
+FILTER_IMAGES = 0
+FILTER_DB = 1
+
+
+def open_file_chooser(single_selection: bool, mode: int, parent: QtW.QWidget = None) \
+        -> typ.Union[typ.List[str], str, None]:
     """Opens a file chooser for images.
 
+    :param single_selection: Whether the user can select only a single file.
+    :param mode: What file filter to apply.
     :param parent: Chooser’s parent.
     :return: The selected files or None if the chooser was cancelled.
     """
-    exts = ' '.join(map(lambda e: '*.' + e, constants.FILE_EXTENSIONS))
-    files, _ = QtW.QFileDialog.getOpenFileNames(
-        caption=_t('popup.image_chooser.caption'),
-        filter=_t('popup.image_chooser.filter') + f'({exts})',
+    kwargs = {}
+    if config.CONFIG.debug:
+        kwargs['options'] = QtW.QFileDialog.DontUseNativeDialog
+    if mode == FILTER_IMAGES:
+        caption_k = 'image' if single_selection else 'images'
+        filter_k = 'images'
+        exts = ' '.join(map(lambda e: '*.' + e, constants.IMAGE_FILE_EXTENSIONS))
+    else:
+        caption_k = filter_k = 'database'
+        exts = '*.sqlite3'
+    function = QtW.QFileDialog.getOpenFileName if single_selection else QtW.QFileDialog.getOpenFileNames
+    selection, _ = function(
+        caption=_t('popup.file_chooser.caption.' + caption_k),
+        filter=_t('popup.file_chooser.filter.' + filter_k) + f' ({exts})',
         parent=parent,
-        options=QtW.QFileDialog.DontUseNativeDialog if config.CONFIG.debug else None
+        **kwargs
     )
-    return files or None
+    return selection or None
 
 
 def open_playlist_saver(parent: typ.Optional[QtW.QWidget] = None) -> typ.Optional[str]:
     """Opens a file saver for playlists.
 
     :param parent: Saver’s parent.
-    :return: The selected file or REJECTED if the saver was cancelled.
+    :return: The selected file or None if the saver was cancelled.
     """
+    kwargs = {}
+    if config.CONFIG.debug:
+        kwargs['options'] = QtW.QFileDialog.DontUseNativeDialog
     ext = '.play'
     file, _ = QtW.QFileDialog.getSaveFileName(
         caption=_t('popup.playlist_saver.caption'),
-        filter=_t('popup.playlist_saver.filter') + f'(*{ext})',
+        filter=_t('popup.playlist_saver.filter') + f' (*{ext})',
         parent=parent,
-        options=QtW.QFileDialog.DontUseNativeDialog if config.CONFIG.debug else None
+        **kwargs
     )
     if file and not file.endswith(ext):
         file += ext
@@ -156,19 +176,22 @@ def open_playlist_saver(parent: typ.Optional[QtW.QWidget] = None) -> typ.Optiona
 
 
 def open_directory_chooser(parent: QtW.QWidget = None) -> typ.Optional[typ.List[str]]:
-    """Opens a directory chooser then returns all the files it contains.
+    """Opens a directory chooser then returns all the image files it contains.
 
     :param parent: Chooser’s parent.
-    :return: All files inside the chosen directory or REJECTED if the chooser was cancelled or NO_IMAGES if the
-             directory contains no images.
+    :return: All image files inside the chosen directory or None if the chooser was cancelled.
     """
+    options = QtW.QFileDialog.ShowDirsOnly
+    if config.CONFIG.debug:
+        options |= QtW.QFileDialog.DontUseNativeDialog
     directory = QtW.QFileDialog.getExistingDirectory(
         caption=_t('popup.open_directory_chooser.caption'),
         parent=parent,
-        options=QtW.QFileDialog.DontUseNativeDialog if config.CONFIG.debug else None
+        options=options
     )
     if directory != '':
-        files = filter(lambda f: os.path.splitext(f)[1].lower()[1:] in constants.FILE_EXTENSIONS, os.listdir(directory))
+        files = filter(lambda f: os.path.splitext(f)[1].lower()[1:] in constants.IMAGE_FILE_EXTENSIONS,
+                       os.listdir(directory))
         files = list(map(lambda f: slashed(os.path.join(directory, f)), files))
         return files
     return None
@@ -178,18 +201,21 @@ def choose_directory(parent: QtW.QWidget = None) -> typ.Optional[str]:
     """Opens a directory chooser.
 
     :param parent: Chooser’s parent.
-    :return: The selected directory or REJECTED if the chooser was cancelled.
+    :return: The selected directory or None if the chooser was cancelled.
     """
+    options = QtW.QFileDialog.ShowDirsOnly
+    if config.CONFIG.debug:
+        options |= QtW.QFileDialog.DontUseNativeDialog
     directory = QtW.QFileDialog.getExistingDirectory(
         caption=_t('popup.directory_chooser.caption'),
         parent=parent,
-        options=QtW.QFileDialog.DontUseNativeDialog if config.CONFIG.debug else None
+        options=options
     )
     return directory or None
 
 
 def slashed(path: str) -> str:
-    r"""Replaces backslashes (\) in the given path with normal slashes (/).
+    r"""Replaces backslashes (\\) in the given path with normal slashes (/).
 
     :param path: The path to convert.
     :return: The path with all \ replaced by /.

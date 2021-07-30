@@ -6,7 +6,7 @@
         "file": {
           "label": "&Fichier",
           "item": {
-            "add_file": "Ajouter un &fichier…",
+            "add_files": "Ajouter des &fichiers…",
             "add_directory": "Ajouter un &dossier…",
             "export_playlist": "Exporter en tant que &playlist…",
             "exit": "&Quitter"
@@ -22,18 +22,10 @@
             "delete_images": "&Supprimer les images"
           }
         },
-        "options": {
-          "label": "&Options",
-          "item": {
-            "load_thumbs": "&Charger les vignettes",
-            "thumbs_size": "&Taille des vignettes…",
-            "thumbs_load_threshold": "&Seuil de chargement des vignettes…",
-            "language": "&Langue"
-          }
-        },
         "help": {
           "label": "&Aide",
           "item": {
+            "settings": "&Paramètres…",
             "about": "À &propos…"
           }
         }
@@ -79,6 +71,9 @@
         "close_button": {
           "label": "Fermer"
         },
+        "apply_button": {
+          "label": "Appliquer"
+        },
         "yes_button": {
           "label": "Oui"
         },
@@ -90,6 +85,33 @@
         },
         "invalid_data": {
           "text": "Données invalides !"
+        }
+      },
+      "settings": {
+        "title": "Paramètres",
+        "box": {
+          "database": {
+            "title": "Base de données",
+            "db_path_warning": "Ce fichier de base de données n’existe pas.",
+            "db_path": {
+              "label": "Fichier de base de données"
+            },
+            "choose_file_button": {
+              "tooltip": "Sélectionner un fichier"
+            }
+          },
+          "thumbnails": {
+            "title": "Vignettes",
+            "load_thumbs_button": {
+              "label": "Charger les vigettes"
+            },
+            "thumbs_size": "Taille (en pixels)",
+            "thumbs_threshold": "Seuil de chargement"
+          },
+          "language": {
+            "title": "Langue",
+            "language": "Langue de l’interface"
+          }
         }
       },
       "edit_image": {
@@ -121,6 +143,7 @@
           "label": "Terminer"
         },
         "target_path": "Dossier cible : {path}",
+        "target_image": "Image : {path}",
         "error": {
           "replace_self": "Impossible de remplacer une image par elle-même !",
           "no_tags": "Aucune étiquette renseignée !",
@@ -145,9 +168,6 @@
         },
         "search_button": {
           "label": "Rechercher"
-        },
-        "apply_button": {
-          "label": "Appliquer"
         },
         "delete_warning": {
           "text": "Supprimer les entrées sélectionnées ?"
@@ -260,9 +280,16 @@
       "similar_image_found": {
         "text": "Cette image a peut-être déjà été enregistrée.\nSouhaitez-vous l’ajouter quand-même ?"
       },
-      "image_chooser": {
-        "caption": "Ouvrir des images",
-        "filter": "Image"
+      "file_chooser": {
+        "caption": {
+          "image": "Ouvrir une image",
+          "images": "Ouvrir des images",
+          "database": "Choisir un fichier de base de données"
+        },
+        "filter": {
+          "images": "Image",
+          "database": "Base de données"
+        }
       },
       "open_directory_chooser": {
         "caption": "Ouvrir un dossier"
@@ -310,16 +337,11 @@
         "title": "Charger les vignettes ?",
         "text": "La requête a retourné plus de {threshold} image(s), les vignettes vont être désactivées.\nVoulez-vous les charger quand-même ? L’application risque de planter si vous procédez."
       },
-      "set_thumbs_size": {
-        "title": "Taille des vignettes",
-        "text": "Entrer la taille en pixels [{min}, {max}]"
-      },
-      "set_thumbs_load_threshold": {
-        "title": "Seuil de chargement des vignettes",
-        "text": "Entrer le nouveau seuil [{min}, {max}]"
-      },
       "language_changed": {
         "text": "Nouvelle langue sélectionnée : {lang_name}.\nLe changement ne prendra effet qu’après redémarrage de l’application."
+      },
+      "app_needs_restart": {
+        "text": "Certains changements nécessitent un redémarrage de l’application."
       }
     },
     "thread": {

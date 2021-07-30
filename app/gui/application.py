@@ -9,10 +9,10 @@ import PyQt5.QtGui as QtG
 import PyQt5.QtWidgets as QtW
 
 from .components import TagTree, AutoCompleteLineEdit
-from .dialogs import EditImageDialog, EditTagsDialog, AboutDialog, DeleteFileConfirmDialog
+from .dialogs import EditImageDialog, EditTagsDialog, AboutDialog, DeleteFileConfirmDialog, SettingsDialog
 from .image_list import ImageList, ImageListView, ThumbnailList
 from .. import config, constants, data_access as da, model, queries, utils
-from ..i18n import translate as _t, get_languages as i18n_get_languages
+from ..i18n import translate as _t
 from ..logging import logger
 
 
@@ -40,14 +40,14 @@ class Application(QtW.QMainWindow):
     # noinspection PyUnresolvedReferences,PyArgumentList
     def _init_ui(self):
         """Initializes the UI."""
-        self.setWindowTitle(constants.APP_NAME)
+        self.setWindowTitle(constants.APP_NAME + (' [DEBUG]' if config.CONFIG.debug else ''))
         self.setWindowIcon(utils.gui.icon('app_icon'))
         self.setGeometry(0, 0, 800, 600)
         self.setMinimumSize(400, 200)
 
         self._init_menu()
 
-        self.setCentralWidget(QtW.QWidget())
+        self.setCentralWidget(QtW.QWidget(parent=self))
 
         self._tag_tree = TagTree(self._on_delete_item, self._on_insert_tag, parent=self)
 
@@ -87,9 +87,9 @@ class Application(QtW.QMainWindow):
         v_box.addLayout(h_box)
         v_box.setContentsMargins(0, 5, 5, 5)
 
-        left = QtW.QWidget()
+        left = QtW.QWidget(parent=self)
         left.setLayout(left_layout)
-        right = QtW.QWidget()
+        right = QtW.QWidget(parent=self)
         right.setLayout(v_box)
 
         splitter.addWidget(left)
@@ -110,101 +110,84 @@ class Application(QtW.QMainWindow):
 
         file_menu = menubar.addMenu(_t('main_window.menu.file.label'))
 
-        add_file_item = QtW.QAction(_t('main_window.menu.file.item.add_file'), self)
-        add_file_item.setIcon(utils.gui.icon('image_add'))
-        add_file_item.setShortcut('Ctrl+F')
-        add_file_item.triggered.connect(self._add_image)
-        file_menu.addAction(add_file_item)
-
-        add_directory_item = QtW.QAction(_t('main_window.menu.file.item.add_directory'), self)
-        add_directory_item.setIcon(utils.gui.icon('folder_image'))
-        add_directory_item.setShortcut('Ctrl+D')
-        add_directory_item.triggered.connect(self._add_directory)
-        file_menu.addAction(add_directory_item)
-
-        file_menu.addSeparator()
-
-        self._export_item = QtW.QAction(_t('main_window.menu.file.item.export_playlist'), self)
-        self._export_item.setShortcut('Ctrl+Shift+E')
-        self._export_item.triggered.connect(self._export_images)
-        file_menu.addAction(self._export_item)
+        file_menu.addAction(
+            utils.gui.icon('image_add'),
+            _t('main_window.menu.file.item.add_files'),
+            self._add_image,
+            'Ctrl+F'
+        )
+        file_menu.addAction(
+            utils.gui.icon('folder_image'),
+            _t('main_window.menu.file.item.add_directory'),
+            self._add_directory,
+            'Ctrl+D'
+        )
 
         file_menu.addSeparator()
 
-        exit_item = QtW.QAction(_t('main_window.menu.file.item.exit'), self)
-        exit_item.setIcon(utils.gui.icon('door_open'))
-        exit_item.setShortcut('Ctrl+Q')
-        exit_item.triggered.connect(QtW.qApp.quit)
-        file_menu.addAction(exit_item)
+        self._export_item = file_menu.addAction(
+            _t('main_window.menu.file.item.export_playlist'),
+            self._export_images,
+            'Ctrl+Shift+E'
+        )
+
+        file_menu.addSeparator()
+
+        file_menu.addAction(
+            utils.gui.icon('door_open'),
+            _t('main_window.menu.file.item.exit'),
+            QtW.qApp.quit,
+            'Ctrl+Q'
+        )
 
         edit_menu = menubar.addMenu(_t('main_window.menu.edit.label'))
 
-        edit_tags_item = QtW.QAction(_t('main_window.menu.edit.item.edit_tags'), self)
-        edit_tags_item.setIcon(utils.gui.icon('tag_edit'))
-        edit_tags_item.setShortcut('Ctrl+T')
-        edit_tags_item.triggered.connect(self._edit_tags)
-        edit_menu.addAction(edit_tags_item)
+        edit_menu.addAction(
+            utils.gui.icon('tag_edit'),
+            _t('main_window.menu.edit.item.edit_tags'),
+            self._edit_tags,
+            'Ctrl+T'
+        )
 
         edit_menu.addSeparator()
 
-        self._rename_image_item = QtW.QAction(_t('main_window.menu.edit.item.rename_image'), self)
-        self._rename_image_item.setIcon(utils.gui.icon('textfield_rename'))
-        self._rename_image_item.setShortcut('Ctrl+R')
-        self._rename_image_item.triggered.connect(self._rename_image)
-        edit_menu.addAction(self._rename_image_item)
-
-        self._replace_image_item = QtW.QAction(_t('main_window.menu.edit.item.replace_image'), self)
-        self._replace_image_item.setIcon(utils.gui.icon('replace_image'))
-        self._replace_image_item.setShortcut('Ctrl+Shift+R')
-        self._replace_image_item.triggered.connect(self._replace_image)
-        edit_menu.addAction(self._replace_image_item)
-
-        self._edit_images_item = QtW.QAction(_t('main_window.menu.edit.item.edit_images'), self)
-        self._edit_images_item.setIcon(utils.gui.icon('image_edit'))
-        self._edit_images_item.setShortcut('Ctrl+E')
-        self._edit_images_item.triggered.connect(lambda: self._edit_images(self._current_tab().selected_images()))
-        edit_menu.addAction(self._edit_images_item)
-
-        self._delete_images_item = QtW.QAction(_t('main_window.menu.edit.item.delete_images'), self)
-        self._delete_images_item.setIcon(utils.gui.icon('image_delete'))
-        self._delete_images_item.setShortcut('Delete')
-        self._delete_images_item.triggered.connect(self._delete_images)
-        edit_menu.addAction(self._delete_images_item)
-
-        options_menu = menubar.addMenu(_t('main_window.menu.options.label'))
-
-        # noinspection PyArgumentList
-        self._load_thumbs_item = QtW.QAction(_t('main_window.menu.options.item.load_thumbs'), checkable=True,
-                                             checked=config.CONFIG.load_thumbnails)
-        self._load_thumbs_item.triggered.connect(self._load_thumbs_item_clicked)
-        options_menu.addAction(self._load_thumbs_item)
-
-        thumb_size_item = QtW.QAction(_t('main_window.menu.options.item.thumbs_size'), self)
-        thumb_size_item.triggered.connect(self._thumb_size_item_clicked)
-        options_menu.addAction(thumb_size_item)
-
-        thumb_load_threshold_item = QtW.QAction(_t('main_window.menu.options.item.thumbs_load_threshold'), self)
-        thumb_load_threshold_item.triggered.connect(self._thumb_load_threshold_item_clicked)
-        options_menu.addAction(thumb_load_threshold_item)
-
-        language_menu = options_menu.addMenu(_t('main_window.menu.options.item.language'))
-        language_menu.setIcon(utils.gui.icon('world'))
-        langs_group = QtW.QActionGroup(self)
-        for lang in i18n_get_languages():
-            lang_item = QtW.QAction(lang.name, self)
-            lang_item.setData(lang)
-            lang_item.triggered.connect(self._language_clicked)
-            lang_item.setCheckable(True)
-            lang_item.setChecked(lang.code == config.CONFIG.language.code)
-            langs_group.addAction(lang_item)
-            language_menu.addAction(lang_item)
+        self._rename_image_item = edit_menu.addAction(
+            utils.gui.icon('textfield_rename'),
+            _t('main_window.menu.edit.item.rename_image'),
+            self._rename_image,
+            'Ctrl+R'
+        )
+        self._replace_image_item = edit_menu.addAction(
+            utils.gui.icon('replace_image'),
+            _t('main_window.menu.edit.item.replace_image'),
+            self._replace_image,
+            'Ctrl+Shift+R'
+        )
+        self._edit_images_item = edit_menu.addAction(
+            utils.gui.icon('image_edit'),
+            _t('main_window.menu.edit.item.edit_images'),
+            lambda: self._edit_images(self._current_tab().selected_images()),
+            'Ctrl+E'
+        )
+        self._delete_images_item = edit_menu.addAction(
+            utils.gui.icon('image_delete'),
+            _t('main_window.menu.edit.item.delete_images'),
+            self._delete_images,
+            'Delete'
+        )
 
         help_menu = menubar.addMenu(_t('main_window.menu.help.label'))
 
-        about_item = QtW.QAction(_t('main_window.menu.help.item.about'), self)
-        about_item.setIcon(utils.gui.icon('information'))
-        about_item.triggered.connect(lambda: AboutDialog(self).show())
-        help_menu.addAction(about_item)
+        help_menu.addAction(
+            utils.gui.icon('settings'),
+            _t('main_window.menu.help.item.settings'),
+            self._show_settings_dialog
+        )
+        help_menu.addAction(
+            utils.gui.icon('information'),
+            _t('main_window.menu.help.item.about'),
+            lambda: AboutDialog(self).show()
+        )
 
     def _center(self):
         """Centers the application window."""
@@ -213,9 +196,14 @@ class Application(QtW.QMainWindow):
         qr.moveCenter(cp)
         self.move(qr.topLeft())
 
+    def _show_settings_dialog(self):
+        settings_dialog = SettingsDialog(parent=self)
+        settings_dialog.set_on_close_action(self._fetch_and_refresh)
+        settings_dialog.show()
+
     def _add_image(self):
         """Opens a file chooser then adds the selected images to the database."""
-        files = utils.gui.open_image_chooser(self)
+        files = utils.gui.open_file_chooser(single_selection=False, mode=utils.gui.FILTER_IMAGES, parent=self)
         if files is not None:
             if len(files) == 0:
                 utils.gui.show_info(_t('popup.no_files_selected.text'), parent=self)
@@ -224,7 +212,7 @@ class Application(QtW.QMainWindow):
 
     def _add_directory(self):
         """Opens a file chooser then adds the images from the selected directory to the database."""
-        files = utils.gui.open_directory_chooser(self)
+        files = utils.gui.open_directory_chooser(parent=self)
         if files is not None:
             if len(files) == 0:
                 utils.gui.show_info(_t('popup.empty_directory.text'), parent=self)
@@ -245,11 +233,11 @@ class Application(QtW.QMainWindow):
                     text = _t('popup.images_registered.text')
                 else:
                     text = _t('popup.image_registered.text')
-                utils.gui.show_info(text)
+                utils.gui.show_info(text, parent=self)
                 return
 
             if any(registered):
-                utils.gui.show_info(_t('popup.some_images_registered.text'))
+                utils.gui.show_info(_t('popup.some_images_registered.text'), parent=self)
 
             add_all = True
             similar = map(lambda s: s == self._image_dao.IMG_SIMILAR, similarities.values())
@@ -290,7 +278,8 @@ class Application(QtW.QMainWindow):
                     rename = True
                     if os.path.exists(new_path):
                         rename &= utils.gui.show_question(_t('popup.rename_overwrite.text'),
-                                                          _t('popup.rename_overwrite.title'), parent=self)
+                                                          _t('popup.rename_overwrite.title'),
+                                                          parent=self)
                     if rename:
                         os.rename(image.path, new_path)
                         self._fetch_images()
@@ -312,7 +301,7 @@ class Application(QtW.QMainWindow):
         """Opens a file saver then writes all images to a playlist file."""
         images = self._current_tab().get_images()
         if len(images) > 0:
-            file = utils.gui.open_playlist_saver(self)
+            file = utils.gui.open_playlist_saver(parent=self)
             if file is not None:
                 da.write_playlist(file, images)
                 utils.gui.show_info(_t('popup.playlist_exported.text'), parent=self)
@@ -331,7 +320,7 @@ class Application(QtW.QMainWindow):
             for image in images:
                 t = self._image_dao.get_image_tags(image.id, self._tags_dao)
                 if t is None:
-                    utils.gui.show_error(_t('popup.tag_load_error.text'))
+                    utils.gui.show_error(_t('popup.tag_load_error.text'), parent=self)
                 tags[image.id] = t
             dialog.set_images(images, tags)
             dialog.show()
@@ -446,46 +435,6 @@ class Application(QtW.QMainWindow):
             self._input_field.setFocus()
         self._update_menus()
 
-    def _language_clicked(self):
-        language = self.sender().data()
-        config.CONFIG.change_to_language = language.code
-        config.save_config()
-        utils.gui.show_info(_t('popup.language_changed.text', lang_name=language.name), parent=self)
-
-    def _load_thumbs_item_clicked(self):
-        config.CONFIG.load_thumbnails = self._load_thumbs_item.isChecked()
-        config.save_config()
-
-    def _thumb_size_item_clicked(self):
-        value = utils.gui.show_int_input(
-            _t('popup.set_thumbs_size.text', min=constants.MIN_THUMB_SIZE, max=constants.MAX_THUMB_SIZE),
-            _t('popup.set_thumbs_size.title'),
-            value=config.CONFIG.thumbnail_size,
-            min_value=constants.MIN_THUMB_SIZE,
-            max_value=constants.MAX_THUMB_SIZE,
-            parent=self
-        )
-        if value is not None:
-            config.CONFIG.thumbnail_size = value
-            config.save_config()
-            self._fetch_and_refresh()
-
-    def _thumb_load_threshold_item_clicked(self):
-        value = utils.gui.show_int_input(
-            _t('popup.set_thumbs_load_threshold.text',
-               min=constants.MIN_THUMB_LOAD_THRESHOLD,
-               max=constants.MAX_THUMB_LOAD_THRESHOLD),
-            _t('popup.set_thumbs_load_threshold.title'),
-            value=config.CONFIG.thumbnail_load_threshold,
-            min_value=constants.MIN_THUMB_LOAD_THRESHOLD,
-            max_value=constants.MAX_THUMB_LOAD_THRESHOLD,
-            parent=self
-        )
-        if value is not None:
-            config.CONFIG.thumbnail_load_threshold = value
-            config.save_config()
-            self._fetch_and_refresh()
-
     def _list_selection_changed(self, _):
         self._update_menus()
 
@@ -530,7 +479,7 @@ class Application(QtW.QMainWindow):
             except ValueError:
                 event.ignore()
             else:
-                if all(map(lambda f: os.path.splitext(f)[1].lower()[1:] in constants.FILE_EXTENSIONS, urls)):
+                if all(map(lambda f: os.path.splitext(f)[1].lower()[1:] in constants.IMAGE_FILE_EXTENSIONS, urls)):
                     event.accept()
                 else:
                     event.ignore()

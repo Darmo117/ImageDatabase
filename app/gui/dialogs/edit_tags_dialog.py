@@ -1,21 +1,20 @@
 import typing as typ
 
 import PyQt5.QtWidgets as QtW
-from PyQt5.QtCore import Qt
+import PyQt5.QtCore as QtC
 
-from .dialog_base import Dialog
-from .tabs import TagsTab, TagTypesTab, CompoundTagsTab
-from ... import data_access as da, model, utils
-from ...i18n import translate as _t
+from app import data_access, model, utils
+from app.i18n import translate as _t
+from . import _dialog_base, _tabs
 
 
-class EditTagsDialog(Dialog):
+class EditTagsDialog(_dialog_base.Dialog):
     """This dialog is used to edit tags and tag types."""
     _TAG_TYPES_TAB = 0
     _COMPOUND_TAGS_TAB = 1
     _TAGS_TAB = 2
 
-    def __init__(self, tags_dao: da.TagsDao, editable: bool = True, parent: typ.Optional[QtW.QWidget] = None):
+    def __init__(self, tags_dao: data_access.TagsDao, editable: bool = True, parent: typ.Optional[QtW.QWidget] = None):
         """Creates a dialog.
 
         :param tags_dao: Tags DAO instance.
@@ -38,12 +37,12 @@ class EditTagsDialog(Dialog):
                 tab.delete_types(deleted_types)
 
         self._tabs = (
-            TagTypesTab(self, tags_dao, self._editable, selection_changed=self._selection_changed,
-                        cell_changed=type_cell_changed, rows_deleted=types_deleted),
-            CompoundTagsTab(self, tags_dao, self._editable, selection_changed=self._selection_changed,
-                            cell_changed=self._check_integrity, rows_deleted=self._check_integrity),
-            TagsTab(self, tags_dao, self._editable, selection_changed=self._selection_changed,
-                    cell_changed=self._check_integrity, rows_deleted=self._check_integrity)
+            _tabs.TagTypesTab(self, tags_dao, self._editable, selection_changed=self._selection_changed,
+                              cell_changed=type_cell_changed, rows_deleted=types_deleted),
+            _tabs.CompoundTagsTab(self, tags_dao, self._editable, selection_changed=self._selection_changed,
+                                  cell_changed=self._check_integrity, rows_deleted=self._check_integrity),
+            _tabs.TagsTab(self, tags_dao, self._editable, selection_changed=self._selection_changed,
+                          cell_changed=self._check_integrity, rows_deleted=self._check_integrity)
         )
 
         title = _t('dialog.edit_tags.title_edit') if self._editable else _t('dialog.edit_tags.title_readonly')
@@ -59,39 +58,40 @@ class EditTagsDialog(Dialog):
         buttons = QtW.QHBoxLayout()
         buttons.addStretch(1)
 
-        self._add_row_btn = QtW.QPushButton()
+        self._add_row_btn = QtW.QPushButton(parent=self)
         self._add_row_btn.setIcon(utils.gui.icon('plus'))
         self._add_row_btn.setToolTip(_t('dialog.edit_tags.add_item_button.tooltip'))
         self._add_row_btn.setFixedSize(24, 24)
-        self._add_row_btn.setFocusPolicy(Qt.NoFocus)
+        self._add_row_btn.setFocusPolicy(QtC.Qt.NoFocus)
         self._add_row_btn.clicked.connect(self._add_row)
         buttons.addWidget(self._add_row_btn)
 
-        self._delete_row_btn = QtW.QPushButton()
+        self._delete_row_btn = QtW.QPushButton(parent=self)
         self._delete_row_btn.setIcon(utils.gui.icon('cross'))
         self._delete_row_btn.setToolTip(_t('dialog.edit_tags.delete_items_button.tooltip'))
         self._delete_row_btn.setFixedSize(24, 24)
-        self._delete_row_btn.setFocusPolicy(Qt.NoFocus)
+        self._delete_row_btn.setFocusPolicy(QtC.Qt.NoFocus)
         self._delete_row_btn.clicked.connect(self._delete_selected_row)
         buttons.addWidget(self._delete_row_btn)
 
         if self._editable:
             layout.addLayout(buttons)
 
-        self._tabbed_pane = QtW.QTabWidget()
+        self._tabbed_pane = QtW.QTabWidget(parent=self)
         self._tabbed_pane.currentChanged.connect(self._tab_changed)
         self._init_tabs()
         layout.addWidget(self._tabbed_pane)
 
         search_layout = QtW.QHBoxLayout()
-        self._search_field = QtW.QLineEdit()
+        self._search_field = QtW.QLineEdit(parent=self)
         self._search_field.setPlaceholderText(_t('dialog.edit_tags.search_field.placeholder'))
         self._search_field.returnPressed.connect(self._search)
         search_layout.addWidget(self._search_field)
 
         search_btn = QtW.QPushButton(
             utils.gui.icon('search'),
-            _t('dialog.edit_tags.search_button.label')
+            _t('dialog.edit_tags.search_button.label'),
+            parent=self
         )
         search_btn.clicked.connect(self._search)
         search_layout.addWidget(search_btn)
@@ -103,7 +103,7 @@ class EditTagsDialog(Dialog):
     def _init_buttons(self) -> typ.List[QtW.QAbstractButton]:
         if self._editable:
             self._ok_btn.setEnabled(False)
-            self._apply_btn = QtW.QPushButton(_t('dialog.edit_tags.apply_button.label'))
+            self._apply_btn = QtW.QPushButton(_t('dialog.common.apply_button.label'), parent=self)
             self._apply_btn.clicked.connect(self._apply)
             self._apply_btn.setEnabled(False)
             return [self._apply_btn]
