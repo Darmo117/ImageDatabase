@@ -133,13 +133,39 @@
       },
       "perform_operations": {
         "title": "Perform Operations",
-        "warning": "Be careful when performing operations as once you click on “Apply”, it is not possible to cancel.",
         "box": {
           "image_paths": {
             "title": "Image Paths",
+            "description": "",
             "regex": "Pattern",
             "replacement": "Replacement"
           }
+        }
+      },
+      "batch_move": {
+        "title": "Batch Move Files",
+        "files_and_directories": "Files and directories to move",
+        "list_empty": "List is empty.",
+        "destination_non_existant": "The destination directory does not exist.",
+        "destination_empty": "Field is empty.",
+        "destination": "Destination",
+        "add_files_button": {
+          "tooltip": "Add Files"
+        },
+        "add_directory_button": {
+          "tooltip": "Add Directories"
+        },
+        "delete_item_button": {
+          "tooltip": "Delete selected items"
+        },
+        "clear_list_button": {
+          "tooltip": "Clear list"
+        },
+        "choose_directory_button": {
+          "tooltip": "Select directory"
+        },
+        "move_button": {
+          "label": "Move"
         }
       },
       "edit_image": {
@@ -378,6 +404,23 @@
       "operation_result_errors": {
         "title": "Operation Result",
         "text": "Operation ended with errors!\n{affected} row(s) were changed but the following images raised errors:\n{errors}"
+      },
+      "files_move_result_success": {
+        "title": "Operation Result",
+        "text": "Files moved successfully!"
+      },
+      "files_move_result_errors": {
+        "title": "Operation Result",
+        "text": "Operation ended with errors!\nThe following elements raised errors:\n{errors}"
+      },
+      "progress": {
+        "title": "Progress",
+        "status_label": "Status:",
+        "status": {
+          "success": "Success",
+          "failed": "Failed",
+          "unknown": "N/A"
+        }
       }
     },
     "thread": {

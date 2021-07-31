@@ -125,10 +125,10 @@
       },
       "perform_operations": {
         "title": "Operacii",
-        "warning": "Atentu kiam vi operacias ĉar post vi alklakus “Apliki”, vi ne povus ŝtopi la operacion.",
         "box": {
           "image_paths": {
             "title": "Bildindikoj",
+            "description": "",
             "regex": "Ŝablono",
             "replacement": "Anstataŭo"
           }

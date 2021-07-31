@@ -4,12 +4,12 @@ import dataclasses
 import re
 import typing as typ
 
-import PyQt5.QtCore as QtC
 import PyQt5.QtWidgets as QtW
 
 from app import data_access, queries, config, utils, model
 from app.i18n import translate as _t
 from . import _dialog_base
+from .. import threads
 
 
 class OperationsDialog(_dialog_base.Dialog):
@@ -24,41 +24,39 @@ class OperationsDialog(_dialog_base.Dialog):
     def _init_body(self):
         layout = QtW.QVBoxLayout()
 
-        warning_layout = QtW.QHBoxLayout()
-        warning_icon = QtW.QLabel()
-        warning_icon.setPixmap(utils.gui.icon('warning').pixmap(32, 32))
-        warning_layout.addWidget(warning_icon)
-        warning_label = QtW.QLabel(_t('dialog.perform_operations.warning'), parent=self)
-        warning_label.setWordWrap(True)
-        warning_layout.addWidget(warning_label, stretch=1)
-        layout.addLayout(warning_layout)
-
-        layout.addSpacing(10)
-
         image_paths_box = QtW.QGroupBox(_t('dialog.perform_operations.box.image_paths.title'), parent=self)
         image_paths_layout = QtW.QGridLayout()
         image_paths_box.setLayout(image_paths_layout)
 
+        warning_label = QtW.QLabel(_t('dialog.perform_operations.box.image_paths.description'), parent=self)
+        warning_label.setWordWrap(True)
+        image_paths_layout.addWidget(warning_label, 0, 0, 1, 2)
+
         image_paths_layout.addWidget(
-            QtW.QLabel(_t('dialog.perform_operations.box.image_paths.regex'), parent=self), 0, 0)
+            QtW.QLabel(_t('dialog.perform_operations.box.image_paths.regex'), parent=self), 1, 0)
         self._regex_input = QtW.QLineEdit(self._state.regex, parent=self)
         self._regex_input.textChanged.connect(self._update_ui)
-        image_paths_layout.addWidget(self._regex_input, 0, 1)
+        image_paths_layout.addWidget(self._regex_input, 1, 1)
 
         image_paths_layout.addWidget(
-            QtW.QLabel(_t('dialog.perform_operations.box.image_paths.replacement'), parent=self), 1, 0)
+            QtW.QLabel(_t('dialog.perform_operations.box.image_paths.replacement'), parent=self), 2, 0)
         self._replacement_input = QtW.QLineEdit(self._state.replacement, parent=self)
         self._replacement_input.textChanged.connect(self._update_ui)
-        image_paths_layout.addWidget(self._replacement_input, 1, 1)
+        image_paths_layout.addWidget(self._replacement_input, 2, 1)
 
-        self._transform_paths_button = QtW.QPushButton(
+        apply_layout = QtW.QHBoxLayout()
+        apply_layout.setContentsMargins(0, 0, 0, 0)
+        w = QtW.QWidget(parent=self)
+        self._apply_button = QtW.QPushButton(
             self.style().standardIcon(QtW.QStyle.SP_DialogApplyButton),
             _t('dialog.common.apply_button.label'),
             parent=self
         )
-        self._transform_paths_button.setFixedWidth(80)
-        self._transform_paths_button.clicked.connect(self._on_apply_transformation)
-        image_paths_layout.addWidget(self._transform_paths_button, 2, 1, QtC.Qt.AlignRight)
+        self._apply_button.setFixedWidth(80)
+        self._apply_button.clicked.connect(self._on_apply_transformation)
+        apply_layout.addWidget(self._apply_button)
+        w.setLayout(apply_layout)
+        image_paths_layout.addWidget(w, 3, 0, 1, 2)
 
         layout.addWidget(image_paths_box)
 
@@ -78,32 +76,56 @@ class OperationsDialog(_dialog_base.Dialog):
         return body_layout
 
     def _update_ui(self):
-        self._transform_paths_button.setDisabled(not self._regex_input.text())
+        self._apply_button.setDisabled(not self._regex_input.text())
         self._state.regex = self._regex_input.text()
         self._state.replacement = self._replacement_input.text()
 
     def _on_apply_transformation(self):
-        self._regex_input.setDisabled(True)
-        self._replacement_input.setDisabled(True)
+        self._progress_dialog = QtW.QProgressDialog(
+            '',
+            _t('dialog.common.cancel_button.label'),
+            0,
+            100,
+            parent=self
+        )
+        self._progress_dialog.setWindowTitle(_t('popup.progress.title'))
+        self._progress_dialog.setModal(True)
 
         regex = self._regex_input.text()
         replacement = self._replacement_input.text()
         self._thread = _WorkerThread(regex, replacement)
+        self._thread.progress_signal.connect(self._on_progress_update)
         self._thread.finished.connect(self._on_work_done)
+        self._progress_dialog.open(self._thread.cancel)
         self._thread.start()
 
+    def _on_progress_update(self, progress: float, data: typ.Tuple[str, str], status: int):
+        self._progress_dialog.setValue(int(progress * 100))
+        status_label = _t('popup.progress.status_label')
+        if status == 1:
+            status_ = _t('popup.progress.status.success')
+        elif status == 2:
+            status_ = _t('popup.progress.status.failed')
+        else:
+            status_ = _t('popup.progress.status.unknown')
+        old_path, new_path = data
+        self._progress_dialog.setLabelText(
+            f'{progress * 100:.2f} %\n{old_path}\n→ {new_path}\n{status_label} {status_}'
+        )
+
     def _on_work_done(self):
+        self._progress_dialog.cancel()
         if self._thread.failed:
             utils.gui.show_error(self._thread.error, parent=self)
-        if self._thread.failed_images:
+        elif self._thread.failed_images:
             errors = '\n'.join(map(lambda i: i.path, self._thread.failed_images))
             message = _t('popup.operation_result_errors.text', affected=self._thread.affected, errors=errors)
             utils.gui.show_warning(message, _t('popup.operation_result_errors.title'), parent=self)
         else:
             message = _t('popup.operation_result_success.text', affected=self._thread.affected)
             utils.gui.show_info(message, _t('popup.operation_result_success.title'), parent=self)
-        self._regex_input.setDisabled(False)
-        self._replacement_input.setDisabled(False)
+
+        self._update_ui()
 
     @property
     def state(self) -> OperationsDialog.FormState:
@@ -121,7 +143,7 @@ class OperationsDialog(_dialog_base.Dialog):
             )
 
 
-class _WorkerThread(QtC.QThread):
+class _WorkerThread(threads.WorkerThread):
     """Applies the given replacement of every images whose path match the given regex."""
 
     def __init__(self, regex: str, replacement: str):
@@ -133,7 +155,6 @@ class _WorkerThread(QtC.QThread):
         super().__init__()
         self._regex = regex
         self._replacement = replacement
-        self._error = None
         self._affected = 0
         self._failed_images: typ.List[model.Image] = []
 
@@ -149,24 +170,22 @@ class _WorkerThread(QtC.QThread):
         if images is None:
             self._error = _t('thread.search.error.image_loading_error')
         else:
-            for image in images:
+            total = len(images)
+            progress = 0
+            for i, image in enumerate(images):
+                if self._cancelled:
+                    break
                 new_path = re.sub(self._regex, self._replacement, image.path)
+                self.progress_signal.emit(progress, (image.path, new_path), self.STATUS_UNKNOWN)
                 new_hash = utils.image.get_hash(new_path)
                 ok = image_dao.update_image(image.id, new_path, new_hash)
                 if ok:
                     self._affected += 1
                 else:
                     self._failed_images.append(image)
-
-    @property
-    def failed(self) -> bool:
-        """Returns True if the operation failed."""
-        return self._error is not None
-
-    @property
-    def error(self) -> typ.Optional[str]:
-        """If the operation failed, returns the reason; otherwise returns None."""
-        return self._error
+                progress = i / total
+                self.progress_signal.emit(progress, (image.path, new_path),
+                                          self.STATUS_SUCCESS if ok else self.STATUS_FAILED)
 
     @property
     def failed_images(self) -> typ.List[model.Image]:

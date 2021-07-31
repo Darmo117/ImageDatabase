@@ -125,10 +125,10 @@
       },
       "perform_operations": {
         "title": "Exécuter des opérations",
-        "warning": "Soyez prudent lorsque vous effectuez des opérations car il est impossible d’annuler après avoir cliqué sur « Appliquer ».",
         "box": {
           "image_paths": {
             "title": "Chemins des images",
+            "description": "",
             "regex": "Chercher",
             "replacement": "Remplacer par"
           }
