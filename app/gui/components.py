@@ -288,6 +288,38 @@ class EllipsisLabel(QtW.QLabel):
         self._on_click(self)
 
 
+class LabelWithIcon(QtW.QWidget):
+    """Wrapper widget that displays a label with an icon on its left."""
+
+    def __init__(self, icon: QtG.QIcon, text: str, parent: QtW.QWidget = None):
+        super().__init__(parent=parent)
+        layout = QtW.QHBoxLayout()
+        layout.setContentsMargins(0, 0, 0, 0)
+
+        self._icon = QtW.QLabel(parent=self)
+        self._icon.setPixmap(icon.pixmap(16))
+        layout.addWidget(self._icon)
+
+        self._label = QtW.QLabel(text, parent=self)
+        layout.addWidget(self._label, stretch=1)
+
+        self.setLayout(layout)
+
+    # noinspection PyPep8Naming
+    def setIcon(self, icon: QtG.QIcon):
+        """Sets the icon."""
+        self._icon.setPixmap(icon.pixmap(16))
+
+    # noinspection PyPep8Naming
+    def setText(self, text: str):
+        """Sets the label text."""
+        self._label.setText(text)
+
+    def text(self) -> str:
+        """Returns the label text."""
+        return self._label.text()
+
+
 # Base code: https://blog.elentok.com/2011/08/autocomplete-textbox-for-multiple.html
 # Code repo: https://bit.ly/3iOzAzA
 class AutoCompleteLineEdit(QtW.QLineEdit):

@@ -24,23 +24,15 @@ class SettingsDialog(_dialog_base.Dialog):
         db_box = QtW.QGroupBox(_t('dialog.settings.box.database.title'), parent=self)
         db_box_layout = QtW.QGridLayout()
 
-        warning_layout = QtW.QHBoxLayout()
-        self._db_path_warning_icon = QtW.QLabel(parent=self)
-        self._db_path_warning_icon.setPixmap(utils.gui.icon('warning_small').pixmap(16))
-        retain_size = self._db_path_warning_icon.sizePolicy()
-        retain_size.setRetainSizeWhenHidden(True)
-        warning_layout.addWidget(self._db_path_warning_icon)
-
-        self._db_path_warning_label = QtW.QLabel(_t('dialog.settings.box.database.db_path_warning'), parent=self)
+        self._db_path_warning_label = components.LabelWithIcon(
+            utils.gui.icon('warning_small'),
+            _t('dialog.settings.box.database.db_path_warning'),
+            parent=self
+        )
         retain_size = self._db_path_warning_label.sizePolicy()
         retain_size.setRetainSizeWhenHidden(True)
         self._db_path_warning_label.setSizePolicy(retain_size)
-        warning_layout.addWidget(self._db_path_warning_label, stretch=1)
-
-        warning_widget = QtW.QWidget(parent=self)
-        warning_widget.setLayout(warning_layout)
-        warning_layout.setContentsMargins(0, 0, 0, 0)
-        db_box_layout.addWidget(warning_widget, 0, 0, 1, 3)
+        db_box_layout.addWidget(self._db_path_warning_label, 0, 0, 1, 3)
 
         db_box_layout.addWidget(QtW.QLabel(_t('dialog.settings.box.database.db_path.label')), 1, 0)
         self._db_path_input = QtW.QLineEdit(self._initial_config.database_path, parent=self)
@@ -142,7 +134,6 @@ class SettingsDialog(_dialog_base.Dialog):
 
     def _update_ui(self):
         file_exists = self._db_file_exists()
-        self._db_path_warning_icon.setVisible(not file_exists)
         self._db_path_warning_label.setVisible(not file_exists)
         valid = self._is_valid()
         self._apply_button.setDisabled(not valid or not self._settings_changed())
