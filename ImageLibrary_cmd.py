@@ -1,8 +1,12 @@
 #!/usr/bin/python3
 """Command-line application to interact with the database."""
 
+# Required to enable arrow keys navigation with input()
+# noinspection PyUnresolvedReferences
+import readline
 import sqlite3
 import sys
+import typing as typ
 
 from app import config, constants, data_access as da
 from app.i18n import translate as _t
@@ -24,7 +28,7 @@ connection = dao._connection
 print(_t('SQL_console.connection', path=dao.database_path))
 
 
-def print_rows(rows: list, column_names: iter):
+def print_rows(rows: typ.List[typ.Tuple[str, ...]], column_names: typ.Sequence[str]):
     """Prints rows in a table.
 
     :param rows: List of rows.
@@ -56,7 +60,7 @@ while 'user hasn’t typed "exit"':
         if cursor.description is not None:
             column_names = tuple(desc[0] for desc in cursor.description)
         else:
-            column_names = []
+            column_names = ()
         cursor.close()
 
         if cmd.startswith('select'):
