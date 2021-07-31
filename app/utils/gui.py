@@ -151,7 +151,19 @@ def open_file_chooser(single_selection: bool, mode: int, parent: QtW.QWidget = N
         parent=parent,
         **kwargs
     )
-    return selection or None
+
+    if selection:
+        def check_ext(p: str) -> bool:
+            ext = os.path.splitext(p)[1].lower()[1:]
+            return ((mode == FILTER_IMAGES and ext not in constants.IMAGE_FILE_EXTENSIONS)
+                    or (mode == FILTER_DB and ext != 'sqlite3'))
+
+        # Check extensions if user removed filter
+        if single_selection:
+            return selection if check_ext(selection) else None
+        else:
+            return [s for s in selection if check_ext(s)]
+    return None
 
 
 def open_playlist_saver(parent: typ.Optional[QtW.QWidget] = None) -> typ.Optional[str]:
@@ -190,10 +202,8 @@ def open_directory_chooser(parent: QtW.QWidget = None) -> typ.Optional[typ.List[
         options=options
     )
     if directory != '':
-        files = filter(lambda f: os.path.splitext(f)[1].lower()[1:] in constants.IMAGE_FILE_EXTENSIONS,
-                       os.listdir(directory))
-        files = list(map(lambda f: slashed(os.path.join(directory, f)), files))
-        return files
+        return [f for f in os.listdir(directory)
+                if os.path.splitext(f)[1].lower()[1:] in constants.IMAGE_FILE_EXTENSIONS]
     return None
 
 
@@ -212,15 +222,6 @@ def choose_directory(parent: QtW.QWidget = None) -> typ.Optional[str]:
         options=options
     )
     return directory or None
-
-
-def slashed(path: str) -> str:
-    r"""Replaces backslashes (\\) in the given path with normal slashes (/).
-
-    :param path: The path to convert.
-    :return: The path with all \ replaced by /.
-    """
-    return path.replace('\\', '/')
 
 
 def center(window: QtW.QWidget):

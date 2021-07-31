@@ -336,7 +336,7 @@ class EditImageDialog(_dialog_base.Dialog):
         """
         if self._mode != EditImageDialog.REPLACE and self._destination is not None \
                 and os.path.dirname(image.path) != self._destination:
-            return utils.gui.slashed(os.path.join(self._destination, os.path.basename(image.path)))
+            return os.path.join(self._destination, os.path.basename(image.path))
         else:
             return None
 

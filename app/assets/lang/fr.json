@@ -128,7 +128,7 @@
         "box": {
           "image_paths": {
             "title": "Chemins des images",
-            "description": "",
+            "description": "Vous pouvez effectuer une opération substitution sur les chemins des images qui correspondent à la valeur du premier champs. Supporte les expressions régulières.",
             "regex": "Chercher",
             "replacement": "Remplacer par"
           }

@@ -313,6 +313,11 @@ class ImageDao(DAO):
             return True
 
     @staticmethod
+    def escape_metatag_plain_value(s: str) -> str:
+        """Escapes all special characters of plain text mode."""
+        return re.sub(r'([\\"*?])', r'\\\1', s)
+
+    @staticmethod
     def _metatag_query(metatag: str, value: str, mode: str) -> str:
         """Returns the SQL query for the given metatag.
 

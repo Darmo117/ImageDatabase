@@ -128,7 +128,7 @@
         "box": {
           "image_paths": {
             "title": "Bildindikoj",
-            "description": "",
+            "description": "Vi povas anstataŭigi erojn de bildindikoj per alia. Se vi alklakas “Apliki”, la anstataŭo aplikos al ĉiu bildindiko, kio kongruas al la ŝablono.",
             "regex": "Ŝablono",
             "replacement": "Anstataŭo"
           }

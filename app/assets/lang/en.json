@@ -136,7 +136,7 @@
         "box": {
           "image_paths": {
             "title": "Image Paths",
-            "description": "",
+            "description": "You can perform a substitution operation on the paths of all images that match the given pattern. Supports regular expressions.",
             "regex": "Pattern",
             "replacement": "Replacement"
           }

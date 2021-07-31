@@ -219,7 +219,9 @@ class Application(QtW.QMainWindow):
         self.move(qr.topLeft())
 
     def _batch_move_files(self):
-        pass  # TODO
+        dialog = dialogs.BatchMoveDialog(parent=self)
+        dialog.set_on_close_action(lambda _: self._fetch_images())
+        dialog.show()
 
     def _apply_transformation(self):
         def _on_close(dialog: dialogs.OperationsDialog):
@@ -308,7 +310,7 @@ class Application(QtW.QMainWindow):
             text = utils.gui.show_text_input(_t('popup.rename_image.text'), _t('popup.rename_image.title'),
                                              text=file_name, parent=self)
             if text is not None and file_name != text:
-                new_path = utils.gui.slashed(os.path.join(os.path.dirname(image.path), text + ext))
+                new_path = os.path.join(os.path.dirname(image.path), text + ext)
                 if not self._image_dao.update_image(image.id, new_path, image.hash):
                     utils.gui.show_error(_t('popup.rename_error.text'), parent=self)
                 else:

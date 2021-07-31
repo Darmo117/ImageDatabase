@@ -161,7 +161,8 @@ class _WorkerThread(threads.WorkerThread):
     def run(self):
         image_dao = data_access.ImageDao(config.CONFIG.database_path)
         try:
-            query = queries.query_to_sympy(f'path:/{self._regex}/', simplify=False)
+            regex = self._regex.replace('/', r'\/')
+            query = queries.query_to_sympy(f'path:/{regex}/', simplify=False)
         except ValueError as e:
             self._error = str(e)
             return
