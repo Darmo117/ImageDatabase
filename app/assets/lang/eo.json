@@ -22,6 +22,15 @@
             "delete_images": "&Forigi la bildojn"
           }
         },
+        "tools": {
+          "label": "&Iloj",
+          "item": {
+            "tagless_images": "&Montri senetikedajn bildojn",
+            "batch_move_files": "&Staple movi bildojn…",
+            "perform_operations": "&Operacioj…",
+            "SQL_terminal": "SQL &terminalo…"
+          }
+        },
         "help": {
           "label": "&Helpo",
           "item": {
@@ -111,6 +120,17 @@
           "language": {
             "title": "Lingvo",
             "language": "Fasadlingvo"
+          }
+        }
+      },
+      "perform_operations": {
+        "title": "Operacii",
+        "warning": "Atentu kiam vi operacias ĉar post vi alklakus “Apliki”, vi ne povus ŝtopi la operacion.",
+        "box": {
+          "image_paths": {
+            "title": "Bildindikoj",
+            "regex": "Ŝablono",
+            "replacement": "Anstataŭo"
           }
         }
       },
@@ -345,6 +365,14 @@
       },
       "app_needs_restart": {
         "text": "Kelkaj ŝanĝoj necesas restartigi la programon."
+      },
+      "operation_result_success": {
+        "title": "Operacia rezulto",
+        "text": "Operacio sukcesa!\n{affected} vico(j) modifita(j)."
+      },
+      "operation_result_errors": {
+        "title": "Operacia rezulto",
+        "text": "Operacio finis kun eraroj!\n{affected} vico(j) estis modifita(j) sed la ĉi-sube bildoj eraris:\n{errors}"
       }
     },
     "thread": {

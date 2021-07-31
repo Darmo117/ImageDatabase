@@ -22,6 +22,15 @@
             "delete_images": "&Supprimer les images"
           }
         },
+        "tools": {
+          "label": "&Outils",
+          "item": {
+            "tagless_images": "&Afficher les images sans étiquette",
+            "batch_move_files": "&Déplacer des images en masse…",
+            "perform_operations": "&Opérations…",
+            "SQL_terminal": "&Terminal SQL…"
+          }
+        },
         "help": {
           "label": "&Aide",
           "item": {
@@ -111,6 +120,17 @@
           "language": {
             "title": "Langue",
             "language": "Langue de l’interface"
+          }
+        }
+      },
+      "perform_operations": {
+        "title": "Exécuter des opérations",
+        "warning": "Soyez prudent lorsque vous effectuez des opérations car il est impossible d’annuler après avoir cliqué sur « Appliquer ».",
+        "box": {
+          "image_paths": {
+            "title": "Chemins des images",
+            "regex": "Chercher",
+            "replacement": "Remplacer par"
           }
         }
       },
@@ -345,6 +365,14 @@
       },
       "app_needs_restart": {
         "text": "Certains changements nécessitent un redémarrage de l’application."
+      },
+      "operation_result_success": {
+        "title": "Résultat de l’opération",
+        "text": "L’opération a été effectuée avec succès !\n{affected} ligne(s) affectée(s)."
+      },
+      "operation_result_errors": {
+        "title": "Résultat de l’opération",
+        "text": "L’opération a terminé avec des erreurs !\n{affected} ligne(s) ont été modifiées mais les images ci-dessous ont déclenché des erreurs:\n{errors}."
       }
     },
     "thread": {

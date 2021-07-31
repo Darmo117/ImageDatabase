@@ -32,6 +32,8 @@ class Application(QtW.QMainWindow):
         self._image_dao = da.ImageDao(config.CONFIG.database_path)
         self._tags_dao = da.TagsDao(config.CONFIG.database_path)
 
+        self._operations_dialog_state: typ.Optional[dialogs.OperationsDialog.State] = None
+
         self.setAcceptDrops(True)
         self._init_ui()
         utils.gui.center(self)
@@ -170,6 +172,31 @@ class Application(QtW.QMainWindow):
             'Delete'
         )
 
+        tools_menu = menubar.addMenu(_t('main_window.menu.tools.label'))
+
+        tools_menu.addAction(
+            _t('main_window.menu.tools.item.tagless_images'),
+            lambda: self._fetch_images(tagless_images=True)
+        )
+        tools_menu.addSeparator()
+        tools_menu.addAction(
+            _t('main_window.menu.tools.item.batch_move_files'),
+            self._batch_move_files,
+            'Ctrl+M'
+        )
+        tools_menu.addAction(
+            utils.gui.icon('perform_operations'),
+            _t('main_window.menu.tools.item.perform_operations'),
+            self._apply_transformation,
+            'Ctrl+O'
+        )
+        tools_menu.addAction(
+            utils.gui.icon('SQL_terminal'),
+            _t('main_window.menu.tools.item.SQL_terminal'),
+            self._open_sql_terminal,
+            'Ctrl+Shift+T'
+        )
+
         help_menu = menubar.addMenu(_t('main_window.menu.help.label'))
 
         help_menu.addAction(
@@ -190,6 +217,21 @@ class Application(QtW.QMainWindow):
         cp = QtW.QDesktopWidget().availableGeometry().center()
         qr.moveCenter(cp)
         self.move(qr.topLeft())
+
+    def _batch_move_files(self):
+        pass  # TODO
+
+    def _apply_transformation(self):
+        def _on_close(dialog: dialogs.OperationsDialog):
+            self._operations_dialog_state = dialog.state
+            self._fetch_images()
+
+        dialog = dialogs.OperationsDialog(state=self._operations_dialog_state, parent=self)
+        dialog.set_on_close_action(_on_close)
+        dialog.show()
+
+    def _open_sql_terminal(self):
+        pass  # TODO
 
     def _show_settings_dialog(self):
         settings_dialog = dialogs.SettingsDialog(parent=self)

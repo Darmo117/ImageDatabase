@@ -22,6 +22,15 @@
             "delete_images": "&Delete Images"
           }
         },
+        "tools": {
+          "label": "&Tools",
+          "item": {
+            "tagless_images": "&Show images without tags",
+            "batch_move_files": "&Batch move files…",
+            "perform_operations": "&Operations…",
+            "SQL_terminal": "SQL &Terminal…"
+          }
+        },
         "help": {
           "label": "&Help",
           "item": {
@@ -119,6 +128,17 @@
           "language": {
             "title": "Interface Language",
             "language": "Language"
+          }
+        }
+      },
+      "perform_operations": {
+        "title": "Perform Operations",
+        "warning": "Be careful when performing operations as once you click on “Apply”, it is not possible to cancel.",
+        "box": {
+          "image_paths": {
+            "title": "Image Paths",
+            "regex": "Pattern",
+            "replacement": "Replacement"
           }
         }
       },
@@ -350,6 +370,14 @@
       },
       "app_needs_restart": {
         "text": "Some changes need the application to restart to apply."
+      },
+      "operation_result_success": {
+        "title": "Operation Result",
+        "text": "Operation successful!\n{affected} row(s) affected."
+      },
+      "operation_result_errors": {
+        "title": "Operation Result",
+        "text": "Operation ended with errors!\n{affected} row(s) were changed but the following images raised errors:\n{errors}"
       }
     },
     "thread": {
