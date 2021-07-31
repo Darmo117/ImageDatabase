@@ -41,6 +41,7 @@ class ImageListView:
         self._menu = QtW.QMenu(parent=self)
 
         self._copy_paths_action = self._menu.addAction(
+            utils.gui.icon('copy'),
             _t('main_window.tab.context_menu.copy_path'),
             self.copy_image_paths,
             'Ctrl+C'

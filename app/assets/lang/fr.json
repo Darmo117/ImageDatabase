@@ -312,8 +312,11 @@
         "title": "Conflit de nom",
         "text": "Un fichier avec le même nom existe déjà, voulez-vous l’écraser ?"
       },
-      "tag_load_error": {
+      "tags_load_error": {
         "text": "Les étiquettes n’ont pas pu être chargées !"
+      },
+      "tag_types_load_error": {
+        "text": "Les types d’étiquettes n’ont pas pu être chargés !"
       },
       "playlist_exported": {
         "text": "Playlist exportée !"

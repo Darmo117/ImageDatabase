@@ -48,6 +48,7 @@ class TagTree(QtW.QTreeWidget):
             'Ctrl+Alt+C'
         )
         self._copy_label_action = self._menu.addAction(
+            utils.gui.icon('copy'),
             _t('main_window.tags_tree.context_menu.copy'),
             self._on_copy_label,
             'Ctrl+C'
@@ -56,6 +57,7 @@ class TagTree(QtW.QTreeWidget):
         self._menu.addSeparator()
 
         self._delete_item_action = self._menu.addAction(
+            utils.gui.icon('delete_tag'),
             _t('main_window.tags_tree.context_menu.delete_tag'),
             self._on_delete_item,
             'Delete'

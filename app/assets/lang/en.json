@@ -320,8 +320,11 @@
         "title": "Name conflict",
         "text": "A file with this name already exists, do you want to overwrite it?"
       },
-      "tag_load_error": {
+      "tags_load_error": {
         "text": "Failed to load tags!"
+      },
+      "tag_types_load_error": {
+        "text": "Failed to load tag types!"
       },
       "playlist_exported": {
         "text": "Playlist exported!"

@@ -8,7 +8,7 @@ import PyQt5.QtWidgets as QtW
 
 from app import data_access as da, model, utils
 from app.i18n import translate as _t
-from . import _dialog_base, edit_tags_dialog, similar_images_dialog
+from . import _dialog_base, _edit_tags_dialog, _similar_images_dialog
 from .. import components
 
 
@@ -169,7 +169,7 @@ class EditImageDialog(_dialog_base.Dialog):
 
     def _show_tags_dialog(self):
         if self._tags_dialog is None:
-            self._tags_dialog = edit_tags_dialog.EditTagsDialog(self._tags_dao, editable=False, parent=self)
+            self._tags_dialog = _edit_tags_dialog.EditTagsDialog(self._tags_dao, editable=False, parent=self)
         self._tags_dialog.show()
 
     def _open_image_directory(self):
@@ -216,7 +216,7 @@ class EditImageDialog(_dialog_base.Dialog):
 
         self._canvas.set_image(image.path)
 
-        similar_images = self._image_dao.get_similar_images(image.path)
+        similar_images = self._image_dao.get_similar_images(image.path) or []
         self._similar_images = [(image, score) for image, _, score, same_path in similar_images if not same_path]
         if self._similar_images:
             self._similarities_btn.show()
@@ -241,12 +241,12 @@ class EditImageDialog(_dialog_base.Dialog):
         self._set(self._index)
 
     def _on_show_similarities_dialog(self):
-        dialog = similar_images_dialog.SimilarImagesDialog(self._similar_images, self._image_dao, self._tags_dao,
-                                                           parent=self)
+        dialog = _similar_images_dialog.SimilarImagesDialog(self._similar_images, self._image_dao, self._tags_dao,
+                                                            parent=self)
         dialog.set_on_close_action(self._on_similarities_dialog_closed)
         dialog.show()
 
-    def _on_similarities_dialog_closed(self, dialog: similar_images_dialog.SimilarImagesDialog):
+    def _on_similarities_dialog_closed(self, dialog: _similar_images_dialog.SimilarImagesDialog):
         self._set_tags(dialog.get_tags())
 
     def _on_dest_button_clicked(self):
@@ -366,7 +366,7 @@ class EditImageDialog(_dialog_base.Dialog):
         else:
             ok = True
         if ok and new_path is not None:
-            ok = self._image_dao.update_image_path(image.id, new_path)
+            ok = self._image_dao.update_image(image.id, new_path, image.hash)
             if ok:
                 ok = self._move_image(image.path, new_path)
         return ok
@@ -381,7 +381,9 @@ class EditImageDialog(_dialog_base.Dialog):
         except OSError:
             return False
         else:
-            ok = self._image_dao.update_image_path(self._images[0].id, self._destination)
+            image = self._images[0]
+            new_hash = utils.image.get_hash(image.path)
+            ok = self._image_dao.update_image(image.id, self._destination, new_hash)
             return ok
 
     def _move_image(self, path: str, new_path: str) -> bool:

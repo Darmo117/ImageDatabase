@@ -1,10 +1,12 @@
+from __future__ import annotations
+
 import abc
 import re
 import typing as typ
 
+import PyQt5.QtCore as QtC
 import PyQt5.QtGui as QtG
 import PyQt5.QtWidgets as QtW
-from PyQt5.QtCore import Qt
 
 from app import data_access as da, model, queries, utils
 from app.i18n import translate as _t
@@ -54,7 +56,8 @@ class Tab(abc.ABC, typ.Generic[_Type]):
         self._cell_changed = cell_changed
         self._rows_deleted = rows_deleted
 
-        self._table = None
+        # noinspection PyTypeChecker
+        self._table: QtW.QTableWidget = None
 
         self._highlighted_cell = None
 
@@ -82,6 +85,7 @@ class Tab(abc.ABC, typ.Generic[_Type]):
         self._table.setSelectionBehavior(QtW.QAbstractItemView.SelectRows)
         self._table.verticalHeader().setDefaultSectionSize(20)
         self._table.horizontalHeader().setStretchLastSection(True)
+        self._table.setSortingEnabled(True)
         self._table.cellChanged.connect(self._cell_edited)
         if self._selection_changed is not None:
             self._table.itemSelectionChanged.connect(self._selection_changed)
@@ -294,20 +298,26 @@ class TagTypesTab(Tab[model.TagType]):
 
         self._dummy_type_id = -1
 
-        self._table.setColumnCount(4)
+        self._table.setColumnCount(5)
         self._table.setColumnWidth(0, 30)
         self._table.setHorizontalHeaderLabels([
             _t('dialog.edit_tags.tab.tag_types.table.header.type_id'),
             _t('dialog.edit_tags.tab.tag_types.table.header.label'),
             _t('dialog.edit_tags.tab.tag_types.table.header.symbol'),
             _t('dialog.edit_tags.tab.tag_types.table.header.color'),
+            _t('dialog.edit_tags.tab.tags_common.table.header.times_used'),
         ])
 
-        self._values = self._tags_dao.get_all_tag_types()
+        self._values = self._tags_dao.get_all_tag_types(get_count=True)
         self._table.setRowCount(len(self._values))
 
-        for i, tag_type in enumerate(self._values):
-            self._set_row(tag_type, i)
+        if self._values is not None:
+            for i, (tag_type, count) in enumerate(self._values):
+                tag_type.count = count
+                self._set_row(tag_type, i)
+        else:
+            utils.gui.show_error(_t('popup.tag_types_load_error.text'), parent=self._owner)
+            self._values = []
 
         self._initialized = True
 
@@ -394,10 +404,10 @@ class TagTypesTab(Tab[model.TagType]):
 
     def _set_row(self, tag_type: typ.Optional[model.TagType], row: int):
         defined = tag_type is not None
-        id_item = QtW.QTableWidgetItem(str(tag_type.id) if defined else str(self._dummy_type_id))
+        id_item = _IntTableWidgetItem(str(tag_type.id) if defined else str(self._dummy_type_id))
         id_item.setWhatsThis('ident')
         # noinspection PyTypeChecker
-        id_item.setFlags(id_item.flags() & ~Qt.ItemIsEditable & ~Qt.ItemIsSelectable)
+        id_item.setFlags(id_item.flags() & ~QtC.Qt.ItemIsEditable & ~QtC.Qt.ItemIsSelectable)
         id_item.setBackground(self._DISABLED_COLOR)
         self._table.setItem(row, 0, id_item)
 
@@ -406,14 +416,14 @@ class TagTypesTab(Tab[model.TagType]):
         label_item.setWhatsThis('label')
         if not self._editable:
             # noinspection PyTypeChecker
-            label_item.setFlags(label_item.flags() & ~Qt.ItemIsEditable & ~Qt.ItemIsSelectable)
+            label_item.setFlags(label_item.flags() & ~QtC.Qt.ItemIsEditable & ~QtC.Qt.ItemIsSelectable)
         self._table.setItem(row, 1, label_item)
 
         symbol_item = QtW.QTableWidgetItem(tag_type.symbol if defined else '§')
         symbol_item.setWhatsThis('symbol')
         if not self._editable:
             # noinspection PyTypeChecker
-            symbol_item.setFlags(symbol_item.flags() & ~Qt.ItemIsEditable & ~Qt.ItemIsSelectable)
+            symbol_item.setFlags(symbol_item.flags() & ~QtC.Qt.ItemIsEditable & ~QtC.Qt.ItemIsSelectable)
         self._table.setItem(row, 2, symbol_item)
 
         default_color = QtG.QColor(0, 0, 0)
@@ -421,12 +431,20 @@ class TagTypesTab(Tab[model.TagType]):
         color_btn = QtW.QPushButton(tag_type.color.name() if defined else default_color.name(), parent=self._owner)
         color_btn.setWhatsThis('color')
         self._set_button_bg_color(color_btn, bg_color)
-        color_btn.setFocusPolicy(Qt.NoFocus)
+        color_btn.setFocusPolicy(QtC.Qt.NoFocus)
         color_btn.clicked.connect(self._show_color_picker)
         color_btn.setProperty('row', row)
         if not self._editable:
             color_btn.setEnabled(False)
         self._table.setCellWidget(row, 3, color_btn)
+
+        # count property is added to tag argument before calling this method.
+        # noinspection PyUnresolvedReferences
+        number_item = _IntTableWidgetItem(str(tag_type.count if defined else 0))
+        # noinspection PyTypeChecker
+        number_item.setFlags(number_item.flags() & ~QtC.Qt.ItemIsEditable & ~QtC.Qt.ItemIsSelectable)
+        number_item.setBackground(self._DISABLED_COLOR)
+        self._table.setItem(row, 4, number_item)
 
     def _show_color_picker(self):
         """Shows a color picker then sets the event button to the selected color."""
@@ -506,7 +524,7 @@ class _TagsTab(Tab[_TagType], typ.Generic[_TagType], metaclass=abc.ABCMeta):
                 tag.count = count
                 self._set_row(tag, i)
         else:
-            utils.gui.show_error(_t('popup.tag_load_error.text'), parent=self._owner)
+            utils.gui.show_error(_t('popup.tags_load_error.text'), parent=self._owner)
             self._values = []
 
         self._initialized = True
@@ -592,10 +610,10 @@ class _TagsTab(Tab[_TagType], typ.Generic[_TagType], metaclass=abc.ABCMeta):
 
     def _set_row(self, tag: typ.Optional[_TagType], row: int):
         defined = tag is not None
-        id_item = QtW.QTableWidgetItem(str(tag.id if defined else self._dummy_type_id))
+        id_item = _IntTableWidgetItem(str(tag.id if defined else self._dummy_type_id))
         id_item.setWhatsThis('ident')
         # noinspection PyTypeChecker
-        id_item.setFlags(id_item.flags() & ~Qt.ItemIsEditable & ~Qt.ItemIsSelectable)
+        id_item.setFlags(id_item.flags() & ~QtC.Qt.ItemIsEditable & ~QtC.Qt.ItemIsSelectable)
         id_item.setBackground(self._DISABLED_COLOR)
         self._table.setItem(row, 0, id_item)
 
@@ -610,17 +628,17 @@ class _TagsTab(Tab[_TagType], typ.Generic[_TagType], metaclass=abc.ABCMeta):
             item.setWhatsThis(cell_label)
             if not self._editable:
                 # noinspection PyTypeChecker
-                item.setFlags(item.flags() & ~Qt.ItemIsEditable & ~Qt.ItemIsSelectable)
+                item.setFlags(item.flags() & ~QtC.Qt.ItemIsEditable & ~QtC.Qt.ItemIsSelectable)
             self._table.setItem(row, 2 + j, item)
 
         if not self._editable:
             # noinspection PyTypeChecker
-            label_item.setFlags(label_item.flags() & ~Qt.ItemIsEditable & ~Qt.ItemIsSelectable)
+            label_item.setFlags(label_item.flags() & ~QtC.Qt.ItemIsEditable & ~QtC.Qt.ItemIsSelectable)
 
             type_item = QtW.QTableWidgetItem(tag.type.label if defined and tag.type
                                              else _t('dialog.edit_tags.tab.tags_common.table.combo_no_type'))
             # noinspection PyTypeChecker
-            type_item.setFlags(type_item.flags() & ~Qt.ItemIsEditable & ~Qt.ItemIsSelectable)
+            type_item.setFlags(type_item.flags() & ~QtC.Qt.ItemIsEditable & ~QtC.Qt.ItemIsSelectable)
             self._table.setItem(row, self._type_column, type_item)
         else:
             combo = QtW.QComboBox(parent=self._owner)
@@ -635,9 +653,9 @@ class _TagsTab(Tab[_TagType], typ.Generic[_TagType], metaclass=abc.ABCMeta):
             self._table.setCellWidget(row, self._type_column, combo)
 
         # count property is added to tag argument before calling this method.
-        number_item = QtW.QTableWidgetItem(str(tag.count if defined else 0))
+        number_item = _IntTableWidgetItem(str(tag.count if defined else 0))
         # noinspection PyTypeChecker
-        number_item.setFlags(number_item.flags() & ~Qt.ItemIsEditable & ~Qt.ItemIsSelectable)
+        number_item.setFlags(number_item.flags() & ~QtC.Qt.ItemIsEditable & ~QtC.Qt.ItemIsSelectable)
         number_item.setBackground(self._DISABLED_COLOR)
         self._table.setItem(row, self._tag_use_count_column, number_item)
 
@@ -797,3 +815,8 @@ class CompoundTagsTab(_TagsTab[model.CompoundTag]):
             except ValueError as e:
                 return False, str(e)
         return True, ''
+
+
+class _IntTableWidgetItem(QtW.QTableWidgetItem):
+    def __lt__(self, other: _IntTableWidgetItem):
+        return int(self.text()) < int(other.text())

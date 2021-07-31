@@ -312,8 +312,11 @@
         "title": "Nomkonflikto",
         "text": "Samnoma dosiero jam ekzistas, ĉu vi volas superskribi ĝin?"
       },
-      "tag_load_error": {
+      "tags_load_error": {
         "text": "La etikedoj ne povas ŝargi!"
+      },
+      "tag_types_load_error": {
+        "text": "La etikedaj tipoj ne povas ŝargi!"
       },
       "playlist_exported": {
         "text": "La bildolisto estas eksportata!"

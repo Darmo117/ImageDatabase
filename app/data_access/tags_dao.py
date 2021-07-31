@@ -192,27 +192,34 @@ class TagsDao(DAO):
             cursor.close()
             return tags
 
-    def get_all_tag_types(self, sort_by_symbol: bool = False) -> typ.List[model.TagType]:
+    def get_all_tag_types(self, sort_by_symbol: bool = False, get_count: bool = False) \
+            -> typ.Optional[typ.Union[typ.List[model.TagType], typ.List[typ.Tuple[model.TagType, int]]]]:
         """Returns all tag types.
 
         :param sort_by_symbol: Whether to sort types by symbol along with labels.
+        :param get_count: If true, result will be a list of tuples containing the tag type and its use count.
         :return: All currently defined tag types.
         """
+        query = 'SELECT id, label, symbol, color'
+        if get_count:
+            query += ', (SELECT COUNT(*) FROM tags WHERE tag_types.id = type_id) AS count'
+        query += ' FROM tag_types ORDER BY label'
+        if sort_by_symbol:
+            query += ', symbol'
         cursor = self._connection.cursor()
         try:
-            cursor.execute(
-                'SELECT id, label, symbol, color FROM tag_types ORDER BY label' + (', symbol' if sort_by_symbol else '')
-            )
+            cursor.execute(query)
         except sqlite3.Error as e:
             logger.exception(e)
             cursor.close()
-            return []
+            return None
         else:
             results = cursor.fetchall()
             cursor.close()
             types = []
-            for ident, label, symbol, color in results:
-                types.append(model.TagType(ident=ident, label=label, symbol=symbol, color=QtG.QColor(color)))
+            for ident, label, symbol, color, *count in results:
+                tag_type = model.TagType(ident=ident, label=label, symbol=symbol, color=QtG.QColor(color))
+                types.append(tag_type if not get_count else (tag_type, count[0]))
             return types
 
     def tag_exists(self, tag_id: int, tag_name: str) -> typ.Optional[bool]:

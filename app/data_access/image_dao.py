@@ -17,7 +17,7 @@ class ImageDao(DAO):
     def get_images(self, tags: sp.Basic) -> typ.Optional[typ.List[model.Image]]:
         """Returns all images matching the given tags.
 
-        :param tags: List of tags.
+        :param tags: Tags query.
         :return: All images matching the tags or None if an exception occured.
         """
         query = self._get_query(tags)
@@ -26,6 +26,32 @@ class ImageDao(DAO):
         cursor = self._connection.cursor()
         try:
             cursor.execute(query)
+        except sqlite3.Error as e:
+            logger.exception(e)
+            cursor.close()
+            return None
+        else:
+            results = cursor.fetchall()
+            cursor.close()
+            return [model.Image(id=r[0], path=r[1], hash=self.decode_hash(r[2]) if r[2] is not None else None)
+                    for r in results]
+
+    def get_tagless_images(self) -> typ.Optional[typ.List[model.Image]]:
+        """Returns the list of images that do not have any tag.
+
+        :return: The list of images or None if an error occured.
+        """
+        cursor = self._connection.cursor()
+        try:
+            cursor.execute("""
+            SELECT I.id, I.path, I.hash
+            FROM images AS I
+            WHERE (
+                SELECT COUNT(*)
+                FROM image_tag
+                WHERE image_id = I.id
+            ) = 0
+            """)
         except sqlite3.Error as e:
             logger.exception(e)
             cursor.close()
@@ -138,16 +164,20 @@ class ImageDao(DAO):
             self._connection.commit()
             return True
 
-    def update_image_path(self, image_id: int, new_path: str) -> bool:
+    def update_image(self, image_id: int, new_path: str, new_hash: typ.Union[int, None]) -> bool:
         """Sets the path of the given image.
 
         :param image_id: Image’s ID.
         :param new_path: The new path.
+        :param new_hash: The new hash.
         :return: True if the image was updated.
         """
         cursor = self._connection.cursor()
         try:
-            cursor.execute('UPDATE images SET path = ? WHERE id = ?', (new_path, image_id))
+            cursor.execute(
+                'UPDATE images SET path = ?, hash = ? WHERE id = ?',
+                (new_path, self.encode_hash(new_hash) if new_hash is not None else None, image_id)
+            )
         except sqlite3.Error as e:
             logger.exception(e)
             cursor.close()
@@ -312,6 +342,11 @@ class ImageDao(DAO):
         SELECT id, path, hash
         FROM images
         WHERE SUBSTR(path, RINSTR(path, "/") + 1) REGEXP "{0}"
+        """,
+        'path': """
+        SELECT id, path, hash
+        FROM images
+        WHERE path REGEXP "{0}"
         """,
         'similar_to': """
         SELECT id, path, hash

@@ -72,9 +72,12 @@ class Dialog(QtW.QDialog):
         """
         box = QtW.QHBoxLayout()
         box.addStretch(1)
-
+        if self._buttons_mode == Dialog.OK_CANCEL:
+            icon = QtW.QStyle.SP_DialogOkButton
+        else:
+            icon = QtW.QStyle.SP_DialogCloseButton
         self._ok_btn = QtW.QPushButton(
-            self.style().standardIcon(QtW.QStyle.SP_DialogOkButton),
+            self.style().standardIcon(icon),
             _t('dialog.common.ok_button.label') if self._buttons_mode == Dialog.OK_CANCEL
             else _t('dialog.common.close_button.label'),
             parent=self
@@ -106,7 +109,7 @@ class Dialog(QtW.QDialog):
         return []
 
     def set_on_close_action(self, action: typ.Callable[[_T], None]):
-        """Sets the action that will be called when this dialog closes after the user clicked OK/Apply.
+        """Sets the action that will be called when this dialog closes after the user clicked OK/Apply or Close.
 
         :param action: The action to call when this dialog closes.
             The dialog instance will be passed as the single argument.
@@ -148,5 +151,5 @@ class Dialog(QtW.QDialog):
         return True
 
     def closeEvent(self, event: QtG.QCloseEvent):
-        if self._close_action is not None and self._applied:
+        if self._close_action is not None and (self._applied or self._buttons_mode == self.CLOSE):
             self._close_action(self)
