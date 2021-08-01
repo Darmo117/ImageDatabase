@@ -50,6 +50,8 @@ class EditImageDialog(_dialog_base.Dialog):
 
         super().__init__(parent=parent, title=self._get_title(), modal=True)
 
+        self._tags_input.setFocus()
+
         self._destination: typ.Optional[pathlib.Path] = None
         self._image_to_replace: typ.Optional[pathlib.Path] = None
         self._tags_changed = False
