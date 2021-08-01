@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import abc
-import os
 import typing as typ
 
 import PyQt5.QtCore as QtC
@@ -343,7 +342,7 @@ class _FlowImageItem(QtW.QFrame, ImageItem):
         self._image_view.mouseDoubleClickEvent = self.mouseDoubleClickEvent
         layout.addWidget(self._image_view)
 
-        text = os.path.basename(self._image.path)
+        text = self._image.path.name
         label = components.EllipsisLabel(text)
         label.setAlignment(QtC.Qt.AlignCenter)
         label.setFixedWidth(size)

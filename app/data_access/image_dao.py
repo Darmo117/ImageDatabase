@@ -123,13 +123,12 @@ class ImageDao(DAO):
         :return: A list of candidate images with their Hamming distance, confidence score and a boolean indicating
             whether the paths are the same (True) or not (False).
         """
-        image_path = image_path.absolute()
         image_hash = utils.image.get_hash(image_path)
         if image_hash is None:
             return None
         images = []
         for registered_image in self.get_images(sp.true):
-            if image_path == registered_image.path.absolute():
+            if image_path == registered_image.path:
                 images.append((registered_image, 0, 1.0, True))
             elif registered_image.hash is not None \
                     and utils.image.compare_hashes(image_hash, registered_image.hash)[2]:
@@ -229,7 +228,7 @@ class ImageDao(DAO):
         """Creates an Image object from a result tuple."""
         return model.Image(
             id=result[0],
-            path=pathlib.Path(result[1]),
+            path=pathlib.Path(result[1]).absolute(),
             hash=self.decode_hash(result[2]) if result[2] is not None else None
         )
 
