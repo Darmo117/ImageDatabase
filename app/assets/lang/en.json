@@ -201,11 +201,14 @@
         "error": {
           "replace_self": "Cannot replace image with itself!",
           "no_tags": "No tags specified!",
-          "compound_tags_disallowed": "Compound tags are not allowed here!",
-          "invalid_tag_format": "Invalid tag format!",
+          "duplicate_tags": "Duplicate tag(s) detected:\n{tags}",
+          "compound_tags_disallowed": "Compound tag(s) detected:\n{tags}",
+          "invalid_tag_format": "Invalid tag format “{error}”!",
           "changes_not_applied": "Could not apply changes!",
           "image_not_added": "Could not add image!",
-          "file_already_exists": "File already exists in destination!"
+          "file_already_exists": "File already exists in destination!",
+          "file_does_not_exists": "This image does not exist!",
+          "failed_to_move_file": "The image could not be moved!"
         }
       },
       "edit_tags": {

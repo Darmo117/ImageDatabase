@@ -167,11 +167,14 @@
         "error": {
           "replace_self": "Ne povas anstataŭigi bildon per si mem!",
           "no_tags": "Nenio etikedoj trovitaj!",
-          "compound_tags_disallowed": "Kunmetetikedoj estas malpermesataj tie!",
-          "invalid_tag_format": "Nevalida etikedoformato!",
+          "duplicate_tags": "Duobla(j) etikedo(j):\n{tags}",
+          "compound_tags_disallowed": "Kunmetetikedo(j) trovita(j):\f{tags}",
+          "invalid_tag_format": "Nevalida etikedoformato “{error}”!",
           "changes_not_applied": "Ne povas apliki la redaktaĵojn!",
           "image_not_added": "Ne povas aldoni la bildon!",
-          "file_already_exists": "Dosiero jam ekzistas en la celdosierujo!"
+          "file_already_exists": "Tiu dosiero jam ekzistas en la celdosierujo!",
+          "file_does_not_exists": "Tiu dosiero ne ekzistas!",
+          "failed_to_move_file": "La bildo ne povis esti movita!"
         }
       },
       "edit_tags": {

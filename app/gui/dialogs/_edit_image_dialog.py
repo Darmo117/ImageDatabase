@@ -1,4 +1,6 @@
+import collections
 import pathlib
+import re
 import shutil
 import typing as typ
 
@@ -279,23 +281,28 @@ class EditImageDialog(_dialog_base.Dialog):
     def _get_tags(self) -> typ.List[model.Tag]:
         return [self._tags_dao.create_tag_from_string(t) for t in self._tags_input.toPlainText().split()]
 
-    def _ensure_no_compound_tags(self) -> bool:
-        for tag in self._tags_input.toPlainText().split():
-            t = tag if tag[0].isalnum() or tag[0] == '_' else tag[1:]
-            if self._tags_dao.get_tag_class(t) == model.CompoundTag:
-                return False
-        return True
+    @staticmethod
+    def _get_duplicate_tags(tags: typ.List[model.Tag]) -> typ.List[str]:
+        return [t for t, c in collections.Counter([t.label for t in tags]).items() if c > 1]
+
+    def _get_compound_tags(self, tags: typ.List[model.Tag]) -> typ.List[str]:
+        return [t.label for t in tags if self._tags_dao.get_tag_class(t.label) == model.CompoundTag]
 
     def _get_error(self) -> typ.Optional[str]:
         try:
             tags = self._get_tags()
+        except ValueError as e:
+            error = re.search('"(.+)"', str(e))[1]
+            return _t('dialog.edit_image.error.invalid_tag_format', error=error)
+        else:
             if len(tags) == 0:
                 return _t('dialog.edit_image.error.no_tags')
-            if not self._ensure_no_compound_tags():
-                return _t('dialog.edit_image.error.compound_tags_disallowed')
-            return None
-        except ValueError:
-            return _t('dialog.edit_image.error.invalid_tag_format')
+            elif t := self._get_compound_tags(tags):
+                return _t('dialog.edit_image.error.compound_tags_disallowed', tags='\n'.join(t))
+            elif t := self._get_duplicate_tags(tags):
+                return _t('dialog.edit_image.error.duplicate_tags', tags='\n'.join(t))
+            else:
+                return None
 
     def _is_valid(self) -> bool:
         return self._get_error() is None
@@ -307,11 +314,11 @@ class EditImageDialog(_dialog_base.Dialog):
         new_path = self._get_new_path(image)
 
         if self._mode == EditImageDialog.ADD:
-            ok = self._add(image, tags, new_path)
+            ok, error = self._add(image, tags, new_path)
         elif self._mode == EditImageDialog.EDIT:
-            ok = self._edit(image, tags, new_path)
+            ok, error = self._edit(image, tags, new_path)
         else:
-            ok = self._replace()
+            ok, error = self._replace()
 
         if ok:
             close = self._index == len(self._images) - 1
@@ -319,11 +326,7 @@ class EditImageDialog(_dialog_base.Dialog):
                 self._next()
             super()._apply()
         else:
-            if self._mode == EditImageDialog.EDIT:
-                text = _t('dialog.edit_image.error.changes_not_applied')
-            else:
-                text = _t('dialog.edit_image.error.image_not_added')
-            utils.gui.show_error(text, parent=self)
+            utils.gui.show_error(error, parent=self)
             close = False
 
         return close
@@ -340,7 +343,8 @@ class EditImageDialog(_dialog_base.Dialog):
         else:
             return None
 
-    def _add(self, image: model.Image, tags: typ.List[model.Tag], new_path: typ.Optional[pathlib.Path]) -> bool:
+    def _add(self, image: model.Image, tags: typ.List[model.Tag], new_path: typ.Optional[pathlib.Path]) \
+            -> typ.Tuple[bool, typ.Optional[str]]:
         """Adds an image to the database.
 
         :param image: The image to add.
@@ -349,16 +353,18 @@ class EditImageDialog(_dialog_base.Dialog):
         :return: True if everything went well.
         """
         if image.path.exists():
-            ok = True
+            ok, error = True, None
             if new_path:
-                ok = self._move_image(image.path, new_path)
+                ok, error = self._move_image(image.path, new_path)
             if ok:
                 ok = self._image_dao.add_image(image.path if new_path is None else new_path, tags)
-            return ok
+                error = _t('dialog.edit_image.error.image_not_added')
+            return ok, error
         else:
-            return False
+            return False, _t('dialog.edit_image.error.file_does_not_exists')
 
-    def _edit(self, image: model.Image, tags: typ.List[model.Tag], new_path: typ.Optional[pathlib.Path]) -> bool:
+    def _edit(self, image: model.Image, tags: typ.List[model.Tag], new_path: typ.Optional[pathlib.Path]) \
+            -> typ.Tuple[bool, typ.Optional[str]]:
         """Edits an image from the database.
 
         :param image: The image to edit.
@@ -367,17 +373,19 @@ class EditImageDialog(_dialog_base.Dialog):
         :return: True if everything went well.
         """
         if image.path.exists():
-            ok = self._move_image(image.path, new_path)
+            ok, error = True, None
+            if new_path:
+                ok, error = self._move_image(image.path, new_path)
             if ok:
                 if self._tags_changed:
                     ok = self._image_dao.update_image_tags(image.id, tags)
                 if ok and new_path:
                     ok = self._image_dao.update_image(image.id, new_path, image.hash)
-            return ok
+            return ok, error or _t('dialog.edit_image.error.changes_not_applied')
         else:
-            return False
+            return False, _t('dialog.edit_image.error.file_does_not_exists')
 
-    def _replace(self) -> bool:
+    def _replace(self) -> typ.Tuple[bool, typ.Optional[str]]:
         """Replaces an image by another one. The old image is deleted. The new image will stay in its directory.
 
         :return: True if everything went well.
@@ -386,16 +394,17 @@ class EditImageDialog(_dialog_base.Dialog):
             try:
                 self._image_to_replace.unlink()
             except OSError:
-                # TODO show error
-                return False
+                return False, _t('popup.delete_image_error.text', files=[str(self._destination)])
             else:
                 image = self._images[0]
                 new_hash = utils.image.get_hash(image.path)
-                return self._image_dao.update_image(image.id, self._destination, new_hash)
+                return (self._image_dao.update_image(image.id, self._destination, new_hash),
+                        _t('dialog.edit_image.error.'))
         else:
-            return False
+            return False, _t('dialog.edit_image.error.file_does_not_exists')
 
-    def _move_image(self, path: pathlib.Path, new_path: pathlib.Path) -> bool:
+    @staticmethod
+    def _move_image(path: pathlib.Path, new_path: pathlib.Path) -> typ.Tuple[bool, typ.Optional[str]]:
         """Moves an image to a specific directory.
 
         :param path: Image’s path.
@@ -403,18 +412,15 @@ class EditImageDialog(_dialog_base.Dialog):
         :return: True if the image was moved.
         """
         if new_path.exists():
-            utils.gui.show_error(_t('dialog.edit_image.error.file_already_exists'), parent=self)
-            return False
+            return False, _t('dialog.edit_image.error.file_already_exists')
         if not path.exists():
-            # TODO show error
-            return False
+            return False, _t('dialog.edit_image.error.file_does_not_exist')
         try:
             shutil.move(path, new_path)
         except OSError:
-            # TODO show error
-            return False
+            return False, _t('dialog.edit_image.error.failed_to_move_file')
         else:
-            return True
+            return True, None
 
     def _get_title(self) -> str:
         return _t(self._TITLES[self._mode], index=self._index + 1, total=len(self._images))

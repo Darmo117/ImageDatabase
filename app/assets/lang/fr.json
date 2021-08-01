@@ -167,11 +167,14 @@
         "error": {
           "replace_self": "Impossible de remplacer une image par elle-même !",
           "no_tags": "Aucune étiquette renseignée !",
-          "compound_tags_disallowed": "Étiquettes composées interdites ici !",
-          "invalid_tag_format": "Format d’étiquette invalide !",
+          "duplicate_tags": "Doublon(s) détecté(s) :\n{tags}",
+          "compound_tags_disallowed": "Étiquette(s) composée(s) détectée(s):\n{tags}",
+          "invalid_tag_format": "Format d’étiquette invalide « {error} » !",
           "changes_not_applied": "Impossible d’appliquer les changements !",
           "image_not_added": "Impossible d’ajouter l’image !",
-          "file_already_exists": "Un fichier existe déjà dans le dossier cible !"
+          "file_already_exists": "Un fichier existe déjà dans le dossier cible !",
+          "file_does_not_exists": "Cette image n’existe pas !",
+          "failed_to_move_file": "L’image n’a pas pu être déplacée !"
         }
       },
       "edit_tags": {
