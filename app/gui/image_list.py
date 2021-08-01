@@ -343,7 +343,7 @@ class _FlowImageItem(QtW.QFrame, ImageItem):
         layout.addWidget(self._image_view)
 
         text = self._image.path.name
-        label = components.EllipsisLabel(text)
+        label = components.EllipsisLabel(text, parent=self)
         label.setAlignment(QtC.Qt.AlignCenter)
         label.setFixedWidth(size)
         label.setToolTip(text)

@@ -69,7 +69,8 @@ class EditImageDialog(_dialog_base.Dialog):
         splitter.setOrientation(QtC.Qt.Vertical)
 
         top_layout = QtW.QVBoxLayout()
-        self._image_path_lbl = components.EllipsisLabel('', parent=self)
+        self._image_path_lbl = components.EllipsisLabel(parent=self)
+        self._image_path_lbl.setAlignment(QtC.Qt.AlignRight)
         top_layout.addWidget(self._image_path_lbl)
 
         self._canvas = components.Canvas(parent=self)

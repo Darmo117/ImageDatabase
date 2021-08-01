@@ -271,6 +271,13 @@ class EllipsisLabel(QtW.QLabel):
 
     _on_click = None
 
+    def __init__(self, text: str = '', parent: QtW.QWidget = None):
+        super().__init__(text, parent=parent)
+        self._elide_mode = QtC.Qt.ElideMiddle
+
+    def set_elide_mode(self, mode: QtC.Qt.TextElideMode):
+        self._elide_mode = mode
+
     def paintEvent(self, event: QtG.QPaintEvent):
         painter = QtG.QPainter()
         painter.begin(self)
@@ -279,8 +286,8 @@ class EllipsisLabel(QtW.QLabel):
 
     def _draw_text(self, event: QtG.QPaintEvent, painter: QtG.QPainter):
         metrics = QtG.QFontMetrics(self.font())
-        elided_text = metrics.elidedText(self.text(), QtC.Qt.ElideRight, self.width())
-        painter.drawText(event.rect(), QtC.Qt.AlignCenter, elided_text)
+        elided_text = metrics.elidedText(self.text(), self._elide_mode, self.width())
+        painter.drawText(event.rect(), int(self.alignment()), elided_text)
 
     def set_on_click(self, callback: typ.Callable[[EllipsisLabel], None]):
         self._on_click = callback
