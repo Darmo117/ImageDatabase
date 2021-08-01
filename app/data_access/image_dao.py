@@ -259,6 +259,7 @@ class ImageDao(DAO):
             tag_name = sympy_expr.name
             if ':' in tag_name:
                 metatag, mode, value = tag_name.split(':', maxsplit=2)
+                value = value.replace(r'\(', '(').replace(r'\)', ')')
                 if not ImageDao.check_metatag_value(metatag, value, mode):
                     raise ValueError(_t('query_parser.error.invalid_metatag_value', value=value, metatag=metatag))
                 return ImageDao._metatag_query(metatag, value, mode)
