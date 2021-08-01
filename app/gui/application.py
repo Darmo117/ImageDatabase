@@ -1,5 +1,6 @@
 import ctypes
 import os
+import pathlib
 import re
 import sys
 import typing as typ
@@ -40,7 +41,7 @@ class Application(QtW.QMainWindow):
 
     def _init_ui(self):
         """Initializes the UI."""
-        self.setWindowTitle(constants.APP_NAME + (' [DEBUG]' if config.CONFIG.debug else ''))
+        self.setWindowTitle(constants.APP_NAME + ('*' if config.CONFIG.debug else ''))
         self.setWindowIcon(utils.gui.icon('app_icon'))
         self.setGeometry(0, 0, 800, 600)
         self.setMinimumSize(400, 200)
@@ -258,7 +259,7 @@ class Application(QtW.QMainWindow):
             else:
                 self._add_images(files)
 
-    def _add_images(self, image_paths: typ.List[str]):
+    def _add_images(self, image_paths: typ.List[pathlib.Path]):
         """Opens the 'Add Images' dialog then adds the images to the database.
         Checks for potential duplicates.
         """
@@ -307,20 +308,23 @@ class Application(QtW.QMainWindow):
         if len(images) == 1:
             image = images[0]
             file_name, ext = os.path.splitext(os.path.basename(image.path))
-            text = utils.gui.show_text_input(_t('popup.rename_image.text'), _t('popup.rename_image.title'),
-                                             text=file_name, parent=self)
-            if text is not None and file_name != text:
-                new_path = os.path.join(os.path.dirname(image.path), text + ext)
+            new_name = utils.gui.show_text_input(_t('popup.rename_image.text'), _t('popup.rename_image.title'),
+                                                 text=file_name, parent=self)
+            if new_name is not None and file_name != new_name:
+                new_path = image.path.parent / (new_name + ext)
                 if not self._image_dao.update_image(image.id, new_path, image.hash):
                     utils.gui.show_error(_t('popup.rename_error.text'), parent=self)
                 else:
                     rename = True
-                    if os.path.exists(new_path):
+                    if new_path.exists():
                         rename &= utils.gui.show_question(_t('popup.rename_overwrite.text'),
                                                           _t('popup.rename_overwrite.title'),
                                                           parent=self)
                     if rename:
-                        os.rename(image.path, new_path)
+                        try:
+                            image.path.rename(new_path)
+                        except OSError:
+                            pass  # TODO show error
                         self._fetch_images()
 
     def _replace_image(self):
@@ -342,7 +346,7 @@ class Application(QtW.QMainWindow):
         images = self._current_tab().get_images()
         if len(images) > 0:
             file = utils.gui.open_playlist_saver(parent=self)
-            if file is not None:
+            if file:
                 da.write_playlist(file, images)
                 utils.gui.show_info(_t('popup.playlist_exported.text'), parent=self)
 
@@ -379,10 +383,10 @@ class Application(QtW.QMainWindow):
                     ok = self._image_dao.delete_image(item.id)
                     if ok and delete_from_disk:
                         try:
-                            os.remove(item.path)
-                        except FileNotFoundError as e:
+                            item.path.unlink()
+                        except OSError as e:
                             logger.exception(e)
-                            errors.append(item.path)
+                            errors.append(str(item.path))
                 if errors:
                     utils.gui.show_error(_t('popup.delete_image_error.text', files='\n'.join(errors)), parent=self)
                 self._fetch_images()
@@ -522,7 +526,7 @@ class Application(QtW.QMainWindow):
             except ValueError:
                 event.ignore()
             else:
-                if all(map(lambda f: os.path.splitext(f)[1].lower()[1:] in constants.IMAGE_FILE_EXTENSIONS, urls)):
+                if all(map(lambda f: os.path.splitext(f.name)[1].lower()[1:] in constants.IMAGE_FILE_EXTENSIONS, urls)):
                     event.accept()
                 else:
                     event.ignore()
@@ -530,7 +534,7 @@ class Application(QtW.QMainWindow):
             event.ignore()
 
     @staticmethod
-    def _get_urls(event: QtG.QDropEvent) -> typ.List[str]:
+    def _get_urls(event: QtG.QDropEvent) -> typ.List[pathlib.Path]:
         """
         Extracts all file URLs from the drop event.
 
@@ -542,7 +546,7 @@ class Application(QtW.QMainWindow):
         for url in event.mimeData().urls():
             if not url.isLocalFile():
                 raise ValueError(_t('main_window.error.remote_URL'))
-            urls.append(url.toLocalFile())
+            urls.append(pathlib.Path(url.toLocalFile()).absolute())
         return urls
 
     @classmethod

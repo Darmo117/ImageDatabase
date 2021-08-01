@@ -1,4 +1,4 @@
-import os
+import pathlib
 import typing as typ
 
 import PyQt5.QtWidgets as QtW
@@ -35,7 +35,7 @@ class SettingsDialog(_dialog_base.Dialog):
         db_box_layout.addWidget(self._db_path_warning_label, 0, 0, 1, 3)
 
         db_box_layout.addWidget(QtW.QLabel(_t('dialog.settings.box.database.db_path.label')), 1, 0)
-        self._db_path_input = QtW.QLineEdit(self._initial_config.database_path, parent=self)
+        self._db_path_input = QtW.QLineEdit(str(self._initial_config.database_path), parent=self)
         self._db_path_input.textChanged.connect(self._update_ui)
         db_box_layout.addWidget(self._db_path_input, 1, 1)
         choose_file_button = QtW.QPushButton(utils.gui.icon('choose_db_file'), '', parent=self)
@@ -130,7 +130,7 @@ class SettingsDialog(_dialog_base.Dialog):
     def _open_db_file_chooser(self):
         file = utils.gui.open_file_chooser(single_selection=True, mode=utils.gui.FILTER_DB, parent=self)
         if file:
-            self._db_path_input.setText(file)
+            self._db_path_input.setText(str(file))
 
     def _update_ui(self):
         file_exists = self._db_file_exists()
@@ -140,10 +140,10 @@ class SettingsDialog(_dialog_base.Dialog):
         self._ok_btn.setDisabled(not valid)
 
     def _db_file_exists(self) -> bool:
-        return os.path.exists(self._db_path_input.text())
+        return pathlib.Path(self._db_path_input.text()).exists()
 
     def _settings_changed(self) -> bool:
-        db_path = self._db_path_input.text()
+        db_path = pathlib.Path(self._db_path_input.text())
         load_thumbs = self._load_thumbs_check.isChecked()
         thumbs_size = self._thumbs_size_input.value()
         thumbs_load_threshold = self._thumbs_load_threshold_input.value()
@@ -159,7 +159,7 @@ class SettingsDialog(_dialog_base.Dialog):
 
     def _apply(self) -> bool:
         changed = self._settings_changed()
-        db_path = self._db_path_input.text()
+        db_path = pathlib.Path(self._db_path_input.text())
         load_thumbs = self._load_thumbs_check.isChecked()
         thumbs_size = self._thumbs_size_input.value()
         thumbs_load_threshold = self._thumbs_load_threshold_input.value()

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import pathlib
 import re
 import typing as typ
 from dataclasses import dataclass
@@ -7,11 +8,11 @@ from dataclasses import dataclass
 import PyQt5.QtGui as QtG
 
 
-@dataclass(frozen=True, eq=True)
+@dataclass(frozen=True)
 class Image:
     """This class represents an image."""
     id: int
-    path: str
+    path: pathlib.Path
     hash: int
 
     def __lt__(self, other):

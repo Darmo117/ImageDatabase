@@ -1,7 +1,7 @@
 import collections
 import dataclasses
 import json
-import os
+import pathlib
 import sys
 import typing as typ
 
@@ -50,25 +50,24 @@ def get_languages() -> typ.List[Language]:
 
 
 def load_languages() -> bool:
-    for filename in os.listdir(constants.LANG_DIR):
-        path = os.path.join(constants.LANG_DIR, filename)
-        if os.path.isfile(path) and path.lower().endswith('.json'):
+    for path in constants.LANG_DIR.glob('*'):
+        if path.is_file() and path.name.lower().endswith('.json'):
             if res := _get_language_for_file(path):
                 _LANGUAGES[res[1]] = res[0]
 
     return len(_LANGUAGES) != 0
 
 
-def _get_language_for_file(path: str) -> typ.Optional[typ.Tuple[Language, str]]:
+def _get_language_for_file(path: pathlib.Path) -> typ.Optional[typ.Tuple[Language, str]]:
     """Loads the language from the given file.
 
     :param path: File path.
     :return: A Language object, None if the file could not be found or is improperly formatted.
     """
     mappings = {}
-    code = path.split('/')[-1].split('.')[0]
+    code = path.stem
     try:
-        with open(path, encoding='UTF-8') as f:
+        with path.open(encoding='UTF-8') as f:
             json_object = json.load(f)
         for k, v in _build_mapping(json_object['mappings']).items():
             mappings[k] = v

@@ -1,17 +1,18 @@
 """Functions related to image hashing."""
+import pathlib
 import typing as typ
 
 import cv2
 
 
-def get_hash(image_path: str, diff_size: int = 8) -> typ.Optional[int]:
+def get_hash(image_path: pathlib.Path, diff_size: int = 8) -> typ.Optional[int]:
     """Computes the difference hash of the image at the given path.
 
     :param image_path: Image’s path.
     :param diff_size: Size of the difference matrix.
     :return: The hash or None if the image could not be opened.
     """
-    image = cv2.imread(image_path)
+    image = cv2.imread(str(image_path))
     if image is None:
         return None
     # Convert the image to grayscale and compute the hash
@@ -49,13 +50,13 @@ def compare_hashes(hash1: int, hash2: int, diff_size: int = 8) -> typ.Tuple[int,
     return dist_counter, confidence, similar
 
 
-def image_size(image_path: str) -> typ.Optional[typ.Tuple[int, int]]:
+def image_size(image_path: pathlib.Path) -> typ.Optional[typ.Tuple[int, int]]:
     """Returns the size of the given image file.
 
     :param image_path: Path to the image.
     :return: A tuple (width, height) or None if file could not be opened.
     """
-    image = cv2.imread(image_path)
+    image = cv2.imread(str(image_path))
     if image is None:
         return None
     return image.shape[1], image.shape[0]

@@ -1,4 +1,5 @@
 import abc
+import pathlib
 import re
 import sqlite3
 import typing as typ
@@ -7,17 +8,15 @@ from .. import utils
 
 
 class DAO(abc.ABC):
-    """Base class for DAO objects. It defines a 'REGEX' and a 'RINSTR' function to use in SQL queries."""
-    _DEFAULT = ':memory:'
+    """Base class for DAO objects. It defines 'REGEX', 'RINSTR' and 'SIMILAR' functions to use in SQL queries."""
 
-    def __init__(self, database: str = _DEFAULT):
+    def __init__(self, database: pathlib.Path):
         """Initializes this DAO using the given database.
-        If nothing is specified, special ':memory:' database will be used.
 
         :param database: The database file to connect to.
         """
         self._database_path = database
-        self._connection = sqlite3.connect(self._database_path)
+        self._connection = sqlite3.connect(str(self._database_path))
         # Disable autocommit when BEGIN has been called.
         self._connection.isolation_level = None
         self._connection.create_function('REGEXP', 2, self._regexp, deterministic=True)
@@ -26,7 +25,7 @@ class DAO(abc.ABC):
         self._connection.execute('PRAGMA foreign_keys = ON')
 
     @property
-    def database_path(self) -> str:
+    def database_path(self) -> pathlib.Path:
         return self._database_path
 
     def close(self):

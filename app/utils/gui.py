@@ -1,5 +1,6 @@
 """Utility functions to display popup messages and file dialogs, and various functions related to Qt."""
 import os
+import pathlib
 import platform
 import subprocess
 import typing as typ
@@ -126,7 +127,7 @@ FILTER_DB = 1
 
 
 def open_file_chooser(single_selection: bool, mode: int, parent: QtW.QWidget = None) \
-        -> typ.Union[typ.List[str], str, None]:
+        -> typ.Union[typ.List[pathlib.Path], pathlib.Path, None]:
     """Opens a file chooser for images.
 
     :param single_selection: Whether the user can select only a single file.
@@ -155,22 +156,22 @@ def open_file_chooser(single_selection: bool, mode: int, parent: QtW.QWidget = N
     if selection:
         def check_ext(p: str) -> bool:
             ext = os.path.splitext(p)[1].lower()[1:]
-            return ((mode == FILTER_IMAGES and ext not in constants.IMAGE_FILE_EXTENSIONS)
-                    or (mode == FILTER_DB and ext != 'sqlite3'))
+            return ((mode == FILTER_IMAGES and ext in constants.IMAGE_FILE_EXTENSIONS)
+                    or (mode == FILTER_DB and ext == 'sqlite3'))
 
         # Check extensions if user removed filter
         if single_selection:
-            return selection if check_ext(selection) else None
+            return pathlib.Path(selection).absolute() if check_ext(selection) else None
         else:
-            return [s for s in selection if check_ext(s)]
+            return [pathlib.Path(s).absolute() for s in selection if check_ext(s)]
     return None
 
 
-def open_playlist_saver(parent: typ.Optional[QtW.QWidget] = None) -> typ.Optional[str]:
+def open_playlist_saver(parent: typ.Optional[QtW.QWidget] = None) -> typ.Optional[pathlib.Path]:
     """Opens a file saver for playlists.
 
     :param parent: Saver’s parent.
-    :return: The selected file or None if the saver was cancelled.
+    :return: The selected file’s path or None if the saver was cancelled.
     """
     kwargs = {}
     if config.CONFIG.debug:
@@ -184,14 +185,14 @@ def open_playlist_saver(parent: typ.Optional[QtW.QWidget] = None) -> typ.Optiona
     )
     if file and not file.endswith(ext):
         file += ext
-    return file or None
+    return pathlib.Path(file).absolute() if file else None
 
 
-def open_directory_chooser(parent: QtW.QWidget = None) -> typ.Optional[typ.List[str]]:
+def open_directory_chooser(parent: QtW.QWidget = None) -> typ.Optional[typ.List[pathlib.Path]]:
     """Opens a directory chooser then returns all the image files it contains.
 
     :param parent: Chooser’s parent.
-    :return: All image files inside the chosen directory or None if the chooser was cancelled.
+    :return: All image file paths directly inside the chosen directory or None if the chooser was cancelled.
     """
     options = QtW.QFileDialog.ShowDirsOnly
     if config.CONFIG.debug:
@@ -201,13 +202,13 @@ def open_directory_chooser(parent: QtW.QWidget = None) -> typ.Optional[typ.List[
         parent=parent,
         options=options
     )
-    if directory != '':
-        return [f for f in os.listdir(directory)
-                if os.path.splitext(f)[1].lower()[1:] in constants.IMAGE_FILE_EXTENSIONS]
+    if directory:
+        return [pathlib.Path(f).absolute() for f in pathlib.Path(directory).glob('*.*')
+                if os.path.splitext(f.name)[1].lower()[1:] in constants.IMAGE_FILE_EXTENSIONS]
     return None
 
 
-def choose_directory(parent: QtW.QWidget = None) -> typ.Optional[str]:
+def choose_directory(parent: QtW.QWidget = None) -> typ.Optional[pathlib.Path]:
     """Opens a directory chooser.
 
     :param parent: Chooser’s parent.
@@ -221,7 +222,7 @@ def choose_directory(parent: QtW.QWidget = None) -> typ.Optional[str]:
         parent=parent,
         options=options
     )
-    return directory or None
+    return pathlib.Path(directory).absolute() if directory else None
 
 
 def center(window: QtW.QWidget):
@@ -235,9 +236,12 @@ def center(window: QtW.QWidget):
     window.move(rect.topLeft())
 
 
-def show_file(file_path: str):
+def show_file(file_path: pathlib.Path):
     """Shows the given file in the system’s file explorer."""
-    path = os.path.realpath(file_path)
+    try:
+        path = str(file_path.absolute())
+    except RuntimeError:  # Raised if loop is encountered in path
+        return
     os_name = platform.system().lower()
     if os_name == 'windows':
         subprocess.Popen(f'explorer /select,"{path}"')
@@ -282,7 +286,8 @@ def icon(icon_name: str) -> QtG.QIcon:
     :param icon_name: Icon name, without file extension.
     :return: The QIcon object.
     """
-    return QtG.QIcon(os.path.join(constants.ICONS_DIR, icon_name + '.png'))
+
+    return QtG.QIcon(str(constants.ICONS_DIR / (icon_name + '.png')))
 
 
 def get_key_sequence(event: QtG.QKeyEvent) -> QtG.QKeySequence:

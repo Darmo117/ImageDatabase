@@ -3,7 +3,7 @@ import re
 import lark
 import sympy as sp
 
-from .. import data_access as da
+from .. import data_access as da, constants
 from ..i18n import translate as _t
 
 
@@ -13,7 +13,7 @@ class _TreeToBoolean(lark.InlineTransformer):
     """
 
     def __init__(self):
-        with open('app/queries/grammar.lark') as f:
+        with constants.GRAMMAR_FILE.open(encoding='UTF-8') as f:
             grammar = '\n'.join(f.readlines())
         self._parser = lark.Lark(grammar, parser='lalr', lexer='contextual', start='query')
 

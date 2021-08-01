@@ -1,3 +1,4 @@
+import pathlib
 import re
 import sqlite3
 import typing as typ
@@ -33,8 +34,7 @@ class ImageDao(DAO):
         else:
             results = cursor.fetchall()
             cursor.close()
-            return [model.Image(id=r[0], path=r[1], hash=self.decode_hash(r[2]) if r[2] is not None else None)
-                    for r in results]
+            return [self._get_image(r) for r in results]
 
     def get_tagless_images(self) -> typ.Optional[typ.List[model.Image]]:
         """Returns the list of images that do not have any tag.
@@ -59,8 +59,7 @@ class ImageDao(DAO):
         else:
             results = cursor.fetchall()
             cursor.close()
-            return [model.Image(id=r[0], path=r[1], hash=self.decode_hash(r[2]) if r[2] is not None else None)
-                    for r in results]
+            return [self._get_image(r) for r in results]
 
     def get_image_tags(self, image_id: int, tags_dao: TagsDao) -> typ.Optional[typ.List[model.Tag]]:
         """Returns all tags for the given image.
@@ -97,7 +96,7 @@ class ImageDao(DAO):
     IMG_NOT_REGISTERED = 2
     """Indicates that the given image is not registered."""
 
-    def image_registered(self, image_path: str) -> typ.Optional[int]:
+    def image_registered(self, image_path: pathlib.Path) -> typ.Optional[int]:
         """Tells whether other similar images may have already been registered.
         Two images are considered similar if the Hamming distance between their respective hashes is ≤ 10
         (cf. http://www.hackerfactor.com/blog/index.php?/archives/529-Kind-of-Like-That.html) or if their
@@ -116,19 +115,21 @@ class ImageDao(DAO):
             return self.IMG_REGISTERED
         return self.IMG_SIMILAR if images else self.IMG_NOT_REGISTERED
 
-    def get_similar_images(self, image_path: str) -> typ.Optional[typ.List[typ.Tuple[model.Image, int, float, bool]]]:
+    def get_similar_images(self, image_path: pathlib.Path) \
+            -> typ.Optional[typ.List[typ.Tuple[model.Image, int, float, bool]]]:
         """Returns a list of all images that may be similar to the given one.
 
         :param image_path: Path to the image.
         :return: A list of candidate images with their Hamming distance, confidence score and a boolean indicating
             whether the paths are the same (True) or not (False).
         """
+        image_path = image_path.absolute()
         image_hash = utils.image.get_hash(image_path)
         if image_hash is None:
             return None
         images = []
         for registered_image in self.get_images(sp.true):
-            if image_path == registered_image.path:
+            if image_path == registered_image.path.absolute():
                 images.append((registered_image, 0, 1.0, True))
             elif registered_image.hash is not None \
                     and utils.image.compare_hashes(image_hash, registered_image.hash)[2]:
@@ -137,7 +138,7 @@ class ImageDao(DAO):
         # Sort by: sameness (desc), distance (asc), confidence (desc), path (normal)
         return sorted(images, key=lambda e: (not e[3], e[1], -e[2], e[0]))
 
-    def add_image(self, image_path: str, tags: typ.List[model.Tag]) -> bool:
+    def add_image(self, image_path: pathlib.Path, tags: typ.List[model.Tag]) -> bool:
         """Adds an image.
 
         :param image_path: Path to the image.
@@ -150,7 +151,7 @@ class ImageDao(DAO):
             image_hash = utils.image.get_hash(image_path) or 0
             image_cursor.execute(
                 'INSERT INTO images(path, hash) VALUES(?, ?)',
-                (image_path, self.encode_hash(image_hash) if image_hash is not None else None)
+                (str(image_path), self.encode_hash(image_hash) if image_hash is not None else None)
             )
             for tag in tags:
                 tag_id = self._insert_tag_if_not_exists(tag)
@@ -164,7 +165,7 @@ class ImageDao(DAO):
             self._connection.commit()
             return True
 
-    def update_image(self, image_id: int, new_path: str, new_hash: typ.Union[int, None]) -> bool:
+    def update_image(self, image_id: int, new_path: pathlib.Path, new_hash: typ.Union[int, None]) -> bool:
         """Sets the path of the given image.
 
         :param image_id: Image’s ID.
@@ -176,7 +177,7 @@ class ImageDao(DAO):
         try:
             cursor.execute(
                 'UPDATE images SET path = ?, hash = ? WHERE id = ?',
-                (new_path, self.encode_hash(new_hash) if new_hash is not None else None, image_id)
+                (str(new_path), self.encode_hash(new_hash) if new_hash is not None else None, image_id)
             )
         except sqlite3.Error as e:
             logger.exception(e)
@@ -223,6 +224,14 @@ class ImageDao(DAO):
         else:
             cursor.close()
             return True
+
+    def _get_image(self, result: typ.Tuple[int, str, bytes]) -> model.Image:
+        """Creates an Image object from a result tuple."""
+        return model.Image(
+            id=result[0],
+            path=pathlib.Path(result[1]),
+            hash=self.decode_hash(result[2]) if result[2] is not None else None
+        )
 
     def _insert_tag_if_not_exists(self, tag: model.Tag) -> int:
         """Inserts the given tag if it does not already exist.

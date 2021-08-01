@@ -26,7 +26,7 @@ class TagsDao(DAO):
             cursor.close()
             return None
         else:
-            types = [model.TagType(t[0], t[1], t[2], QtG.QColor.fromRgb(t[3])) for t in cursor.fetchall()]
+            types = [self._get_tag_type(t) for t in cursor.fetchall()]
             cursor.close()
             return types
 
@@ -76,8 +76,7 @@ class TagsDao(DAO):
             results = cursor.fetchall()
             cursor.close()
             if results:
-                r = results[0]
-                return model.TagType(ident=r[0], label=r[1], symbol=r[2], color=QtG.QColor(r[3]))
+                return self._get_tag_type(results[0])
             return None
 
     def get_tag_type_from_id(self, ident: int) -> typ.Optional[model.TagType]:
@@ -97,8 +96,7 @@ class TagsDao(DAO):
             results = cursor.fetchall()
             cursor.close()
             if results:
-                r = results[0]
-                return model.TagType(ident=r[0], label=r[1], symbol=r[2], color=QtG.QColor(r[3]))
+                return self._get_tag_type(results[0])
             return None
 
     def add_type(self, tag_type: model.TagType) -> bool:
@@ -218,7 +216,7 @@ class TagsDao(DAO):
             cursor.close()
             types = []
             for ident, label, symbol, color, *count in results:
-                tag_type = model.TagType(ident=ident, label=label, symbol=symbol, color=QtG.QColor(color))
+                tag_type = self._get_tag_type((ident, label, symbol, color))
                 types.append(tag_type if not get_count else (tag_type, count[0]))
             return types
 
@@ -318,3 +316,13 @@ class TagsDao(DAO):
         else:
             cursor.close()
             return True
+
+    @staticmethod
+    def _get_tag_type(result: typ.Tuple[int, str, str, int]) -> model.TagType:
+        """Creates an TagType object based on the given result tuple."""
+        return model.TagType(
+            ident=result[0],
+            label=result[1],
+            symbol=result[2],
+            color=QtG.QColor.fromRgb(result[3])
+        )

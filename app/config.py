@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import configparser
 import os
+import pathlib
 import typing as typ
 
 from . import constants, i18n, logging
@@ -12,7 +13,7 @@ class ConfigError(ValueError):
 
 
 _DEFAULT_LANG_CODE = 'en'
-_DEFAULT_DB_PATH = 'library.sqlite3'
+_DEFAULT_DB_PATH = pathlib.Path('library.sqlite3')
 _DEFAULT_LOAD_THUMBS = True
 _DEFAULT_THUMBS_SIZE = 200
 _DEFAULT_THUMBS_LOAD_THRESHOLD = 50
@@ -23,7 +24,7 @@ class Config:
     def __init__(
             self,
             language: i18n.Language,
-            database_path: str,
+            database_path: pathlib.Path,
             load_thumbnails: bool,
             thumbnail_size: int,
             thumbnail_load_threshold: int,
@@ -60,15 +61,15 @@ class Config:
         return self._language_pending
 
     @property
-    def database_path(self) -> str:
+    def database_path(self) -> pathlib.Path:
         return self._database_path
 
     @database_path.setter
-    def database_path(self, value: str):
+    def database_path(self, value: pathlib.Path):
         self._database_path_pending = value
 
     @property
-    def database_path_pending(self) -> typ.Optional[str]:
+    def database_path_pending(self) -> typ.Optional[pathlib.Path]:
         return self._database_path_pending
 
     @property
@@ -108,11 +109,11 @@ class Config:
             _THUMB_LOAD_THRESHOLD_KEY: self.thumbnail_load_threshold,
         }
         parser[_DB_SECTION] = {
-            _FILE_KEY: self.database_path_pending or self.database_path,
+            _FILE_KEY: str(self.database_path_pending or self.database_path),
         }
 
         try:
-            with open(constants.CONFIG_FILE, 'w', encoding='UTF-8') as configfile:
+            with constants.CONFIG_FILE.open(mode='w', encoding='UTF-8') as configfile:
                 parser.write(configfile)
         except IOError as e:
             logging.logger.exception(e)
@@ -155,7 +156,7 @@ def load_config():
     thumbs_load_threshold = _DEFAULT_THUMBS_LOAD_THRESHOLD
     debug = _DEFAULT_DEBUG
 
-    if os.path.exists(constants.CONFIG_FILE):
+    if constants.CONFIG_FILE.is_file():
         config_parser = configparser.ConfigParser()
         config_parser.read(constants.CONFIG_FILE)
         try:
@@ -187,7 +188,7 @@ def load_config():
                                   f'{constants.MIN_THUMB_LOAD_THRESHOLD}px and {constants.MAX_THUMB_LOAD_THRESHOLD}px')
 
             # Database section
-            database_path = config_parser.get(_DB_SECTION, _FILE_KEY, fallback=_DEFAULT_DB_PATH)
+            database_path = pathlib.Path(config_parser.get(_DB_SECTION, _FILE_KEY, fallback=_DEFAULT_DB_PATH))
         except ValueError as e:
             raise ConfigError(e)
         except KeyError as e:

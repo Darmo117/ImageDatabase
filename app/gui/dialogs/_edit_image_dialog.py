@@ -1,4 +1,4 @@
-import os
+import pathlib
 import shutil
 import typing as typ
 
@@ -48,9 +48,9 @@ class EditImageDialog(_dialog_base.Dialog):
 
         super().__init__(parent=parent, title=self._get_title(), modal=True)
 
-        self._destination = None
+        self._destination: typ.Optional[pathlib.Path] = None
+        self._image_to_replace: typ.Optional[pathlib.Path] = None
         self._tags_changed = False
-        self._image_to_replace = None
         self._similar_images: typ.List[typ.Tuple[model.Image, float]] = []
 
         self._image_dao = image_dao
@@ -188,7 +188,7 @@ class EditImageDialog(_dialog_base.Dialog):
         self._tags = tags
         self._set(self._index)
 
-    def set_image(self, image, tags):
+    def set_image(self, image: model.Image, tags: typ.List[model.Tag]):
         """Sets the image to display.
 
         :param image: The image to display.
@@ -200,8 +200,8 @@ class EditImageDialog(_dialog_base.Dialog):
         """Sets the current image."""
         image = self._images[index]
 
-        self._image_path_lbl.setText(image.path)
-        self._image_path_lbl.setToolTip(image.path)
+        self._image_path_lbl.setText(str(image.path))
+        self._image_path_lbl.setToolTip(str(image.path))
 
         if self._mode == EditImageDialog.REPLACE:
             self._tags_input.setDisabled(False)
@@ -255,7 +255,7 @@ class EditImageDialog(_dialog_base.Dialog):
             destination = utils.gui.open_file_chooser(single_selection=True, mode=utils.gui.FILTER_IMAGES, parent=self)
         else:
             destination = utils.gui.choose_directory(parent=self)
-        if destination is not None:
+        if destination:
             if self._mode == EditImageDialog.REPLACE:
                 img = self._images[0]
                 if self._image_to_replace is None:
@@ -271,7 +271,7 @@ class EditImageDialog(_dialog_base.Dialog):
                 self._destination = destination
             key = 'target_image' if self._mode == EditImageDialog.REPLACE else 'target_path'
             self._dest_label.setText(_t('dialog.edit_image.' + key, path=self._destination))
-            self._dest_label.setToolTip(self._destination)
+            self._dest_label.setToolTip(str(self._destination))
 
     def _text_changed(self):
         self._tags_changed = True
@@ -328,19 +328,19 @@ class EditImageDialog(_dialog_base.Dialog):
 
         return close
 
-    def _get_new_path(self, image: model.Image) -> typ.Optional[str]:
+    def _get_new_path(self, image: model.Image) -> typ.Optional[pathlib.Path]:
         """Returns the new image path. It is obtained by appending the image name to the destination path.
 
         :param image: The image to move.
         :return: The new path.
         """
         if self._mode != EditImageDialog.REPLACE and self._destination is not None \
-                and os.path.dirname(image.path) != self._destination:
-            return os.path.join(self._destination, os.path.basename(image.path))
+                and image.path.parent != self._destination:
+            return self._destination / image.path.name
         else:
             return None
 
-    def _add(self, image: model.Image, tags: typ.List[model.Tag], new_path: typ.Optional[str]) -> bool:
+    def _add(self, image: model.Image, tags: typ.List[model.Tag], new_path: typ.Optional[pathlib.Path]) -> bool:
         """Adds an image to the database.
 
         :param image: The image to add.
@@ -348,12 +348,17 @@ class EditImageDialog(_dialog_base.Dialog):
         :param new_path: If present the image will be moved in this directory.
         :return: True if everything went well.
         """
-        ok = self._image_dao.add_image(image.path if new_path is None else new_path, tags)
-        if new_path is not None and ok:
-            ok = self._move_image(image.path, new_path)
-        return ok
+        if image.path.exists():
+            ok = True
+            if new_path:
+                ok = self._move_image(image.path, new_path)
+            if ok:
+                ok = self._image_dao.add_image(image.path if new_path is None else new_path, tags)
+            return ok
+        else:
+            return False
 
-    def _edit(self, image: model.Image, tags: typ.List[model.Tag], new_path: typ.Optional[str]) -> bool:
+    def _edit(self, image: model.Image, tags: typ.List[model.Tag], new_path: typ.Optional[pathlib.Path]) -> bool:
         """Edits an image from the database.
 
         :param image: The image to edit.
@@ -361,42 +366,52 @@ class EditImageDialog(_dialog_base.Dialog):
         :param new_path: If present the image will be moved in this directory.
         :return: True if everything went well.
         """
-        if self._tags_changed:
-            ok = self._image_dao.update_image_tags(image.id, tags)
-        else:
-            ok = True
-        if ok and new_path is not None:
-            ok = self._image_dao.update_image(image.id, new_path, image.hash)
+        if image.path.exists():
+            ok = self._move_image(image.path, new_path)
             if ok:
-                ok = self._move_image(image.path, new_path)
-        return ok
+                if self._tags_changed:
+                    ok = self._image_dao.update_image_tags(image.id, tags)
+                if ok and new_path:
+                    ok = self._image_dao.update_image(image.id, new_path, image.hash)
+            return ok
+        else:
+            return False
 
     def _replace(self) -> bool:
         """Replaces an image by another one. The old image is deleted. The new image will stay in its directory.
 
         :return: True if everything went well.
         """
-        try:
-            os.remove(self._image_to_replace)
-        except OSError:
-            return False
+        if self._destination.exists():
+            try:
+                self._image_to_replace.unlink()
+            except OSError:
+                # TODO show error
+                return False
+            else:
+                image = self._images[0]
+                new_hash = utils.image.get_hash(image.path)
+                return self._image_dao.update_image(image.id, self._destination, new_hash)
         else:
-            image = self._images[0]
-            new_hash = utils.image.get_hash(image.path)
-            ok = self._image_dao.update_image(image.id, self._destination, new_hash)
-            return ok
+            return False
 
-    def _move_image(self, path: str, new_path: str) -> bool:
+    def _move_image(self, path: pathlib.Path, new_path: pathlib.Path) -> bool:
         """Moves an image to a specific directory.
 
         :param path: Image’s path.
         :param new_path: Path to the new directory.
         :return: True if the image was moved.
         """
+        if new_path.exists():
+            utils.gui.show_error(_t('dialog.edit_image.error.file_already_exists'), parent=self)
+            return False
+        if not path.exists():
+            # TODO show error
+            return False
         try:
             shutil.move(path, new_path)
-        except shutil.Error:
-            utils.gui.show_error(_t('dialog.edit_image.error.file_already_exists'), parent=self)
+        except OSError:
+            # TODO show error
             return False
         else:
             return True

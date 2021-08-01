@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+import pathlib
 import shutil
 import sqlite3
 import typing as typ
@@ -125,9 +126,9 @@ class BatchMoveDialog(_dialog_base.Dialog):
 
         return body_layout
 
-    def _add_row(self, is_file: bool, path: str):
+    def _add_row(self, is_file: bool, path: pathlib.Path):
         icon = utils.gui.icon('image') if is_file else utils.gui.icon('directory')
-        item = QtW.QListWidgetItem(icon, path)
+        item = QtW.QListWidgetItem(icon, str(path))
         item.setWhatsThis('file' if is_file else 'directory')
         self._list.addItem(item)
 
@@ -151,9 +152,10 @@ class BatchMoveDialog(_dialog_base.Dialog):
     def _set_destination(self):
         selection = self._open_files_chooser(select_files=False)
         if selection:
-            self._destination_input.setText(selection)
+            self._destination_input.setText(str(selection))
 
-    def _open_files_chooser(self, select_files: bool, single_selection: bool = True):
+    def _open_files_chooser(self, select_files: bool, single_selection: bool = True) \
+            -> typ.Optional[typ.Union[typ.List[pathlib.Path], pathlib.Path]]:
         if select_files:
             selection = utils.gui.open_file_chooser(
                 single_selection=single_selection, mode=utils.gui.FILTER_IMAGES, parent=self)
@@ -164,7 +166,7 @@ class BatchMoveDialog(_dialog_base.Dialog):
     def _update_ui(self):
         list_empty = not self._list.count()
         selected_items = self._list.selectedItems()
-        dest_exists = os.path.isdir(self._destination_input.text())
+        dest_exists = pathlib.Path(self._destination_input.text()).is_dir()
         self._list_warning_label.setVisible(list_empty)
         self._delete_items_button.setDisabled(not selected_items)
         self._clear_list_button.setDisabled(not selected_items)
@@ -190,17 +192,17 @@ class BatchMoveDialog(_dialog_base.Dialog):
         elements = []
         for i in range(self._list.count()):
             item = self._list.item(i)
-            elements.append((item.text(), item.whatsThis() == 'file'))
+            elements.append((pathlib.Path(item.text()), item.whatsThis() == 'file'))
         # Put files first, then directories
         elements.sort(key=lambda e: (not e[1], e[0]))
-        destination = self._destination_input.text()
+        destination = pathlib.Path(self._destination_input.text())
         self._thread = _WorkerThread({k: v for k, v in elements}, destination)
         self._thread.progress_signal.connect(self._on_progress_update)
         self._thread.finished.connect(self._on_work_done)
         self._progress_dialog.open(self._thread.cancel)
         self._thread.start()
 
-    def _on_progress_update(self, progress: float, data: typ.Tuple[str, bool], status: int):
+    def _on_progress_update(self, progress: float, data: typ.Tuple[pathlib.Path, bool], status: int):
         self._progress_dialog.setValue(int(progress * 100))
         status_label = _t('popup.progress.status_label')
         if status == 1:
@@ -218,7 +220,7 @@ class BatchMoveDialog(_dialog_base.Dialog):
         if self._thread.failed:
             utils.gui.show_error(self._thread.error, parent=self)
         if self._thread.failed_elements:
-            errors = '\n'.join(map(lambda i: i.path, self._thread.failed_elements))
+            errors = '\n'.join(map(str, self._thread.failed_elements.keys()))
             message = _t('popup.files_move_result_errors.text', errors=errors)
             utils.gui.show_warning(message, _t('popup.files_move_result_errors.title'), parent=self)
         else:
@@ -227,7 +229,7 @@ class BatchMoveDialog(_dialog_base.Dialog):
 
         # Remove items that were successfully moved
         for i in reversed(range(self._list.count())):
-            if self._list.item(i).text() not in self._thread.failed_elements:
+            if pathlib.Path(self._list.item(i).text()) not in self._thread.failed_elements:
                 self._list.takeItem(i)
 
         self._update_ui()
@@ -236,11 +238,11 @@ class BatchMoveDialog(_dialog_base.Dialog):
 class _WorkerThread(threads.WorkerThread):
     """Moves the selected files and directories to the selected destination."""
 
-    def __init__(self, elements: typ.Dict[str, bool], destination: str):
+    def __init__(self, elements: typ.Dict[pathlib.Path, bool], destination: pathlib.Path):
         super().__init__()
         self._elements = elements
         self._destination = destination
-        self._failed_elements: typ.Dict[str, typ.Tuple[bool, str]] = {}
+        self._failed_elements: typ.Dict[pathlib.Path, typ.Tuple[bool, str]] = {}
 
     def run(self):
         image_dao = data_access.ImageDao(config.CONFIG.database_path)
@@ -259,20 +261,17 @@ class _WorkerThread(threads.WorkerThread):
             else:  # TODO tester
                 try:
                     if is_file:
-                        p = image_dao.escape_metatag_plain_value(path)
+                        p = image_dao.escape_metatag_plain_value(str(path) + os.sep)
                         images = image_dao.get_images(queries.query_to_sympy(f'path:"{p}"'))
                         if images:
                             for image in images:
-                                new_path = os.path.join(self._destination, image.path.replace(path, ''))
+                                new_path = self._destination / str(image.path).replace(str(path), '')
                                 image_dao.update_image(image.id, new_path, image.hash)
                     else:
-                        p = path
-                        if not p.endswith(os.sep):
-                            p += os.sep
-                        p = image_dao.escape_metatag_plain_value(p)
+                        p = image_dao.escape_metatag_plain_value(str(path) + os.sep)
                         images = image_dao.get_images(queries.query_to_sympy(f'path:"{p}*"'))
                         for image in images:
-                            new_path = os.path.join(self._destination, image.path.replace(path, ''))
+                            new_path = self._destination / str(image.path).replace(str(path), '')
                             image_dao.update_image(image.id, new_path, image.hash)
                 except sqlite3.Error as e:
                     self._failed_elements[path] = (is_file, str(e))
@@ -285,5 +284,5 @@ class _WorkerThread(threads.WorkerThread):
                                       self.STATUS_SUCCESS if ok else self.STATUS_FAILED)
 
     @property
-    def failed_elements(self) -> typ.Dict[str, typ.Tuple[bool, str]]:
+    def failed_elements(self) -> typ.Dict[pathlib.Path, typ.Tuple[bool, str]]:
         return self._failed_elements

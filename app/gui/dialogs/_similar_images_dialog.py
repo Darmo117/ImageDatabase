@@ -51,10 +51,10 @@ class SimilarImagesDialog(_dialog_base.Dialog):
             button_group.addButton(radio_button, id=i)
             grid_layout.addWidget(radio_button, i + 1, 0)
 
-            label = components.EllipsisLabel(image.path, parent=self)
+            label = components.EllipsisLabel(str(image.path), parent=self)
             # Click on associated radio button when label is clicked
             label.set_on_click(lambda this: button_group.button(int(this.whatsThis())).click())
-            label.setToolTip(image.path)
+            label.setToolTip(str(image.path))
             label.setMinimumWidth(80)
             label.setAlignment(Qt.AlignLeft)
             label.setWhatsThis(str(i))

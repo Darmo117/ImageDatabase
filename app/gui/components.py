@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+import pathlib
 import typing as typ
 
 import PyQt5.QtCore as QtC
@@ -226,15 +227,15 @@ class Canvas(QtW.QGraphicsView):
         self._keep_border = keep_border
         self._show_errors = show_errors
 
-    def set_image(self, image_path: str):
+    def set_image(self, image_path: pathlib.Path):
         """Sets the image to display.
 
         :param image_path: Path to the image.
         """
         self.setScene(QtW.QGraphicsScene())
-        if os.path.exists(image_path):
-            ext = os.path.splitext(image_path)[1]
-            self._image = QtG.QPixmap(image_path, format=ext)
+        if image_path.exists():
+            ext = os.path.splitext(image_path.name)[1]
+            self._image = QtG.QPixmap(str(image_path), format=ext)
             self.scene().addPixmap(self._image)
             self.fit()
             border = '0'

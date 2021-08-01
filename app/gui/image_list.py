@@ -9,8 +9,7 @@ import PyQt5.QtGui as QtG
 import PyQt5.QtWidgets as QtW
 import pyperclip
 
-from .components import Canvas, EllipsisLabel
-from .flow_layout import ScrollingFlowWidget
+from . import components, flow_layout
 from .. import config, model, utils
 from ..i18n import translate as _t
 
@@ -71,7 +70,7 @@ class ImageListView:
 
     def copy_image_paths(self):
         if self._copy_paths_action.isEnabled():
-            text = '\n'.join([image.path for image in self.selected_images()])
+            text = '\n'.join([str(image.path) for image in self.selected_images()])
             pyperclip.copy(text)
 
     @abc.abstractmethod
@@ -185,11 +184,11 @@ class _ImageListItem(QtW.QListWidgetItem, ImageItem):
         :param image: The image to associate to this item.
         """
         super().__init__(parent=parent)
-        self.setText(image.path)
+        self.setText(str(image.path))
         self._image = image
 
 
-class ThumbnailList(ScrollingFlowWidget, ImageListView):
+class ThumbnailList(flow_layout.ScrollingFlowWidget, ImageListView):
     """This widget lists results returned by the user query as image thumbnails."""
 
     def __init__(self, on_selection_changed: SelectionChangeListener,
@@ -331,7 +330,7 @@ class _FlowImageItem(QtW.QFrame, ImageItem):
         layout = QtW.QVBoxLayout()
         layout.setContentsMargins(2, 2, 2, 2)
 
-        self._image_view = Canvas(keep_border=False, show_errors=False, parent=self)
+        self._image_view = components.Canvas(keep_border=False, show_errors=False, parent=self)
         # Allows file drag-and-drop
         self._image_view.dragEnterEvent = self.dragEnterEvent
         self._image_view.dragMoveEvent = self.dragMoveEvent
@@ -345,7 +344,7 @@ class _FlowImageItem(QtW.QFrame, ImageItem):
         layout.addWidget(self._image_view)
 
         text = os.path.basename(self._image.path)
-        label = EllipsisLabel(text)
+        label = components.EllipsisLabel(text)
         label.setAlignment(QtC.Qt.AlignCenter)
         label.setFixedWidth(size)
         label.setToolTip(text)

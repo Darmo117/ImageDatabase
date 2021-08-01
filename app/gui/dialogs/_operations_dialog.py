@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import dataclasses
+import pathlib
 import re
 import typing as typ
 
@@ -99,7 +100,7 @@ class OperationsDialog(_dialog_base.Dialog):
         self._progress_dialog.open(self._thread.cancel)
         self._thread.start()
 
-    def _on_progress_update(self, progress: float, data: typ.Tuple[str, str], status: int):
+    def _on_progress_update(self, progress: float, data: typ.Tuple[pathlib.Path, pathlib.Path], status: int):
         self._progress_dialog.setValue(int(progress * 100))
         status_label = _t('popup.progress.status_label')
         if status == 1:
@@ -176,7 +177,7 @@ class _WorkerThread(threads.WorkerThread):
             for i, image in enumerate(images):
                 if self._cancelled:
                     break
-                new_path = re.sub(self._regex, self._replacement, image.path)
+                new_path = pathlib.Path(re.sub(self._regex, self._replacement, str(image.path)))
                 self.progress_signal.emit(progress, (image.path, new_path), self.STATUS_UNKNOWN)
                 new_hash = utils.image.get_hash(new_path)
                 ok = image_dao.update_image(image.id, new_path, new_hash)

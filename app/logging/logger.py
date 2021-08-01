@@ -1,12 +1,12 @@
 """This module declares a global Logger object."""
 
 import logging.handlers
-import os
 
 from app import constants
 
-if not os.path.exists(os.path.dirname(constants.ERROR_LOG_FILE)):
-    os.mkdir(os.path.dirname(constants.ERROR_LOG_FILE))
+_log_dir = constants.ERROR_LOG_FILE.parent
+if not _log_dir.exists():
+    _log_dir.mkdir()
 
 logging.basicConfig(filename=constants.ERROR_LOG_FILE, format="[%(asctime)s] %(levelname)s: %(message)s")
 logger = logging.getLogger(__name__)

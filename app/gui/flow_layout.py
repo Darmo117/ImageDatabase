@@ -10,12 +10,12 @@ from PyQt5.QtCore import Qt
 class FlowLayout(QtW.QLayout):
     """Standard PyQt examples FlowLayout modified to work with a scrollable parent."""
 
-    def __init__(self, parent: QtW.QWidget = None, margin: int = 0, spacing: int = -1):
+    def __init__(self, margin: int = 0, spacing: int = -1, parent: QtW.QWidget = None):
         """Creates a flow layout.
 
-        :param parent: An optional parent for this layout.
         :param margin: Margins value.
         :param spacing: Inner spacing value.
+        :param parent: An optional parent for this layout.
         """
         super().__init__(parent)
 
@@ -132,7 +132,7 @@ class ScrollingFlowWidget(QtW.QWidget):
         grid = QtW.QGridLayout(self)
         scroll = _ResizeScrollArea()
         self._wrapper = QtW.QWidget(scroll)
-        self._flow_layout = FlowLayout(self._wrapper)
+        self._flow_layout = FlowLayout(parent=self._wrapper)
         self._wrapper.setLayout(self._flow_layout)
         scroll.setWidget(self._wrapper)
         scroll.setWidgetResizable(True)
