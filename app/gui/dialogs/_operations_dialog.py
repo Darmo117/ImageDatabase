@@ -177,7 +177,8 @@ class _WorkerThread(threads.WorkerThread):
             for i, image in enumerate(images):
                 if self._cancelled:
                     break
-                new_path = pathlib.Path(re.sub(self._regex, self._replacement, str(image.path)))
+                # Replace but keep absolute path
+                new_path = pathlib.Path(re.sub(self._regex, self._replacement, str(image.path))).absolute()
                 self.progress_signal.emit(progress, (image.path, new_path), self.STATUS_UNKNOWN)
                 new_hash = utils.image.get_hash(new_path)
                 ok = image_dao.update_image(image.id, new_path, new_hash)

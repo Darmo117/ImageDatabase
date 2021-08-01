@@ -324,7 +324,9 @@ class Application(QtW.QMainWindow):
                         try:
                             image.path.rename(new_path)
                         except OSError:
-                            pass  # TODO show error
+                            utils.gui.show_error(_t('popup.rename_file_error.text'), parent=self)
+                            # Rollback changes
+                            self._image_dao.update_image(image.id, image.path, image.hash)
                         self._fetch_images()
 
     def _replace_image(self):
