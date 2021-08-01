@@ -160,6 +160,11 @@ class Application(QtW.QMainWindow):
             self._replace_image,
             'Ctrl+Shift+R'
         )
+        self._move_images_item = edit_menu.addAction(
+            _t('main_window.menu.edit.item.move_images'),
+            self._move_images,
+            'Ctrl+M'
+        )
         self._edit_images_item = edit_menu.addAction(
             utils.gui.icon('image_edit'),
             _t('main_window.menu.edit.item.edit_images'),
@@ -180,11 +185,6 @@ class Application(QtW.QMainWindow):
             lambda: self._fetch_images(tagless_images=True)
         )
         tools_menu.addSeparator()
-        tools_menu.addAction(
-            _t('main_window.menu.tools.item.batch_move_files'),
-            self._batch_move_files,
-            'Ctrl+M'
-        )
         tools_menu.addAction(
             utils.gui.icon('perform_operations'),
             _t('main_window.menu.tools.item.perform_operations'),
@@ -219,8 +219,9 @@ class Application(QtW.QMainWindow):
         qr.moveCenter(cp)
         self.move(qr.topLeft())
 
-    def _batch_move_files(self):
-        dialog = dialogs.BatchMoveDialog(parent=self)
+    def _move_images(self):
+        images = self._current_tab().selected_images()
+        dialog = dialogs.MoveImagesDialog(images, parent=self)
         dialog.set_on_close_action(lambda _: self._fetch_images())
         dialog.show()
 
@@ -499,6 +500,7 @@ class Application(QtW.QMainWindow):
         self._replace_image_item.setEnabled(one_element)
         self._edit_images_item.setEnabled(list_not_empty)
         self._delete_images_item.setEnabled(list_not_empty)
+        self._move_images_item.setEnabled(list_not_empty)
 
     def _current_tab(self) -> image_list.ImageListView:
         # noinspection PyTypeChecker

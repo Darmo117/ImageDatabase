@@ -145,7 +145,7 @@ class Dialog(QtW.QDialog):
     def _apply(self) -> bool:
         """Applies changes. Called when the dialog closes and is in a valid state.
 
-        :return: True if the changes were applied.
+        :return: Whether to close this dialog.
         """
         self._applied = True
         return True

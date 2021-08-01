@@ -90,6 +90,7 @@ class OperationsDialog(_dialog_base.Dialog):
             parent=self
         )
         self._progress_dialog.setWindowTitle(_t('popup.progress.title'))
+        self._progress_dialog.setMinimumDuration(500)
         self._progress_dialog.setModal(True)
 
         regex = self._regex_input.text()
@@ -97,7 +98,7 @@ class OperationsDialog(_dialog_base.Dialog):
         self._thread = _WorkerThread(regex, replacement)
         self._thread.progress_signal.connect(self._on_progress_update)
         self._thread.finished.connect(self._on_work_done)
-        self._progress_dialog.open(self._thread.cancel)
+        self._progress_dialog.canceled.connect(self._thread.cancel)
         self._thread.start()
 
     def _on_progress_update(self, progress: float, data: typ.Tuple[pathlib.Path, pathlib.Path], status: int):

@@ -18,7 +18,8 @@
             "edit_tags": "&Modifier les étiquettes…",
             "rename_image": "&Renommer l’image…",
             "replace_image": "Rem&placer l’image…",
-            "edit_images": "M&odifier les images…",
+            "move_images": "&Déplacer les images…",
+            "edit_images": "Modifier les &images…",
             "delete_images": "&Supprimer les images"
           }
         },
@@ -26,7 +27,6 @@
           "label": "&Outils",
           "item": {
             "tagless_images": "&Afficher les images sans étiquette",
-            "batch_move_files": "&Déplacer des images en masse…",
             "perform_operations": "&Opérations…",
             "SQL_terminal": "&Terminal SQL…"
           }
@@ -132,6 +132,21 @@
             "regex": "Chercher",
             "replacement": "Remplacer par"
           }
+        }
+      },
+      "move_images": {
+        "title": "Déplacer des images",
+        "destination_non_existant": "Le dossier de destination n’existe pas.",
+        "destination_empty": "Le champ est vide.",
+        "destination": "Destination",
+        "choose_directory_button": {
+          "tooltip": "Sélectionner un dossier"
+        },
+        "delete_empty_dirs_button": {
+          "label": "Supprimer les dossiers vides après avoir tout déplacé ?"
+        },
+        "move_button": {
+          "label": "Déplacer"
         }
       },
       "edit_image": {
@@ -376,6 +391,15 @@
       "operation_result_errors": {
         "title": "Résultat de l’opération",
         "text": "L’opération a terminé avec des erreurs !\n{affected} ligne(s) ont été modifiées mais les images ci-dessous ont déclenché des erreurs:\n{errors}."
+      },
+      "files_move_result_success": {
+        "text": "Les fichiers ont été déplacés avec succès !"
+      },
+      "files_move_result_errors": {
+        "text": "L’opération s’est terminée avec des erreurs.\nLes images suivantes n’ont pas pu être déplacées ou mises à jour :\n{errors}"
+      },
+      "directories_deletion_errors": {
+        "text": "Les dossiers ci-dessous n’ont pas pu être supprimés :\n{errors}"
       }
     },
     "thread": {

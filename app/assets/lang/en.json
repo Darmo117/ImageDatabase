@@ -18,7 +18,8 @@
             "edit_tags": "Edit &Tags…",
             "rename_image": "&Rename Image…",
             "replace_image": "Re&place Image…",
-            "edit_images": "Edit &Images…",
+            "move_images": "&Move Images…",
+            "edit_images": "&Edit Images…",
             "delete_images": "&Delete Images"
           }
         },
@@ -26,7 +27,6 @@
           "label": "&Tools",
           "item": {
             "tagless_images": "&Show images without tags",
-            "batch_move_files": "&Batch move files…",
             "perform_operations": "&Operations…",
             "SQL_terminal": "SQL &Terminal…"
           }
@@ -142,27 +142,16 @@
           }
         }
       },
-      "batch_move": {
-        "title": "Batch Move Files",
-        "files_and_directories": "Files and directories to move",
-        "list_empty": "List is empty.",
+      "move_images": {
+        "title": "Move Images",
         "destination_non_existant": "The destination directory does not exist.",
         "destination_empty": "Field is empty.",
         "destination": "Destination",
-        "add_files_button": {
-          "tooltip": "Add Files"
-        },
-        "add_directory_button": {
-          "tooltip": "Add Directories"
-        },
-        "delete_item_button": {
-          "tooltip": "Delete selected items"
-        },
-        "clear_list_button": {
-          "tooltip": "Clear list"
-        },
         "choose_directory_button": {
           "tooltip": "Select directory"
+        },
+        "delete_empty_dirs_button": {
+          "label": "Delete empty directories after moving files?"
         },
         "move_button": {
           "label": "Move"
@@ -409,12 +398,13 @@
         "text": "Operation ended with errors!\n{affected} row(s) were changed but the following images raised errors:\n{errors}"
       },
       "files_move_result_success": {
-        "title": "Operation Result",
         "text": "Files moved successfully!"
       },
       "files_move_result_errors": {
-        "title": "Operation Result",
-        "text": "Operation ended with errors!\nThe following elements raised errors:\n{errors}"
+        "text": "Operation ended with errors.\nThe following images could not be moved or updated:\n{errors}"
+      },
+      "directories_deletion_errors": {
+        "text": "The following directories could not be deleted:\n{errors}"
       },
       "progress": {
         "title": "Progress",

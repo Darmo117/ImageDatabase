@@ -18,6 +18,7 @@
             "edit_tags": "Redakti la &etikedojn…",
             "rename_image": "&Renomigi la blidon…",
             "replace_image": "&Anstataŭigi la bildon…",
+            "move_images": "&Movi bildojn…",
             "edit_images": "&Redakti la bildojn…",
             "delete_images": "&Forigi la bildojn"
           }
@@ -26,7 +27,6 @@
           "label": "&Iloj",
           "item": {
             "tagless_images": "&Montri senetikedajn bildojn",
-            "batch_move_files": "&Staple movi bildojn…",
             "perform_operations": "&Operacioj…",
             "SQL_terminal": "SQL &terminalo…"
           }
@@ -132,6 +132,21 @@
             "regex": "Ŝablono",
             "replacement": "Anstataŭo"
           }
+        }
+      },
+      "move_images": {
+        "title": "Movi bildojn",
+        "destination_non_existant": "La celdosierujo ne ekzistas.",
+        "destination_empty": "La kampo malplenas.",
+        "destination": "Celdosierujo",
+        "choose_directory_button": {
+          "tooltip": "Selekti dosierujon"
+        },
+        "delete_empty_dirs_button": {
+          "label": "Forigi malplenajn dosierujojn post movi ĉiujn bildojn?"
+        },
+        "move_button": {
+          "label": "Movi"
         }
       },
       "edit_image": {
@@ -376,6 +391,15 @@
       "operation_result_errors": {
         "title": "Operacia rezulto",
         "text": "Operacio finis kun eraroj!\n{affected} vico(j) estis modifita(j) sed la ĉi-sube bildoj eraris:\n{errors}"
+      },
+      "files_move_result_success": {
+        "text": "Movado de bildoj sukcesis!"
+      },
+      "files_move_result_errors": {
+        "text": "Movado finis kun eraroj.\nLa ĉi-sube bildojn ne povis esti movitaj aŭ ĝisdatigitaj:\n{errors}"
+      },
+      "directories_deletion_errors": {
+        "text": "La ĉi-sube dosierujoj ne povis esti forigitaj:\n{errors}"
       }
     },
     "thread": {
