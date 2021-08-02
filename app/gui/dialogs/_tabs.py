@@ -363,7 +363,7 @@ class TagTypesTab(Tab[model.TagType]):
             if arg == 'color':
                 args[arg] = cell.palette().button().color()
             else:
-                args[arg] = cell.text() if arg != 'id' else int(cell.text())
+                args[arg] = cell.text() if arg != 'ident' else int(cell.text())
 
         try:
             return model.TagType(**args)
@@ -405,7 +405,7 @@ class TagTypesTab(Tab[model.TagType]):
     def _set_row(self, tag_type: typ.Optional[model.TagType], row: int):
         defined = tag_type is not None
         id_item = _IntTableWidgetItem(str(tag_type.id) if defined else str(self._dummy_type_id))
-        id_item.setWhatsThis('id')
+        id_item.setWhatsThis('ident')
         # noinspection PyTypeChecker
         id_item.setFlags(id_item.flags() & ~QtC.Qt.ItemIsEditable & ~QtC.Qt.ItemIsSelectable)
         id_item.setBackground(self._DISABLED_COLOR)
@@ -574,7 +574,7 @@ class _TagsTab(Tab[_TagType], typ.Generic[_TagType], metaclass=abc.ABCMeta):
                     if ident is not None:
                         args[arg] = self._tags_dao.get_tag_type_from_id(ident)
             else:
-                args[arg] = cell.text() if arg != 'id' else int(cell.text())
+                args[arg] = cell.text() if arg != 'ident' else int(cell.text())
 
         try:
             return self._tag_class(**args)
@@ -611,7 +611,7 @@ class _TagsTab(Tab[_TagType], typ.Generic[_TagType], metaclass=abc.ABCMeta):
     def _set_row(self, tag: typ.Optional[_TagType], row: int):
         defined = tag is not None
         id_item = _IntTableWidgetItem(str(tag.id if defined else self._dummy_type_id))
-        id_item.setWhatsThis('id')
+        id_item.setWhatsThis('ident')
         # noinspection PyTypeChecker
         id_item.setFlags(id_item.flags() & ~QtC.Qt.ItemIsEditable & ~QtC.Qt.ItemIsSelectable)
         id_item.setBackground(self._DISABLED_COLOR)
