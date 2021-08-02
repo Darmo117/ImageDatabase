@@ -43,19 +43,17 @@
         "title": "Tags ({amount})",
         "type_item_unclassified": "Unclassified",
         "context_menu": {
-          "copy_all": "Copy All",
-          "copy_tags": "Copy Tags",
-          "copy": "Copy",
-          "delete_tag": "Delete Tag",
-          "delete_tag_type": "Delete Tag Type",
-          "insert_tag": "Insert"
+          "copy_all_item": "Copy &All",
+          "copy_tags_item": "Copy &Tags",
+          "delete_tag_item": "&Delete Tag",
+          "delete_tag_type_item": "&Delete Tag Type",
+          "insert_tag_item": "&Insert"
         }
       },
       "tab": {
         "context_menu": {
-          "copy_path": "Copy Image Path",
-          "copy_paths": "Copy Image Paths",
-          "select_all": "Select All"
+          "copy_path_item": "&Copy Image Path",
+          "copy_paths_item": "&Copy Image Paths"
         },
         "paths_list": {
           "title": "Paths ({images_number})"
@@ -76,15 +74,22 @@
         "remote_URL": "URL is not local!"
       }
     },
+    "menu_common": {
+      "undo_item": "&Undo",
+      "redo_item": "&Redo",
+      "cut_item": "C&ut",
+      "copy_item": "&Copy",
+      "paste_item": "&Paste",
+      "delete_item": "&Delete",
+      "select_all_item": "Select &All"
+    },
     "canvas": {
       "image_load_error": "Could not load image!",
       "no_image": "No image"
     },
     "command_line": {
       "menu": {
-        "copy_item": "Copy",
-        "clear_item": "Clear Console",
-        "select_all_item": "Select All"
+        "clear_item": "C&lear Console"
       }
     },
     "dialog": {
@@ -302,7 +307,10 @@
         }
       },
       "about": {
-        "title": "About {app_name}"
+        "title": "About {app_name}",
+        "menu": {
+          "copy_link_item": "&Copy Link Location"
+        }
       }
     },
     "popup": {

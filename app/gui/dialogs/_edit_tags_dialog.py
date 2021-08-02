@@ -6,6 +6,7 @@ import PyQt5.QtWidgets as QtW
 from app import data_access, model, utils
 from app.i18n import translate as _t
 from . import _dialog_base, _tabs
+from .. import components
 
 
 class EditTagsDialog(_dialog_base.Dialog):
@@ -86,7 +87,7 @@ class EditTagsDialog(_dialog_base.Dialog):
         layout.addWidget(self._tabbed_pane)
 
         search_layout = QtW.QHBoxLayout()
-        self._search_field = QtW.QLineEdit(parent=self)
+        self._search_field = components.TranslatedLineEdit(parent=self)
         self._search_field.setPlaceholderText(_t('dialog.edit_tags.search_field.placeholder'))
         self._search_field.returnPressed.connect(self._search)
         search_layout.addWidget(self._search_field)

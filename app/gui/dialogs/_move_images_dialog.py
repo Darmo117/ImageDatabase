@@ -39,7 +39,7 @@ class MoveImagesDialog(_dialog_base.Dialog):
 
         dest_layout.addWidget(QtW.QLabel(_t('dialog.move_images.destination'), parent=self))
 
-        self._destination_input = QtW.QLineEdit(parent=self)
+        self._destination_input = components.TranslatedLineEdit(parent=self)
         self._destination_input.textChanged.connect(self._update_ui)
         dest_layout.addWidget(self._destination_input, stretch=1)
 

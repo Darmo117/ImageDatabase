@@ -125,7 +125,7 @@ class EditImageDialog(_dialog_base.Dialog):
 
         bottom_layout.addLayout(buttons_layout)
 
-        class CustomTextEdit(QtW.QTextEdit):
+        class CustomTextEdit(components.TranslatedPlainTextEdit):
             """Custom class to catch Ctrl+Enter events."""
 
             def __init__(self, dialog: EditImageDialog, parent: QtW.QWidget = None):
@@ -214,7 +214,7 @@ class EditImageDialog(_dialog_base.Dialog):
             tags = []
             if image.id in self._tags:
                 tags = self._tags[image.id]
-            self._set_tags(tags)
+            self._set_tags(tags, clear_undo_redo=True)
         if self._mode == EditImageDialog.REPLACE:
             self._tags_input.setDisabled(True)
         self._tags_changed = False
@@ -237,8 +237,11 @@ class EditImageDialog(_dialog_base.Dialog):
 
         self.setWindowTitle(self._get_title())
 
-    def _set_tags(self, tags: typ.List[model.Tag]):
-        self._tags_input.setText(' '.join(sorted([tag.raw_label() for tag in tags])))
+    def _set_tags(self, tags: typ.List[model.Tag], clear_undo_redo: bool = True):
+        self._tags_input.clear()
+        self._tags_input.insertPlainText(' '.join(sorted([tag.raw_label() for tag in tags])))
+        if clear_undo_redo:
+            self._tags_input.document().clearUndoRedoStacks()
 
     def _next(self):
         """Goes to the next image."""
@@ -252,7 +255,7 @@ class EditImageDialog(_dialog_base.Dialog):
         dialog.show()
 
     def _on_similarities_dialog_closed(self, dialog: _similar_images_dialog.SimilarImagesDialog):
-        self._set_tags(dialog.get_tags())
+        self._set_tags(dialog.get_tags(), clear_undo_redo=False)
 
     def _on_dest_button_clicked(self):
         """Opens a directory chooser then sets the destination path to the one selected if any."""

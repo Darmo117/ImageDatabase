@@ -309,3 +309,22 @@ def event_matches_action(event: QtG.QKeyEvent, action: QtW.QAction) -> bool:
     """Checks whether the keystroke of the given event exactly matches any of the shortcuts of the given action."""
     ks = get_key_sequence(event)
     return any([s.matches(ks) == QtG.QKeySequence.ExactMatch for s in action.shortcuts()])
+
+
+def translate_text_widget_menu(menu: QtW.QMenu):
+    """Translates the text of each action from the given text widget’s context menu."""
+    keys = [
+        'menu_common.undo_item',
+        'menu_common.redo_item',
+        'menu_common.cut_item',
+        'menu_common.copy_item',
+        'menu_common.paste_item',
+        'menu_common.delete_item',
+        'menu_common.select_all_item',
+    ]
+    i = 0
+    for action in menu.actions():
+        if not action.isSeparator():
+            shortcut = action.text().split('\t')[1] if '\t' in action.text() else ''
+            action.setText(_t(keys[i]) + '\t' + shortcut)
+            i += 1

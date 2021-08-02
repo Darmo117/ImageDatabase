@@ -41,13 +41,19 @@
       },
       "tags_tree": {
         "title": "Étiquettes ({amount})",
-        "type_item_unclassified": "Non-classées"
+        "type_item_unclassified": "Non-classées",
+        "context_menu": {
+          "copy_all_item": "&Tout copier",
+          "copy_tags_item": "C&opier les étiquettes",
+          "delete_tag_item": "&Supprimer l’étiquette",
+          "delete_tag_type_item": "&Supprimer le type d’étiquette",
+          "insert_tag_item": "&Insérer"
+        }
       },
       "tab": {
         "context_menu": {
-          "copy_path": "Copier le chemin",
-          "copy_paths": "Copier les chemins",
-          "select_all": "Tout sélectionner"
+          "copy_path_item": "&Copier le chemin",
+          "copy_paths_item": "&Copier les chemins"
         },
         "paths_list": {
           "title": "Chemins ({images_number})"
@@ -68,9 +74,23 @@
         "remote_URL": "L’URL n’est pas locale !"
       }
     },
+    "menu_common": {
+      "undo_item": "&Annuler",
+      "redo_item": "&Rétablir",
+      "cut_item": "C&ouper",
+      "copy_item": "&Copier",
+      "paste_item": "Co&ller",
+      "delete_item": "&Supprimer",
+      "select_all_item": "&Tout sélectionner"
+    },
     "canvas": {
       "image_load_error": "Impossible de charger l’image !",
       "no_image": "Aucune image"
+    },
+    "command_line": {
+      "menu": {
+        "clear_item": "&Nettoyer la console"
+      }
     },
     "dialog": {
       "common": {
@@ -287,7 +307,10 @@
         }
       },
       "about": {
-        "title": "À propos de {app_name}"
+        "title": "À propos de {app_name}",
+        "menu": {
+          "copy_link_item": "&Copier l’adresse du lien"
+        }
       }
     },
     "popup": {

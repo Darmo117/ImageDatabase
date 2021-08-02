@@ -10,6 +10,7 @@ import PyQt5.QtWidgets as QtW
 
 from app import data_access as da, model, queries, utils
 from app.i18n import translate as _t
+from .. import components
 
 _Type = typ.TypeVar('_Type')
 
@@ -81,7 +82,7 @@ class Tab(abc.ABC, typ.Generic[_Type]):
             self._initialized = False
             self._table.destroy()
 
-        self._table = QtW.QTableWidget(parent=self._owner)
+        self._table = components.TranslatedTableWidget(parent=self._owner)
         self._table.setSelectionBehavior(QtW.QAbstractItemView.SelectRows)
         self._table.verticalHeader().setDefaultSectionSize(20)
         self._table.horizontalHeader().setStretchLastSection(True)

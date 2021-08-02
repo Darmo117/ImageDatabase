@@ -35,7 +35,7 @@ class SettingsDialog(_dialog_base.Dialog):
         db_box_layout.addWidget(self._db_path_warning_label, 0, 0, 1, 3)
 
         db_box_layout.addWidget(QtW.QLabel(_t('dialog.settings.box.database.db_path.label')), 1, 0)
-        self._db_path_input = QtW.QLineEdit(str(self._initial_config.database_path), parent=self)
+        self._db_path_input = components.TranslatedLineEdit(str(self._initial_config.database_path), parent=self)
         self._db_path_input.textChanged.connect(self._update_ui)
         db_box_layout.addWidget(self._db_path_input, 1, 1)
         choose_file_button = QtW.QPushButton(utils.gui.icon('document-open'), '', parent=self)

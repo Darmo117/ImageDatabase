@@ -40,13 +40,13 @@ class ImageListView:
 
         self._copy_paths_action = self._menu.addAction(
             utils.gui.icon('edit-copy'),
-            _t('main_window.tab.context_menu.copy_path'),
+            _t('main_window.tab.context_menu.copy_path_item'),
             self.copy_image_paths,
             'Ctrl+C'
         )
         self._select_all_action = self._menu.addAction(
             utils.gui.icon('edit-select-all'),
-            _t('main_window.tab.context_menu.select_all'),
+            _t('menu_common.select_all_item'),
             self.select_all,
             'Ctrl+A'
         )
@@ -64,9 +64,9 @@ class ImageListView:
         selected_items = len(self.selected_items())
         self._copy_paths_action.setDisabled(not selected_items)
         if selected_items > 1:
-            self._copy_paths_action.setText(_t('main_window.tab.context_menu.copy_paths'))
+            self._copy_paths_action.setText(_t('main_window.tab.context_menu.copy_paths_item'))
         else:
-            self._copy_paths_action.setText(_t('main_window.tab.context_menu.copy_path'))
+            self._copy_paths_action.setText(_t('main_window.tab.context_menu.copy_path_item'))
         self._select_all_action.setDisabled(not self.count())
 
     def copy_image_paths(self):

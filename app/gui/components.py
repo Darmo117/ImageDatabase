@@ -40,19 +40,19 @@ class TagTree(QtW.QTreeWidget):
 
         self._copy_all_tags_action = self._menu.addAction(
             utils.gui.icon('edit-copy'),
-            _t('main_window.tags_tree.context_menu.copy_all'),
+            _t('main_window.tags_tree.context_menu.copy_all_item'),
             self._on_copy_all,
             'Ctrl+Shift+C'
         )
         self._copy_tags_action = self._menu.addAction(
             utils.gui.icon('edit-copy'),
-            _t('main_window.tags_tree.context_menu.copy_tags'),
+            _t('main_window.tags_tree.context_menu.copy_tags_item'),
             self._on_copy_tags,
             'Ctrl+Alt+C'
         )
         self._copy_label_action = self._menu.addAction(
             utils.gui.icon('edit-copy'),
-            _t('main_window.tags_tree.context_menu.copy'),
+            _t('menu_common.copy_item'),
             self._on_copy_label,
             'Ctrl+C'
         )
@@ -61,7 +61,7 @@ class TagTree(QtW.QTreeWidget):
 
         self._delete_item_action = self._menu.addAction(
             utils.gui.icon('tag-delete'),
-            _t('main_window.tags_tree.context_menu.delete_tag'),
+            _t('main_window.tags_tree.context_menu.delete_tag_item'),
             self._on_delete_item,
             'Delete'
         )
@@ -70,7 +70,7 @@ class TagTree(QtW.QTreeWidget):
 
         self._insert_tag_action = self._menu.addAction(
             utils.gui.icon('insert-text'),
-            _t('main_window.tags_tree.context_menu.insert_tag'),
+            _t('main_window.tags_tree.context_menu.insert_tag_item'),
             self._on_insert_tag
         )
         self._insert_tag_action.setShortcuts(['Return', 'Num+Enter'])
@@ -90,9 +90,9 @@ class TagTree(QtW.QTreeWidget):
         self._copy_label_action.setDisabled(not selected_items)
         self._delete_item_action.setDisabled(not selected_items or item.data(0, self.DATA_OBJECT) is None)
         if item_type == self.TAG_TYPE:
-            self._delete_item_action.setText(_t('main_window.tags_tree.context_menu.delete_tag_type'))
+            self._delete_item_action.setText(_t('main_window.tags_tree.context_menu.delete_tag_type_item'))
         else:
-            self._delete_item_action.setText(_t('main_window.tags_tree.context_menu.delete_tag'))
+            self._delete_item_action.setText(_t('main_window.tags_tree.context_menu.delete_tag_item'))
         self._insert_tag_action.setDisabled(not selected_items or item_type != self.TAG)
 
     def _on_copy_all(self):
@@ -331,9 +331,50 @@ class LabelWithIcon(QtW.QWidget):
         return self._label.text()
 
 
+class TranslatedLineEdit(QtW.QLineEdit):
+    """QLineEdit with translated cell context menu."""
+
+    def contextMenuEvent(self, event: QtG.QContextMenuEvent):
+        menu = self.createStandardContextMenu()
+        utils.gui.translate_text_widget_menu(menu)
+        menu.exec_(event.globalPos())
+
+
+class TranslatedPlainTextEdit(QtW.QPlainTextEdit):
+    """QPlainTextEdit with translated cell context menu."""
+
+    def contextMenuEvent(self, event: QtG.QContextMenuEvent):
+        menu = self.createStandardContextMenu()
+        utils.gui.translate_text_widget_menu(menu)
+        menu.exec_(event.globalPos())
+
+
+class TranslatedTableWidget(QtW.QTableWidget):
+    """QTableWidget with translated cell context menu."""
+
+    def __init__(self, parent: QtW.QWidget = None):
+        super().__init__(parent=parent)
+        self.setItemDelegate(self._StyledItemDelegate(parent=self))
+
+    class _StyledItemDelegate(QtW.QStyledItemDelegate):
+        def createEditor(self, parent, option, index):
+            editor = super().createEditor(parent, option, index)
+            if isinstance(editor, QtW.QLineEdit):
+                editor.setContextMenuPolicy(QtC.Qt.CustomContextMenu)
+                editor.customContextMenuRequested.connect(self.handle_context_menu)
+            return editor
+
+        def handle_context_menu(self, pos: QtC.QPoint):
+            editor = self.sender()
+            if isinstance(editor, QtW.QLineEdit):
+                menu = editor.createStandardContextMenu()
+                utils.gui.translate_text_widget_menu(menu)
+                menu.exec_(editor.mapToGlobal(pos))
+
+
 # Base code: https://blog.elentok.com/2011/08/autocomplete-textbox-for-multiple.html
 # Code repo: https://bit.ly/3iOzAzA
-class AutoCompleteLineEdit(QtW.QLineEdit):
+class AutoCompleteLineEdit(TranslatedLineEdit):
     """LineEdit widget with built-in auto-complete."""
     _SEPARATOR = ' '
 
@@ -393,7 +434,7 @@ class AutoCompleteLineEdit(QtW.QLineEdit):
         return text_under_cursor
 
 
-class IntLineEdit(QtW.QLineEdit):
+class IntLineEdit(TranslatedLineEdit):
     """Text input that only accepts integer values in a given range."""
 
     class Validator(QtG.QIntValidator):
@@ -594,12 +635,12 @@ class CommandLineWidget(QtW.QWidget):
             self._menu.removeAction(self._menu.actions()[0])  # Undo
 
             self._copy_action = self._menu.actions()[0]
-            self._copy_action.setText(_t('command_line.menu.copy_item'))
+            self._copy_action.setText(_t('menu_common.copy_item'))
             self._copy_action.setIcon(utils.gui.icon('edit-copy'))
             self._copy_action.setShortcut('Ctrl+C')
 
             self._clear_action = QtW.QAction(
-                utils.gui.icon('edit-delete'),
+                utils.gui.icon('edit-clear-history'),
                 _t('command_line.menu.clear_item'),
                 parent=self
             )
@@ -608,7 +649,7 @@ class CommandLineWidget(QtW.QWidget):
             self._menu.insertAction(self._menu.actions()[1], self._clear_action)
 
             self._select_all_action = self._menu.actions()[3]
-            self._select_all_action.setText(_t('command_line.menu.select_all_item'))
+            self._select_all_action.setText(_t('menu_common.select_all_item'))
             self._select_all_action.setIcon(utils.gui.icon('edit-select-all'))
             self._select_all_action.setShortcut('Ctrl+A')
 
@@ -626,7 +667,7 @@ class CommandLineWidget(QtW.QWidget):
             self._clear_action.setDisabled(not text)
             self._select_all_action.setDisabled(not text)
 
-    class _InputField(QtW.QLineEdit):
+    class _InputField(TranslatedLineEdit):
         enter_pressed = QtC.pyqtSignal(str)
         cleared_triggered = QtC.pyqtSignal()
         up_pressed = QtC.pyqtSignal()

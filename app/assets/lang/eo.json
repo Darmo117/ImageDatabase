@@ -41,13 +41,19 @@
       },
       "tags_tree": {
         "title": "Etikedoj ({amount})",
-        "type_item_unclassified": "Neklasataj"
+        "type_item_unclassified": "Neklasataj",
+        "context_menu": {
+          "copy_all_item": "K&opii ĉion",
+          "copy_tags_item": "Kopii &etikedojn",
+          "delete_tag_item": "&Forigi etikedon",
+          "delete_tag_type_item": "&Forigi etikedan tipon",
+          "insert_tag_item": "E&nmeti"
+        }
       },
       "tab": {
         "context_menu": {
-          "copy_path": "Kopii bildindikon",
-          "copy_paths": "Kopii bildindikojn",
-          "select_all": "Selekti ĉion"
+          "copy_path_item": "&Kopii bildindikon",
+          "copy_paths_item": "&Kopii bildindikojn"
         },
         "paths_list": {
           "title": "Dosierindikoj ({images_number})"
@@ -68,9 +74,23 @@
         "remote_URL": "La dosierindikoj estas malloka!"
       }
     },
+    "menu_common": {
+      "undo_item": "&Malfari",
+      "redo_item": "&Refari",
+      "cut_item": "&Eltondi",
+      "copy_item": "&Kopii",
+      "paste_item": "&Alglui",
+      "delete_item": "&Forigi",
+      "select_all_item": "&Selekti ĉion"
+    },
     "canvas": {
       "image_load_error": "Bildo ne eblas ŝargi!",
       "no_image": "Nenio bildo"
+    },
+    "command_line": {
+      "menu": {
+        "clear_item": "&Malplenigi eligujo"
+      }
     },
     "dialog": {
       "common": {
@@ -287,7 +307,10 @@
         }
       },
       "about": {
-        "title": "Pri {app_name}"
+        "title": "Pri {app_name}",
+        "menu": {
+          "copy_link_item": "&Kopii ligilan adreson"
+        }
       }
     },
     "popup": {

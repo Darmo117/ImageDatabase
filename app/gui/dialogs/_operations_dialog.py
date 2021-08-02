@@ -10,7 +10,7 @@ import PyQt5.QtWidgets as QtW
 from app import data_access, queries, config, utils, model
 from app.i18n import translate as _t
 from . import _dialog_base
-from .. import threads
+from .. import threads, components
 
 
 class OperationsDialog(_dialog_base.Dialog):
@@ -35,13 +35,13 @@ class OperationsDialog(_dialog_base.Dialog):
 
         image_paths_layout.addWidget(
             QtW.QLabel(_t('dialog.perform_operations.box.image_paths.regex'), parent=self), 1, 0)
-        self._regex_input = QtW.QLineEdit(self._state.regex, parent=self)
+        self._regex_input = components.TranslatedLineEdit(self._state.regex, parent=self)
         self._regex_input.textChanged.connect(self._update_ui)
         image_paths_layout.addWidget(self._regex_input, 1, 1)
 
         image_paths_layout.addWidget(
             QtW.QLabel(_t('dialog.perform_operations.box.image_paths.replacement'), parent=self), 2, 0)
-        self._replacement_input = QtW.QLineEdit(self._state.replacement, parent=self)
+        self._replacement_input = components.TranslatedLineEdit(self._state.replacement, parent=self)
         self._replacement_input.textChanged.connect(self._update_ui)
         image_paths_layout.addWidget(self._replacement_input, 2, 1)
 
