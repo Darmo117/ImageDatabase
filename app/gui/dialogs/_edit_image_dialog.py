@@ -48,6 +48,9 @@ class EditImageDialog(_dialog_base.Dialog):
         self._images: typ.List[model.Image] = []
         self._tags: typ.Dict[int, typ.List[model.Tag]] = {}
 
+        self._image_dao = image_dao
+        self._tags_dao = tags_dao
+
         super().__init__(parent=parent, title=self._get_title(), modal=True)
 
         self._tags_input.setFocus()
@@ -57,8 +60,6 @@ class EditImageDialog(_dialog_base.Dialog):
         self._tags_changed = False
         self._similar_images: typ.List[typ.Tuple[model.Image, float]] = []
 
-        self._image_dao = image_dao
-        self._tags_dao = tags_dao
         self._tags_dialog = None
 
     def _init_body(self) -> QtW.QLayout:
@@ -91,7 +92,7 @@ class EditImageDialog(_dialog_base.Dialog):
         buttons_layout.addStretch()
 
         self._similarities_btn = QtW.QPushButton(
-            utils.gui.icon('image-compare'),  # TODO find system icon
+            utils.gui.icon('image-compare'),
             _t('dialog.edit_image.similarities.label'),
             parent=self
         )
@@ -100,7 +101,7 @@ class EditImageDialog(_dialog_base.Dialog):
         buttons_layout.addWidget(self._similarities_btn)
 
         if self._mode == EditImageDialog.REPLACE:
-            icon = 'image-replace'  # TODO find system icon
+            icon = 'image-replace'
             text = _t('dialog.edit_image.replace_button.label')
         else:
             icon = 'edit-move'
@@ -125,21 +126,8 @@ class EditImageDialog(_dialog_base.Dialog):
 
         bottom_layout.addLayout(buttons_layout)
 
-        class CustomTextEdit(components.TranslatedPlainTextEdit):
-            """Custom class to catch Ctrl+Enter events."""
-
-            def __init__(self, dialog: EditImageDialog, parent: QtW.QWidget = None):
-                super().__init__(parent=parent)
-                self._dialog = dialog
-
-            def keyPressEvent(self, event: QtG.QKeyEvent):
-                # noinspection PyTypeChecker
-                if event.key() in (QtC.Qt.Key_Return, QtC.Qt.Key_Enter) and event.modifiers() & QtC.Qt.ControlModifier:
-                    self._dialog._ok_btn.click()
-                    event.ignore()
-                super().keyPressEvent(event)
-
-        self._tags_input = CustomTextEdit(self, parent=self)
+        self._tags_input = _CustomTextEdit(self, parent=self)
+        self._tags_input.validated.connect(lambda: self._ok_btn.click())
         self._tags_input.textChanged.connect(self._text_changed)
         if self._mode == EditImageDialog.REPLACE:
             self._tags_input.setDisabled(True)
@@ -203,6 +191,11 @@ class EditImageDialog(_dialog_base.Dialog):
 
     def _set(self, index: int):
         """Sets the current image."""
+        # Update completer
+        if self._tags_changed or index == 0:
+            self._tags_input.set_completer_model(
+                [t.label for t in self._tags_dao.get_all_tags(tag_class=model.Tag, sort_by_label=True)])
+
         image = self._images[index]
 
         self._image_path_lbl.setText(str(image.path))
@@ -435,3 +428,70 @@ class EditImageDialog(_dialog_base.Dialog):
         if self._tags_dialog is not None:
             self._tags_dialog.close()
         super().closeEvent(event)
+
+
+class _CustomTextEdit(components.TranslatedPlainTextEdit):
+    """Custom class to catch Ctrl+Enter events."""
+    validated = QtC.pyqtSignal()
+
+    _SEPARATORS = ' \n'
+
+    def __init__(self, dialog: EditImageDialog, parent: QtW.QWidget = None):
+        super().__init__(parent=parent)
+        self._dialog = dialog
+        self._completer = QtW.QCompleter(parent=self)
+        self._completer.setCaseSensitivity(QtC.Qt.CaseInsensitive)
+        self._completer.setFilterMode(QtC.Qt.MatchStartsWith)
+        self._completer.setWidget(self)
+        self._completer.activated.connect(self._insert_completion)
+        self._keys_to_ignore = [QtC.Qt.Key_Enter, QtC.Qt.Key_Return]
+
+    def set_completer_model(self, values: typ.Iterable[str]):
+        self._completer.setModel(QtC.QStringListModel(values, parent=self))
+
+    def keyPressEvent(self, event: QtG.QKeyEvent):
+        # noinspection PyTypeChecker
+        if event.key() in (QtC.Qt.Key_Return, QtC.Qt.Key_Enter) and event.modifiers() & QtC.Qt.ControlModifier:
+            self.validated.emit()
+            event.ignore()
+        elif self._completer.popup().isVisible() and event.key() in self._keys_to_ignore:
+            event.ignore()
+            return
+
+        super().keyPressEvent(event)
+        completion_prefix = self._text_under_cursor()
+        if completion_prefix != self._completer.completionPrefix():
+            self._update_completer_popup_items(completion_prefix)
+        if len(event.text()) > 0 and len(completion_prefix) > 0:
+            rect = self.cursorRect()
+            rect.setWidth(self._completer.popup().sizeHintForColumn(0)
+                          + self._completer.popup().verticalScrollBar().sizeHint().width())
+            self._completer.complete(rect)
+        if len(completion_prefix) == 0:
+            self._completer.popup().hide()
+
+    def _insert_completion(self, completion: str):
+        cp = self.textCursor().position()
+        text = self.toPlainText()
+        extra_length = len(completion) - len(self._completer.completionPrefix())
+        if extra_length:
+            extra_text = completion[-extra_length:]
+            if cp < len(text) and text[cp] not in self._SEPARATORS:
+                extra_text += self._SEPARATORS[0]
+            self.insertPlainText(extra_text)
+
+    def _update_completer_popup_items(self, completion_prefix: str):
+        """Filters the completer’s popup items to only show items with the given prefix."""
+        self._completer.setCompletionPrefix(completion_prefix)
+        self._completer.popup().setCurrentIndex(self._completer.completionModel().index(0, 0))
+
+    def _text_under_cursor(self) -> str:
+        text = self.toPlainText()
+        text_under_cursor = ''
+        i = self.textCursor().position() - 1
+
+        while i >= 0 and text[i] not in self._SEPARATORS:
+            text_under_cursor = text[i] + text_under_cursor
+            i -= 1
+
+        return text_under_cursor

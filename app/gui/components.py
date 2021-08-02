@@ -410,12 +410,9 @@ class AutoCompleteLineEdit(TranslatedLineEdit):
         extra_length = len(completion) - len(self._completer.completionPrefix())
         if extra_length:
             extra_text = completion[-extra_length:]
-            new_text = text[:cp] + extra_text
-            remaining_text = text[cp:]
-            if not remaining_text or remaining_text[0] != self._SEPARATOR:
-                new_text += self._SEPARATOR
-            self.setText(new_text + remaining_text)
-            self.setCursorPosition(len(new_text))
+            if cp < len(text) and text[cp] != self._SEPARATOR:
+                extra_text += self._SEPARATOR
+            self.insert(extra_text)
 
     def _update_completer_popup_items(self, completion_prefix: str):
         """Filters the completer’s popup items to only show items with the given prefix."""
