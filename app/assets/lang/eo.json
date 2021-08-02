@@ -280,6 +280,12 @@
           }
         }
       },
+      "command_line": {
+        "title": "SQL Komandlinio",
+        "query_input": {
+          "placeholder": "SQL informpeto…"
+        }
+      },
       "about": {
         "title": "Pri {app_name}"
       }

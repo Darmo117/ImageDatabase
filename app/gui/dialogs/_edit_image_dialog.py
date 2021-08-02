@@ -70,7 +70,7 @@ class EditImageDialog(_dialog_base.Dialog):
 
         top_layout = QtW.QVBoxLayout()
         self._image_path_lbl = components.EllipsisLabel(parent=self)
-        self._image_path_lbl.setAlignment(QtC.Qt.AlignRight)
+        self._image_path_lbl.setAlignment(QtC.Qt.AlignCenter)
         top_layout.addWidget(self._image_path_lbl)
 
         self._canvas = components.Canvas(parent=self)
@@ -91,7 +91,7 @@ class EditImageDialog(_dialog_base.Dialog):
         buttons_layout.addStretch()
 
         self._similarities_btn = QtW.QPushButton(
-            utils.gui.icon('compare_images'),
+            utils.gui.icon('image-compare'),  # TODO find system icon
             _t('dialog.edit_image.similarities.label'),
             parent=self
         )
@@ -100,10 +100,10 @@ class EditImageDialog(_dialog_base.Dialog):
         buttons_layout.addWidget(self._similarities_btn)
 
         if self._mode == EditImageDialog.REPLACE:
-            icon = 'replace_image'
+            icon = 'image-replace'  # TODO find system icon
             text = _t('dialog.edit_image.replace_button.label')
         else:
-            icon = 'move_to_directory'
+            icon = 'edit-move'
             text = _t('dialog.edit_image.move_to_button.label')
         self._dest_btn = QtW.QPushButton(utils.gui.icon(icon), text, parent=self)
         self._dest_btn.clicked.connect(self._on_dest_button_clicked)
@@ -116,7 +116,7 @@ class EditImageDialog(_dialog_base.Dialog):
         b.clicked.connect(self._show_tags_dialog)
         buttons_layout.addWidget(b)
         b = QtW.QPushButton(
-            utils.gui.icon('image_in_directory'),
+            utils.gui.icon('folder-open'),
             _t('dialog.edit_image.show_directory_button.label'),
             parent=self
         )

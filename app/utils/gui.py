@@ -280,14 +280,23 @@ def font_color(bg_color: QtG.QColor) -> QtG.QColor:
     return _BLACK if luminance > 0.179 else _WHITE
 
 
-def icon(icon_name: str) -> QtG.QIcon:
+def icon(icon_name: str, use_theme: bool = True) -> QtG.QIcon:
     """Returns a QIcon for the given icon name.
 
     :param icon_name: Icon name, without file extension.
+    :param use_theme: Whether to icons theme.
     :return: The QIcon object.
     """
 
-    return QtG.QIcon(str(constants.ICONS_DIR / (icon_name + '.png')))
+    if use_theme:
+        icon = QtG.QIcon.fromTheme(icon_name)
+    else:
+        icon = None
+
+    if not icon or icon.isNull():
+        return QtG.QIcon(str(constants.ICONS_DIR / (icon_name + '.png')))
+    else:
+        return icon
 
 
 def get_key_sequence(event: QtG.QKeyEvent) -> QtG.QKeySequence:

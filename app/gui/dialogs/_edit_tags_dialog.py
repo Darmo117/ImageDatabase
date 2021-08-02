@@ -1,7 +1,7 @@
 import typing as typ
 
-import PyQt5.QtWidgets as QtW
 import PyQt5.QtCore as QtC
+import PyQt5.QtWidgets as QtW
 
 from app import data_access, model, utils
 from app.i18n import translate as _t
@@ -51,7 +51,7 @@ class EditTagsDialog(_dialog_base.Dialog):
         self._valid = True
 
     def _init_body(self) -> QtW.QLayout:
-        self.setGeometry(0, 0, 400, 400)
+        self.setGeometry(0, 0, 480, 400)
 
         layout = QtW.QVBoxLayout()
 
@@ -59,7 +59,7 @@ class EditTagsDialog(_dialog_base.Dialog):
         buttons.addStretch(1)
 
         self._add_row_btn = QtW.QPushButton(parent=self)
-        self._add_row_btn.setIcon(utils.gui.icon('plus'))
+        self._add_row_btn.setIcon(utils.gui.icon('list-add'))
         self._add_row_btn.setToolTip(_t('dialog.edit_tags.add_item_button.tooltip'))
         self._add_row_btn.setFixedSize(24, 24)
         self._add_row_btn.setFocusPolicy(QtC.Qt.NoFocus)
@@ -67,7 +67,7 @@ class EditTagsDialog(_dialog_base.Dialog):
         buttons.addWidget(self._add_row_btn)
 
         self._delete_row_btn = QtW.QPushButton(parent=self)
-        self._delete_row_btn.setIcon(utils.gui.icon('cross'))
+        self._delete_row_btn.setIcon(utils.gui.icon('list-remove'))
         self._delete_row_btn.setToolTip(_t('dialog.edit_tags.delete_items_button.tooltip'))
         self._delete_row_btn.setFixedSize(24, 24)
         self._delete_row_btn.setFocusPolicy(QtC.Qt.NoFocus)
@@ -76,6 +76,9 @@ class EditTagsDialog(_dialog_base.Dialog):
 
         if self._editable:
             layout.addLayout(buttons)
+        else:
+            self._add_row_btn.hide()
+            self._delete_row_btn.hide()
 
         self._tabbed_pane = QtW.QTabWidget(parent=self)
         self._tabbed_pane.currentChanged.connect(self._tab_changed)
@@ -103,7 +106,11 @@ class EditTagsDialog(_dialog_base.Dialog):
     def _init_buttons(self) -> typ.List[QtW.QAbstractButton]:
         if self._editable:
             self._ok_btn.setEnabled(False)
-            self._apply_btn = QtW.QPushButton(_t('dialog.common.apply_button.label'), parent=self)
+            self._apply_btn = QtW.QPushButton(
+                self.style().standardIcon(QtW.QStyle.SP_DialogApplyButton),
+                _t('dialog.common.apply_button.label'),
+                parent=self
+            )
             self._apply_btn.clicked.connect(self._apply)
             self._apply_btn.setEnabled(False)
             return [self._apply_btn]

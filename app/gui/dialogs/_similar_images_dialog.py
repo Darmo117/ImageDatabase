@@ -71,7 +71,11 @@ class SimilarImagesDialog(_dialog_base.Dialog):
             label.setAlignment(Qt.AlignCenter)
             grid_layout.addWidget(label, i + 1, 3)
 
-            button = QtW.QPushButton(_t('dialog.similar_images.grid.open_file_button.label'), parent=self)
+            button = QtW.QPushButton(
+                utils.gui.icon('folder-open'),
+                _t('dialog.similar_images.grid.open_file_button.label'),
+                parent=self
+            )
             button.setWhatsThis(str(i))
             button.clicked.connect(self._on_open_file_button_clicked)
             button.setFixedWidth(80)

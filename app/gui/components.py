@@ -39,17 +39,19 @@ class TagTree(QtW.QTreeWidget):
         self._menu = QtW.QMenu(parent=self)
 
         self._copy_all_tags_action = self._menu.addAction(
+            utils.gui.icon('edit-copy'),
             _t('main_window.tags_tree.context_menu.copy_all'),
             self._on_copy_all,
             'Ctrl+Shift+C'
         )
         self._copy_tags_action = self._menu.addAction(
+            utils.gui.icon('edit-copy'),
             _t('main_window.tags_tree.context_menu.copy_tags'),
             self._on_copy_tags,
             'Ctrl+Alt+C'
         )
         self._copy_label_action = self._menu.addAction(
-            utils.gui.icon('copy'),
+            utils.gui.icon('edit-copy'),
             _t('main_window.tags_tree.context_menu.copy'),
             self._on_copy_label,
             'Ctrl+C'
@@ -58,7 +60,7 @@ class TagTree(QtW.QTreeWidget):
         self._menu.addSeparator()
 
         self._delete_item_action = self._menu.addAction(
-            utils.gui.icon('delete_tag'),
+            utils.gui.icon('tag-delete'),
             _t('main_window.tags_tree.context_menu.delete_tag'),
             self._on_delete_item,
             'Delete'
@@ -67,6 +69,7 @@ class TagTree(QtW.QTreeWidget):
         self._menu.addSeparator()
 
         self._insert_tag_action = self._menu.addAction(
+            utils.gui.icon('insert-text'),
             _t('main_window.tags_tree.context_menu.insert_tag'),
             self._on_insert_tag
         )
@@ -435,3 +438,215 @@ class IntLineEdit(QtW.QLineEdit):
             self.set_value(self.value() - 1)
             event.ignore()
         super().keyPressEvent(event)
+
+
+class CommandLineWidget(QtW.QWidget):
+    _HISTORY_LIMIT = 2000
+
+    def __init__(self, parent: QtW.QWidget = None):
+        super().__init__(parent=parent)
+        self._default_color = QtW.QApplication.palette().color(QtG.QPalette.Active, QtG.QPalette.Text)
+        self._error_color = QtG.QColor(255, 0, 0)
+        self._prompt_color = QtG.QColor(128, 128, 128)
+        self._font_size = 12
+        self._font_family = 'monospace'
+        self._prompt = '$'
+
+        self._callback = None
+        self._input_history = []
+        self._current_input = ''
+        self._history_index = -1
+
+        layout = QtW.QVBoxLayout()
+
+        self._output = self._OutputField(parent=self)
+        self._output.setAcceptRichText(True)
+        self._output.setReadOnly(True)
+        layout.addWidget(self._output, stretch=1)
+
+        self._input = self._InputField(parent=self)
+        self._input.textEdited.connect(self._save_input)
+        self._input.enter_pressed.connect(self._on_input)
+        self._input.cleared_triggered.connect(self._output.clear)
+        self._input.up_pressed.connect(self._history_up)
+        self._input.down_pressed.connect(self._history_down)
+        layout.addWidget(self._input)
+
+        self.setLayout(layout)
+
+        self._update_style_sheet()
+
+    def setFocus(self):
+        self._input.setFocus()
+
+    def set_input_placeholder(self, s: str):
+        self._input.setPlaceholderText(s)
+
+    def set_input_tooltip(self, s: str):
+        self._input.setToolTip(s)
+
+    def set_error_color(self, color: QtG.QColor):
+        self._error_color = color
+        self._update_style_sheet()
+
+    def set_prompt_color(self, color: QtG.QColor):
+        self._prompt_color = color
+        self._update_style_sheet()
+
+    def set_default_color(self, color: QtG.QColor):
+        self._default_color = color
+        self._update_style_sheet()
+
+    def set_font_size(self, size: int):
+        self._font_size = size
+        self._update_style_sheet()
+
+    def set_font_family(self, family: str):
+        self._font_family = family
+        self._update_style_sheet()
+
+    def set_prompt(self, s: str):
+        self._prompt = s
+
+    def set_input_callback(self, callback: typ.Callable[[str], None]):
+        self._callback = callback
+
+    def print(self, *text, sep: str = ' ', end: str = '\n'):
+        self._print(*text, sep=sep, end=end, mode=self._PRINT_NORMAL)
+
+    def print_error(self, *text, sep: str = ' ', end: str = '\n'):
+        self._print(*text, sep=sep, end=end, mode=self._PRINT_ERROR)
+
+    _PRINT_NORMAL = 0
+    _PRINT_ERROR = 1
+    _PRINT_PROMPT = 2
+
+    def _print(self, *text, sep: str = ' ', end: str = '\n', mode: int):
+        self._output.moveCursor(QtG.QTextCursor.End)
+        line = sep.join(map(str, text)) + end
+        if mode == self._PRINT_ERROR:
+            self._output.insertHtml(f'<span class="error">{line}</span>')
+        elif mode == self._PRINT_PROMPT:
+            self._output.insertHtml(f'<span class="prompt">{line}</span>')
+        elif mode == self._PRINT_NORMAL:
+            self._output.insertHtml(f'<span class="normal">{line}</span>')
+
+    def _on_input(self, s: str):
+        self._input.clear()
+        self._print(self._prompt, s, mode=self._PRINT_PROMPT)
+        if not self._input_history or s != self._input_history[0]:
+            self._input_history.insert(0, s)
+            if len(self._input_history) == self._HISTORY_LIMIT:
+                self._input_history.pop(-1)
+        self._history_index = -1
+        if self._callback:
+            self._callback(s)
+
+    def _save_input(self, text: str):
+        self._current_input = text
+
+    def _history_up(self):
+        if self._input_history:
+            if self._history_index < len(self._input_history) - 1:
+                self._history_index += 1
+                self._input.setText(self._input_history[self._history_index])
+
+    def _history_down(self):
+        if self._input_history:
+            if self._history_index > 0:
+                self._history_index -= 1
+                self._input.setText(self._input_history[self._history_index])
+            elif self._history_index == 0:
+                self._history_index = -1
+                self._input.setText(self._current_input)
+
+    def _update_style_sheet(self):
+        self._output.document().setDefaultStyleSheet(f"""
+        * {{
+            white-space: pre;
+            font-size: {self._font_size}px;
+            font-family: {self._font_family};
+        }}
+
+        .error {{
+            color: {self._error_color.name()};
+        }}
+
+        .prompt {{
+            color: {self._prompt_color.name()};
+        }}
+
+        .normal {{
+            color: {self._default_color.name()};
+        }}
+        """.strip())
+
+    class _OutputField(QtW.QTextEdit):
+        def __init__(self, parent: QtW.QWidget = None):
+            super().__init__(parent=parent)
+            self._menu = self.createStandardContextMenu()
+
+            self._menu.removeAction(self._menu.actions()[6])  # Delete
+            self._menu.removeAction(self._menu.actions()[5])  # Paste
+            self._menu.removeAction(self._menu.actions()[3])  # Cut
+            self._menu.removeAction(self._menu.actions()[2])  # Separator
+            self._menu.removeAction(self._menu.actions()[1])  # Redo
+            self._menu.removeAction(self._menu.actions()[0])  # Undo
+
+            self._copy_action = self._menu.actions()[0]
+            self._copy_action.setText(_t('command_line.menu.copy_item'))
+            self._copy_action.setIcon(utils.gui.icon('edit-copy'))
+            self._copy_action.setShortcut('Ctrl+C')
+
+            self._clear_action = QtW.QAction(
+                utils.gui.icon('edit-delete'),
+                _t('command_line.menu.clear_item'),
+                parent=self
+            )
+            self._clear_action.setShortcut('Ctrl+L')
+            self._clear_action.triggered.connect(self.clear)
+            self._menu.insertAction(self._menu.actions()[1], self._clear_action)
+
+            self._select_all_action = self._menu.actions()[3]
+            self._select_all_action.setText(_t('command_line.menu.select_all_item'))
+            self._select_all_action.setIcon(utils.gui.icon('edit-select-all'))
+            self._select_all_action.setShortcut('Ctrl+A')
+
+            self.textChanged.connect(self._update_menu)
+            self.selectionChanged.connect(self._update_menu)
+
+            self._update_menu()
+
+        def contextMenuEvent(self, event: QtG.QContextMenuEvent):
+            self._menu.exec_(QtG.QCursor.pos())
+
+        def _update_menu(self):
+            text = self.toPlainText()
+            self._copy_action.setDisabled(not self.textCursor().selection().toPlainText())
+            self._clear_action.setDisabled(not text)
+            self._select_all_action.setDisabled(not text)
+
+    class _InputField(QtW.QLineEdit):
+        enter_pressed = QtC.pyqtSignal(str)
+        cleared_triggered = QtC.pyqtSignal()
+        up_pressed = QtC.pyqtSignal()
+        down_pressed = QtC.pyqtSignal()
+
+        def __init__(self, parent: QtW.QWidget = None):
+            super().__init__(parent=parent)
+
+        def keyPressEvent(self, event: QtG.QKeyEvent):
+            # noinspection PyProtectedMember
+            if event.key() in [QtC.Qt.Key_Return, QtC.Qt.Key_Enter]:
+                self.enter_pressed.emit(self.text())
+                event.ignore()
+            elif utils.gui.event_matches_action(event, self.parent()._output._clear_action):
+                self.cleared_triggered.emit()
+                event.ignore()
+            elif event.key() == QtC.Qt.Key_Up:
+                self.up_pressed.emit()
+                event.ignore()
+            elif event.key() == QtC.Qt.Key_Down:
+                self.down_pressed.emit()
+                event.ignore()
+            super().keyPressEvent(event)

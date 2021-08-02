@@ -280,6 +280,12 @@
           }
         }
       },
+      "command_line": {
+        "title": "Console SQL",
+        "query_input": {
+          "placeholder": "Requête SQL…"
+        }
+      },
       "about": {
         "title": "À propos de {app_name}"
       }

@@ -39,12 +39,13 @@ class ImageListView:
         self._menu = QtW.QMenu(parent=self)
 
         self._copy_paths_action = self._menu.addAction(
-            utils.gui.icon('copy'),
+            utils.gui.icon('edit-copy'),
             _t('main_window.tab.context_menu.copy_path'),
             self.copy_image_paths,
             'Ctrl+C'
         )
         self._select_all_action = self._menu.addAction(
+            utils.gui.icon('edit-select-all'),
             _t('main_window.tab.context_menu.select_all'),
             self.select_all,
             'Ctrl+A'
@@ -66,6 +67,7 @@ class ImageListView:
             self._copy_paths_action.setText(_t('main_window.tab.context_menu.copy_paths'))
         else:
             self._copy_paths_action.setText(_t('main_window.tab.context_menu.copy_path'))
+        self._select_all_action.setDisabled(not self.count())
 
     def copy_image_paths(self):
         if self._copy_paths_action.isEnabled():
@@ -136,6 +138,12 @@ class ImageList(QtW.QListWidget, ImageListView):
         self.selectionModel().selectionChanged.connect(lambda _: on_selection_changed(self.selected_images()))
         self.itemDoubleClicked.connect(lambda i: on_item_double_clicked(i.image))
         self._init_contextual_menu()
+        self.model().rowsInserted.connect(self._update_actions)
+        self.model().rowsRemoved.connect(self._update_actions)
+
+    def clear(self):
+        super().clear()
+        self._update_actions()
 
     def keyPressEvent(self, event: QtG.QKeyEvent):
         """Overrides “Ctrl+C“ action."""
@@ -232,10 +240,12 @@ class ThumbnailList(flow_layout.ScrollingFlowWidget, ImageListView):
     def add_image(self, image: model.Image):
         self.add_widget(_FlowImageItem(image, len(self._flow_layout.items), self._item_clicked,
                                        self._item_double_clicked))
+        self._update_actions()
 
     def clear(self):
         self._flow_layout.clear()
         self._last_index = -1
+        self._update_actions()
 
     def count(self) -> int:
         return self._flow_layout.count()

@@ -25,7 +25,7 @@ class SettingsDialog(_dialog_base.Dialog):
         db_box_layout = QtW.QGridLayout()
 
         self._db_path_warning_label = components.LabelWithIcon(
-            utils.gui.icon('warning_small'),
+            utils.gui.icon('warning', use_theme=False),
             _t('dialog.settings.box.database.db_path_warning'),
             parent=self
         )
@@ -38,7 +38,7 @@ class SettingsDialog(_dialog_base.Dialog):
         self._db_path_input = QtW.QLineEdit(str(self._initial_config.database_path), parent=self)
         self._db_path_input.textChanged.connect(self._update_ui)
         db_box_layout.addWidget(self._db_path_input, 1, 1)
-        choose_file_button = QtW.QPushButton(utils.gui.icon('choose_db_file'), '', parent=self)
+        choose_file_button = QtW.QPushButton(utils.gui.icon('document-open'), '', parent=self)
         choose_file_button.setToolTip(_t('dialog.settings.box.database.choose_file_button.tooltip'))
         choose_file_button.clicked.connect(self._open_db_file_chooser)
         db_box_layout.addWidget(choose_file_button, 1, 2)
@@ -123,7 +123,11 @@ class SettingsDialog(_dialog_base.Dialog):
         return body_layout
 
     def _init_buttons(self) -> typ.List[QtW.QAbstractButton]:
-        self._apply_button = QtW.QPushButton(_t('dialog.common.apply_button.label'), parent=self)
+        self._apply_button = QtW.QPushButton(
+            self.style().standardIcon(QtW.QStyle.SP_DialogApplyButton),
+            _t('dialog.common.apply_button.label'),
+            parent=self
+        )
         self._apply_button.clicked.connect(self._apply)
         return [self._apply_button]
 

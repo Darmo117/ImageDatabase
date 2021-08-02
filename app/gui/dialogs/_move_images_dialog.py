@@ -26,7 +26,7 @@ class MoveImagesDialog(_dialog_base.Dialog):
 
         # Destination
         self._dest_path_warning_label = components.LabelWithIcon(
-            utils.gui.icon('warning_small'),
+            utils.gui.icon('warning', use_theme=False),
             '',
             parent=self
         )
@@ -43,7 +43,7 @@ class MoveImagesDialog(_dialog_base.Dialog):
         self._destination_input.textChanged.connect(self._update_ui)
         dest_layout.addWidget(self._destination_input, stretch=1)
 
-        self._choose_destination_button = QtW.QPushButton(utils.gui.icon('directory'), '', parent=self)
+        self._choose_destination_button = QtW.QPushButton(utils.gui.icon('folder'), '', parent=self)
         self._choose_destination_button.setToolTip(_t('dialog.move_images.choose_directory_button.tooltip'))
         self._choose_destination_button.clicked.connect(self._set_destination)
         dest_layout.addWidget(self._choose_destination_button)

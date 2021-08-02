@@ -80,6 +80,13 @@
       "image_load_error": "Could not load image!",
       "no_image": "No image"
     },
+    "command_line": {
+      "menu": {
+        "copy_item": "Copy",
+        "clear_item": "Clear Console",
+        "select_all_item": "Select All"
+      }
+    },
     "dialog": {
       "common": {
         "ok_button": {
@@ -286,6 +293,12 @@
           "close": {
             "label": "Close"
           }
+        }
+      },
+      "command_line": {
+        "title": "SQL Console",
+        "query_input": {
+          "placeholder": "SQL Query…"
         }
       },
       "about": {

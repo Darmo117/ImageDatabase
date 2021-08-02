@@ -42,7 +42,7 @@ class Application(QtW.QMainWindow):
     def _init_ui(self):
         """Initializes the UI."""
         self.setWindowTitle(constants.APP_NAME + ('*' if config.CONFIG.debug else ''))
-        self.setWindowIcon(utils.gui.icon('app_icon'))
+        self.setWindowIcon(utils.gui.icon('app-icon', use_theme=False))
         self.setGeometry(0, 0, 800, 600)
         self.setMinimumSize(400, 200)
 
@@ -114,26 +114,27 @@ class Application(QtW.QMainWindow):
         file_menu = menubar.addMenu(_t('main_window.menu.file.label'))
 
         file_menu.addAction(
-            utils.gui.icon('image_add'),
+            utils.gui.icon('insert-image'),
             _t('main_window.menu.file.item.add_files'),
             self._add_image,
             'Ctrl+F'
         )
         file_menu.addAction(
-            utils.gui.icon('folder_image'),
+            utils.gui.icon('folder-add'),
             _t('main_window.menu.file.item.add_directory'),
             self._add_directory,
             'Ctrl+D'
         )
         file_menu.addSeparator()
         self._export_item = file_menu.addAction(
+            utils.gui.icon('document-save-as'),
             _t('main_window.menu.file.item.export_playlist'),
             self._export_images,
             'Ctrl+Shift+E'
         )
         file_menu.addSeparator()
         file_menu.addAction(
-            utils.gui.icon('door_open'),
+            utils.gui.icon('application-exit'),
             _t('main_window.menu.file.item.exit'),
             QtW.qApp.quit,
             'Ctrl+Q'
@@ -142,37 +143,38 @@ class Application(QtW.QMainWindow):
         edit_menu = menubar.addMenu(_t('main_window.menu.edit.label'))
 
         edit_menu.addAction(
-            utils.gui.icon('tag_edit'),
+            utils.gui.icon('tag-edit'),
             _t('main_window.menu.edit.item.edit_tags'),
             self._edit_tags,
             'Ctrl+T'
         )
         edit_menu.addSeparator()
         self._rename_image_item = edit_menu.addAction(
-            utils.gui.icon('textfield_rename'),
+            utils.gui.icon('document-edit'),
             _t('main_window.menu.edit.item.rename_image'),
             self._rename_image,
             'Ctrl+R'
         )
         self._replace_image_item = edit_menu.addAction(
-            utils.gui.icon('replace_image'),
+            utils.gui.icon('image-replace'),  # TODO find system icon
             _t('main_window.menu.edit.item.replace_image'),
             self._replace_image,
             'Ctrl+Shift+R'
         )
         self._move_images_item = edit_menu.addAction(
+            utils.gui.icon('edit-move'),
             _t('main_window.menu.edit.item.move_images'),
             self._move_images,
             'Ctrl+M'
         )
         self._edit_images_item = edit_menu.addAction(
-            utils.gui.icon('image_edit'),
+            utils.gui.icon('image-edit'),  # TODO find system icon
             _t('main_window.menu.edit.item.edit_images'),
             lambda: self._edit_images(self._current_tab().selected_images()),
             'Ctrl+E'
         )
         self._delete_images_item = edit_menu.addAction(
-            utils.gui.icon('image_delete'),
+            utils.gui.icon('edit-delete'),
             _t('main_window.menu.edit.item.delete_images'),
             self._delete_images,
             'Delete'
@@ -181,18 +183,19 @@ class Application(QtW.QMainWindow):
         tools_menu = menubar.addMenu(_t('main_window.menu.tools.label'))
 
         tools_menu.addAction(
+            utils.gui.icon('tag-missing'),
             _t('main_window.menu.tools.item.tagless_images'),
             lambda: self._fetch_images(tagless_images=True)
         )
         tools_menu.addSeparator()
         tools_menu.addAction(
-            utils.gui.icon('perform_operations'),
+            utils.gui.icon('system-run'),
             _t('main_window.menu.tools.item.perform_operations'),
             self._apply_transformation,
             'Ctrl+O'
         )
         tools_menu.addAction(
-            utils.gui.icon('SQL_terminal'),
+            utils.gui.icon('utilities-terminal'),
             _t('main_window.menu.tools.item.SQL_terminal'),
             self._open_sql_terminal,
             'Ctrl+Shift+T'
@@ -201,13 +204,13 @@ class Application(QtW.QMainWindow):
         help_menu = menubar.addMenu(_t('main_window.menu.help.label'))
 
         help_menu.addAction(
-            utils.gui.icon('settings'),
+            utils.gui.icon('configure-application'),
             _t('main_window.menu.help.item.settings'),
             self._show_settings_dialog,
             'Ctrl+Alt+S'
         )
         help_menu.addAction(
-            utils.gui.icon('information'),
+            utils.gui.icon('help-about'),
             _t('main_window.menu.help.item.about'),
             lambda: dialogs.AboutDialog(self).show()
         )
@@ -235,11 +238,13 @@ class Application(QtW.QMainWindow):
         dialog.show()
 
     def _open_sql_terminal(self):
-        pass  # TODO
+        dialog = dialogs.CommandLineDialog(parent=self)
+        dialog.set_on_close_action(lambda _: self._fetch_and_refresh())
+        dialog.show()
 
     def _show_settings_dialog(self):
         settings_dialog = dialogs.SettingsDialog(parent=self)
-        settings_dialog.set_on_close_action(self._fetch_and_refresh)
+        settings_dialog.set_on_close_action(lambda _: self._fetch_and_refresh())
         settings_dialog.show()
 
     def _add_image(self):
@@ -299,7 +304,7 @@ class Application(QtW.QMainWindow):
                 if images_to_add:
                     dialog = dialogs.EditImageDialog(self._image_dao, self._tags_dao, show_skip=len(images_to_add) > 1,
                                                      mode=dialogs.EditImageDialog.ADD, parent=self)
-                    dialog.set_on_close_action(self._fetch_and_refresh)
+                    dialog.set_on_close_action(lambda _: self._fetch_and_refresh())
                     dialog.set_images(images_to_add, {})
                     dialog.show()
 
@@ -353,7 +358,7 @@ class Application(QtW.QMainWindow):
                 da.write_playlist(file, images)
                 utils.gui.show_info(_t('popup.playlist_exported.text'), parent=self)
 
-    def _fetch_and_refresh(self, *_):
+    def _fetch_and_refresh(self):
         """Fetches images then refreshes the list."""
         self._fetch_images()
         self._refresh_tree()
@@ -362,7 +367,7 @@ class Application(QtW.QMainWindow):
         """Opens the 'Edit Images' dialog then updates all edited images."""
         if len(images) > 0:
             dialog = dialogs.EditImageDialog(self._image_dao, self._tags_dao, show_skip=len(images) > 1, parent=self)
-            dialog.set_on_close_action(self._fetch_and_refresh)
+            dialog.set_on_close_action(lambda _: self._fetch_and_refresh())
             tags = {}
             for image in images:
                 t = self._image_dao.get_image_tags(image.id, self._tags_dao)
@@ -397,7 +402,7 @@ class Application(QtW.QMainWindow):
     def _edit_tags(self):
         """Opens the 'Edit Tags' dialog. Tags tree is refreshed afterwards."""
         dialog = dialogs.EditTagsDialog(self._tags_dao, parent=self)
-        dialog.set_on_close_action(self._refresh_tree)
+        dialog.set_on_close_action(lambda _: self._refresh_tree())
         dialog.show()
 
     def _on_delete_item(self, item: QtW.QTreeWidgetItem):
