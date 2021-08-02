@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import configparser
-import os
 import pathlib
 import typing as typ
 
@@ -156,7 +155,9 @@ def load_config():
     thumbs_load_threshold = _DEFAULT_THUMBS_LOAD_THRESHOLD
     debug = _DEFAULT_DEBUG
 
-    if constants.CONFIG_FILE.is_file():
+    config_file_exists = constants.CONFIG_FILE.is_file()
+
+    if config_file_exists:
         config_parser = configparser.ConfigParser()
         config_parser.read(constants.CONFIG_FILE)
         try:
@@ -199,6 +200,9 @@ def load_config():
         raise ConfigError('could not load language')
 
     CONFIG = Config(language, database_path, load_thumbs, thumbs_size, thumbs_load_threshold, debug)
+
+    if not config_file_exists:
+        CONFIG.save()
 
 
 def _to_bool(value: typ.Union[str, bool]) -> bool:
