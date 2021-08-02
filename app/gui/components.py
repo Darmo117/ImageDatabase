@@ -487,9 +487,9 @@ class CommandLineWidget(QtW.QWidget):
     def __init__(self, parent: QtW.QWidget = None):
         super().__init__(parent=parent)
         self._default_color = QtW.QApplication.palette().color(QtG.QPalette.Active, QtG.QPalette.Text)
-        self._error_color = QtG.QColor(255, 0, 0)
+        self._error_color = QtG.QColor(200, 0, 0)
         self._prompt_color = QtG.QColor(128, 128, 128)
-        self._font_size = 12
+        self._font_size = 14
         self._font_family = 'monospace'
         self._prompt = '$'
 
@@ -606,21 +606,25 @@ class CommandLineWidget(QtW.QWidget):
         * {{
             white-space: pre;
             font-size: {self._font_size}px;
-            font-family: {self._font_family};
+            font-family: {self._font_family}, "Courier New", monospace;
         }}
 
         .error {{
             color: {self._error_color.name()};
+            font-weight: bold;
         }}
 
         .prompt {{
             color: {self._prompt_color.name()};
+            font-weight: bold;
         }}
 
         .normal {{
             color: {self._default_color.name()};
         }}
         """.strip())
+        self._input.setStyleSheet(
+            f'font-size: {self._font_size}px; font-family: {self._font_family}, "Courier New", monospace;')
 
     class _OutputField(QtW.QTextEdit):
         def __init__(self, parent: QtW.QWidget = None):
