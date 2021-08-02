@@ -248,10 +248,10 @@ def show_file(file_path: pathlib.Path):
     elif os_name == 'linux':
         command = ['dbus-send', '--dest=org.freedesktop.FileManager1', '--type=method_call',
                    '/org/freedesktop/FileManager1', 'org.freedesktop.FileManager1.ShowItems',
-                   f'array:string:{path}', 'string:""']
+                   f'array:string:file:{path}', 'string:""']
         subprocess.Popen(command)
     elif os_name == 'darwin':  # OS-X
-        subprocess.Popen(['open', path])
+        subprocess.Popen(['open', '-R', path])
 
 
 def negate(color: QtG.QColor) -> QtG.QColor:
