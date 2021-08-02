@@ -56,14 +56,13 @@ while 'user hasn’t typed "exit"':
         print(f'{e}\033[0m')
         cursor.close()
     else:
-        results = cursor.fetchall()
-        if cursor.description is not None:
-            column_names = tuple(desc[0] for desc in cursor.description)
-        else:
-            column_names = ()
-        cursor.close()
-
         if cmd.startswith('select'):
+            results = cursor.fetchall()
+            if cursor.description is not None:
+                column_names = tuple(desc[0] for desc in cursor.description)
+            else:
+                column_names = ()
+
             if len(results) == 0:
                 print(_t('SQL_console.no_results'))
             else:
@@ -93,6 +92,10 @@ while 'user hasn’t typed "exit"':
                     i += 1
                 else:
                     print_rows(rows, column_names)
+        else:
+            print(_t('SQL_console.affected_rows', row_count=cursor.rowcount))
+
+        cursor.close()
 
 print(_t('SQL_console.goodbye'))
 

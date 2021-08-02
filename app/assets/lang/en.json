@@ -460,6 +460,7 @@
       "no_results": "Query returned no results",
       "display_more": "Display more? (Y / N)",
       "results": "Showing result(s) {start} to {end} of {total}",
+      "affected_rows": "{row_count} row(s) affected",
       "error": "Error:",
       "goodbye": "Goodbye!"
     }

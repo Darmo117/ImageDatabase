@@ -26,6 +26,11 @@ class CommandLineDialog(_dialog_base.Dialog):
         self._command_line.setFocus()
         self._disable_closing = False
 
+        self._column_names = None
+        self._results = None
+        self._results_offset = None
+        self._results_total = None
+
     def _init_body(self) -> QtW.QLayout:
         self.setMinimumSize(500, 300)
 
@@ -38,56 +43,63 @@ class CommandLineDialog(_dialog_base.Dialog):
 
         return layout
 
-    def _on_input(self, cmd: str):
-        cursor = self._connection.cursor()
-        try:
-            cursor.execute(cmd)
-        except sqlite3.Error as e:
-            self._command_line.print_error(_t('SQL_console.error'))
-            self._command_line.print_error(e)
-            cursor.close()
-        else:
-            results = cursor.fetchall()
-            if cursor.description is not None:
-                column_names = tuple(desc[0] for desc in cursor.description)
+    def _on_input(self, input_: str):
+        if self._results:
+            if input_.upper() == 'Y':
+                self._print_results()
+            elif input_.upper() == 'N':
+                self._column_names = None
+                self._results = None
             else:
-                column_names = ()
-            cursor.close()
+                self._command_line.print(_t('SQL_console.display_more'))
+        else:
+            cursor = self._connection.cursor()
+            try:
+                cursor.execute(input_)
+            except sqlite3.Error as e:
+                self._command_line.print_error(_t('SQL_console.error'))
+                self._command_line.print_error(e)
+                cursor.close()
+            else:
+                if input_.startswith('select'):
+                    results = cursor.fetchall()
+                    if cursor.description is not None:
+                        column_names = tuple(desc[0] for desc in cursor.description)
+                    else:
+                        column_names = ()
+                    self._column_names = column_names
+                    self._results = results
+                    self._results_offset = 0
+                    self._results_total = len(results)
+                    self._print_results()
+                else:
+                    self._command_line.print(_t('SQL_console.affected_rows', row_count=cursor.rowcount))
+                cursor.close()
 
-            if cmd.startswith('select'):
-                self._print_results(results, column_names)
-
-    def _print_results(self, results: typ.Sequence[tuple], column_names: typ.Tuple[str, ...]):
+    def _print_results(self):
+        results = self._results[self._results_offset:]
         if len(results) == 0:
             self._command_line.print(_t('SQL_console.no_results'))
         else:
-            results_nb = len(results)
             limit = 20
             i = 0
             rows = []
             for result in results:
                 if i % limit == 0:
                     if i > 0:
-                        self._print_rows(rows, column_names)
+                        self._print_rows(rows, self._column_names)
                         rows.clear()
-                        while 'user enters neither Y or N':
-                            self._command_line.print(_t('SQL_console.display_more'))
-                            choice = input('?> ').upper()  # TODO integrate to widget
-                            if choice.upper() == 'Y':
-                                proceed = True
-                                break
-                            elif choice.upper() == 'N':
-                                proceed = False
-                                break
-                        if not proceed:
-                            break
-                    upper_bound = i + limit if i + limit <= results_nb else results_nb
-                    self._command_line.print(
-                        _t('SQL_console.results', start=i + 1, end=upper_bound, total=results_nb))
+                        self._command_line.print(_t('SQL_console.display_more'))
+                        self._results_offset = i
+                        break
+                    upper_bound = min(self._results_offset + i + limit, self._results_total)
+                    self._command_line.print(_t('SQL_console.results', start=self._results_offset + i + 1,
+                                                end=upper_bound, total=self._results_total))
                 rows.append(tuple(map(repr, result)))
                 i += 1
             else:
-                self._print_rows(rows, column_names)
+                self._print_rows(rows, self._column_names)
+                self._results = None
 
     def _print_rows(self, rows: typ.List[typ.Tuple[str, ...]], column_names: typ.Sequence[str]):
         """Prints rows in a table.

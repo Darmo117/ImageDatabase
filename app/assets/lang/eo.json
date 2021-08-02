@@ -454,6 +454,7 @@
       "no_results": "Neniu rezulto por via serĉo.",
       "display_more": "Montri pli? (Y / N)",
       "results": "Rezultoj de {start} al {end} el {total}",
+      "affected_rows": "{affected_rows} modifita(j) vico(j)",
       "error": "Eraro:",
       "goodbye": "Ĝis revido!"
     }

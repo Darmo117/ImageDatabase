@@ -454,6 +454,7 @@
       "no_results": "La requête n’a retourné aucun résultat",
       "display_more": "Afficher plus ? (Y / N)",
       "results": "Affichage des résultats {start} à {end} sur {total}",
+      "affected_rows": "{row_count} ligne(s) affectée(s)",
       "error": "Erreur :",
       "goodbye": "Au revoir !"
     }
