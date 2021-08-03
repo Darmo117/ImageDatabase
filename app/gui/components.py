@@ -236,7 +236,7 @@ class Canvas(QtW.QGraphicsView):
         """
         self.setScene(QtW.QGraphicsScene())
         if image_path.exists():
-            ext = utils.files.get_extension(image_path.name)
+            ext = utils.files.get_extension(image_path.name, keep_dot=True)
             self._image = QtG.QPixmap(str(image_path), format=ext)
             reader = QtG.QImageReader(str(image_path))
             if reader.imageCount() <= 1:
