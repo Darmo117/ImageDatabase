@@ -376,10 +376,12 @@ class _FlowImageItem(QtW.QFrame, ImageItem):
         """Toggles selection. Border and background will turn blue whenever this item is selected."""
         self._selected = value
         if self._selected:
-            bg_color = QtW.QApplication.palette().color(QtG.QPalette.Active, QtG.QPalette.Highlight).getRgb()
+            bg_color = QtW.QApplication.palette().color(QtG.QPalette.Active, QtG.QPalette.Highlight)
+            fg_color = QtW.QApplication.palette().color(QtG.QPalette.Active, QtG.QPalette.HighlightedText)
         else:
-            bg_color = QtW.QApplication.palette().color(QtG.QPalette.Active, QtG.QPalette.Background).getRgb()
-        self.setStyleSheet(f'background-color: rgba{bg_color}')
+            bg_color = QtW.QApplication.palette().color(QtG.QPalette.Normal, QtG.QPalette.Window)
+            fg_color = QtW.QApplication.palette().color(QtG.QPalette.Normal, QtG.QPalette.WindowText)
+        self.setStyleSheet(f'background-color: {bg_color.name()}; color: {fg_color.name()}')
 
     def mousePressEvent(self, event: QtG.QMouseEvent):
         # Do not deselect other items if right click on already selected item
