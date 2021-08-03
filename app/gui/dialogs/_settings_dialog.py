@@ -137,14 +137,8 @@ class SettingsDialog(_dialog_base.Dialog):
             self._db_path_input.setText(str(file))
 
     def _update_ui(self):
-        file_exists = self._db_file_exists()
-        self._db_path_warning_label.setVisible(not file_exists)
-        valid = self._is_valid()
-        self._apply_button.setDisabled(not valid or not self._settings_changed())
-        self._ok_btn.setDisabled(not valid)
-
-    def _db_file_exists(self) -> bool:
-        return pathlib.Path(self._db_path_input.text()).exists()
+        self._db_path_warning_label.setVisible(not pathlib.Path(self._db_path_input.text()).exists())
+        self._apply_button.setDisabled(not self._settings_changed())
 
     def _settings_changed(self) -> bool:
         db_path = pathlib.Path(self._db_path_input.text())
@@ -157,9 +151,6 @@ class SettingsDialog(_dialog_base.Dialog):
                 or thumbs_size != self._initial_config.thumbnail_size
                 or thumbs_load_threshold != self._initial_config.thumbnail_load_threshold
                 or language != self._initial_config.language)
-
-    def _is_valid(self) -> bool:
-        return self._db_file_exists()
 
     def _apply(self) -> bool:
         changed = self._settings_changed()

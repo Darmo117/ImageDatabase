@@ -121,7 +121,7 @@
         "box": {
           "database": {
             "title": "Database",
-            "db_path_warning": "This database file does not exist.",
+            "db_path_warning": "This database file does not exist. It will be created the next time you launch the application.",
             "db_path": {
               "label": "Database file"
             },
