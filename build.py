@@ -2,7 +2,16 @@
 import pathlib
 import shutil
 
-TO_COPY = ['ImageLibrary.py', 'ImageLibrary_cmd.py', 'setup.sh', 'requirements.txt', 'app/', 'LICENSE', 'README.md']
+TO_COPY = [
+    'ImageLibrary.py',
+    'ImageLibrary_cmd.py',
+    'setup.sh',
+    'setup.bat',
+    'requirements.txt',
+    'app/',
+    'LICENSE',
+    'README.md'
+]
 BUILD_DIR = pathlib.Path('build/Image-Library').absolute()
 
 if BUILD_DIR.exists():
