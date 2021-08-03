@@ -14,7 +14,7 @@ def migrate(connection: sqlite3.Connection, thread: gui.threads.WorkerThread):
     );
     ALTER TABLE images ADD COLUMN hash BLOB; -- Cannot use INTEGER as hashes are 64-bit *unsigned* integers
     CREATE INDEX idx_images_hash ON images (hash); -- Speed up hash querying
---     ALTER TABLE tags ADD COLUMN definition TEXT;
+    ALTER TABLE tags ADD COLUMN definition TEXT;
     INSERT INTO version (db_version, app_version) VALUES (1, "{constants.VERSION}");
     """)
 

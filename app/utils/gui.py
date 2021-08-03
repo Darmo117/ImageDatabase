@@ -210,8 +210,7 @@ def center(window: QtW.QWidget):
     :param window: The window to center.
     """
     rect = window.frameGeometry()
-    center = QtW.QDesktopWidget().availableGeometry().center()
-    rect.moveCenter(center)
+    rect.moveCenter(QtW.QDesktopWidget().availableGeometry().center())
     window.move(rect.topLeft())
 
 
@@ -268,14 +267,14 @@ def icon(icon_name: str, use_theme: bool = True) -> QtG.QIcon:
     """
 
     if use_theme:
-        icon = QtG.QIcon.fromTheme(icon_name)
+        icon_ = QtG.QIcon.fromTheme(icon_name)
     else:
-        icon = None
+        icon_ = None
 
-    if not icon or icon.isNull():
+    if not icon_ or icon_.isNull():
         return QtG.QIcon(str(constants.ICONS_DIR / (icon_name + '.png')))
     else:
-        return icon
+        return icon_
 
 
 def get_key_sequence(event: QtG.QKeyEvent) -> QtG.QKeySequence:
