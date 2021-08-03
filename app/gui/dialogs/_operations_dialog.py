@@ -112,8 +112,8 @@ class OperationsDialog(_dialog_base.Dialog):
 
         layout.addStretch()
 
-        self.setMinimumSize(350, 220)
-        self.setGeometry(0, 0, 350, 280)
+        self.setMinimumSize(350, 250)
+        self.setGeometry(0, 0, 400, 500)
 
         body_layout = QtW.QVBoxLayout()
         scroll = QtW.QScrollArea(parent=self)
