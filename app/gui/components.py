@@ -297,7 +297,8 @@ class EllipsisLabel(QtW.QLabel):
     def _draw_text(self, event: QtG.QPaintEvent, painter: QtG.QPainter):
         metrics = QtG.QFontMetrics(self.font())
         elided_text = metrics.elidedText(self.text(), self._elide_mode, self.width())
-        painter.drawText(event.rect(), int(self.alignment()), elided_text)
+        # noinspection PyTypeChecker
+        painter.drawText(event.rect(), self.alignment() | QtC.Qt.AlignVCenter, elided_text)
 
     def set_on_click(self, callback: typ.Callable[[EllipsisLabel], None]):
         self._on_click = callback
