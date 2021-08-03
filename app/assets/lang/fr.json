@@ -231,6 +231,7 @@
           "text": "Supprimer les entrées sélectionnées ?"
         },
         "no_match": "Aucune correspondance trouvée.",
+        "syntax_error": "Erreur de syntaxe !",
         "tab": {
           "tag_types": {
             "title": "Types d’étiquettes",

@@ -231,6 +231,7 @@
           "text": "Delete selected entries?"
         },
         "no_match": "No match found.",
+        "syntax_error": "Syntax error!",
         "tab": {
           "tag_types": {
             "title": "Tag Types",

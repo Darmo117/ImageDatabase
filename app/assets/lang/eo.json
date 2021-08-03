@@ -231,6 +231,7 @@
           "text": "Forigi selektatajn elementojn?"
         },
         "no_match": "Neniu rezulto por via serĉo.",
+        "syntax_error": "Sintakseraro!",
         "tab": {
           "tag_types": {
             "title": "Etikedaj tipoj",

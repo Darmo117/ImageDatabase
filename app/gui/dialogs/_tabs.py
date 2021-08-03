@@ -15,7 +15,7 @@ from .. import components
 _Type = typ.TypeVar('_Type')
 
 
-class Tab(abc.ABC, typ.Generic[_Type]):  # TODO Check error messages
+class Tab(abc.ABC, typ.Generic[_Type]):
     """This class represents a tab containing a single table.
     This is a generic class. _Type is the type of the values displayed in each row.
     """
@@ -72,8 +72,8 @@ class Tab(abc.ABC, typ.Generic[_Type]):  # TODO Check error messages
         self._valid = True
 
         # Use system colors
-        self._DISABLED_COLOR = QtW.QApplication.palette().color(QtG.QPalette.Disabled, QtG.QPalette.Background)
-        self._NORMAL_COLOR = QtW.QApplication.palette().color(QtG.QPalette.Active, QtG.QPalette.Background)
+        self._DISABLED_COLOR = QtW.QApplication.palette().color(QtG.QPalette.Disabled, QtG.QPalette.Base)
+        self._NORMAL_COLOR = QtW.QApplication.palette().color(QtG.QPalette.Normal, QtG.QPalette.Base)
 
     @abc.abstractmethod
     def init(self):
@@ -150,11 +150,12 @@ class Tab(abc.ABC, typ.Generic[_Type]):  # TODO Check error messages
                 if self._rows_deleted is not None:
                     self._rows_deleted(to_delete)
 
-    def search(self, query: str):
+    def search(self, query: str) -> typ.Optional[bool]:
         """Searches for a string inside the table.
         Starts the search from the currently selected row, or from the first one if none is selected.
 
-        :param query: The string to search for.
+        :param query: The string pattern to search for.
+        :return: True if a match was found; False if none; None if the query has a syntax error.
         """
         if self._highlighted_cell is not None:
             self._highlighted_cell.setBackground(self._NORMAL_COLOR)
@@ -162,12 +163,25 @@ class Tab(abc.ABC, typ.Generic[_Type]):  # TODO Check error messages
         if selected_rows := self._table.selectionModel().selectedRows():
             start_row = selected_rows[0].row()
         else:
-            start_row = self._highlighted_cell.row() if self._highlighted_cell else -1
+            start_row = self._highlighted_cell.row() + 1 if self._highlighted_cell else 0
+            self._highlighted_cell = None
+
+        # Check for any invalid \
+        if re.search(r'((?<!\\)\\(?:\\\\)*)([^*?\\]|$)', query):
+            return None
+
+        # Escape regex meta-characters except * and ?
+        pattern = re.sub(r'([\[\]()+{.^$])', r'\\\1', query)
+        # Replace non-escaped '*' and '?' by a regex
+        pattern = re.sub(r'((?<!\\)(?:\\\\)*)([*?])', r'\1.\2', pattern)
+        pattern = f'^{pattern}$'
+        regex = re.compile(pattern, re.IGNORECASE)
+
         row_count = self._table.rowCount()
         for col in self._search_columns:
-            for row in range(start_row + 1, row_count):
+            for row in range(start_row, row_count):
                 item = self._table.item(row, col)
-                if query.lower() in item.text().lower():
+                if regex.fullmatch(item.text()):
                     self._table.setFocus()
                     self._table.scrollToItem(item)
                     item.setBackground(self._FETCH_COLOR)

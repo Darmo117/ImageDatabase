@@ -1,6 +1,7 @@
 import typing as typ
 
 import PyQt5.QtCore as QtC
+import PyQt5.QtGui as QtG
 import PyQt5.QtWidgets as QtW
 
 from app import data_access, model, utils
@@ -87,9 +88,10 @@ class EditTagsDialog(_dialog_base.Dialog):
         layout.addWidget(self._tabbed_pane)
 
         search_layout = QtW.QHBoxLayout()
-        self._search_field = components.TranslatedLineEdit(parent=self)
+        self._search_field = _InputField(parent=self)
         self._search_field.setPlaceholderText(_t('dialog.edit_tags.search_field.placeholder'))
         self._search_field.returnPressed.connect(self._search)
+        self._search_field.textChanged.connect(self._reset_status_label)
         search_layout.addWidget(self._search_field)
 
         search_btn = QtW.QPushButton(
@@ -101,6 +103,9 @@ class EditTagsDialog(_dialog_base.Dialog):
         search_layout.addWidget(search_btn)
 
         layout.addLayout(search_layout)
+
+        self._status_label = components.LabelWithIcon(parent=self)
+        layout.addWidget(self._status_label)
 
         return layout
 
@@ -143,12 +148,23 @@ class EditTagsDialog(_dialog_base.Dialog):
         tab = self._tabs[index]
         self._delete_row_btn.setEnabled(tab.deletable and tab.selected_rows_number != 0)
 
+    def _reset_status_label(self):
+        self._status_label.setText('')
+        self._status_label.setIcon(None)
+
     def _search(self):
         text = self._search_field.text().strip()
         if len(text) > 0:
             found = self._tabs[self._tabbed_pane.currentIndex()].search(text)
-            if not found:
-                utils.gui.show_info(_t('dialog.edit_tags.no_match'), parent=self)
+            if found is None:
+                self._status_label.setText(_t('dialog.edit_tags.syntax_error'))
+                self._status_label.setIcon(utils.gui.icon('warning'))
+            elif not found:
+                self._status_label.setText(_t('dialog.edit_tags.no_match'))
+                self._status_label.setIcon(utils.gui.icon('help-about'))
+            else:
+                self._reset_status_label()
+        self._search_field.setFocus()
 
     def _is_valid(self) -> bool:
         return self._valid
@@ -172,3 +188,12 @@ class EditTagsDialog(_dialog_base.Dialog):
         edited_rows_nb = sum(map(lambda t: t.modified_rows_number, self._tabs))
         self._apply_btn.setEnabled(edited_rows_nb > 0 and self._valid)
         self._ok_btn.setEnabled(self._valid)
+
+
+class _InputField(components.TranslatedLineEdit):
+    def keyPressEvent(self, event: QtG.QKeyEvent):
+        # Prevent event from propagating to the search button
+        if event.key() in [QtC.Qt.Key_Return, QtC.Qt.Key_Enter]:
+            event.ignore()
+        else:
+            super().keyPressEvent(event)

@@ -312,24 +312,30 @@ class EllipsisLabel(QtW.QLabel):
 class LabelWithIcon(QtW.QWidget):
     """Wrapper widget that displays a label with an icon on its left."""
 
-    def __init__(self, icon: QtG.QIcon, text: str, parent: QtW.QWidget = None):
+    def __init__(self, icon: QtG.QIcon = None, text: str = None, parent: QtW.QWidget = None):
         super().__init__(parent=parent)
         layout = QtW.QHBoxLayout()
         layout.setContentsMargins(0, 0, 0, 0)
 
         self._icon = QtW.QLabel(parent=self)
-        self._icon.setPixmap(icon.pixmap(16))
+        if icon:
+            self.setIcon(icon)
         layout.addWidget(self._icon)
 
-        self._label = QtW.QLabel(text, parent=self)
+        self._label = QtW.QLabel(parent=self)
+        if text is not None:
+            self.setText(text)
         layout.addWidget(self._label, stretch=1)
 
         self.setLayout(layout)
 
     # noinspection PyPep8Naming
-    def setIcon(self, icon: QtG.QIcon):
+    def setIcon(self, icon: QtG.QIcon = None):
         """Sets the icon."""
-        self._icon.setPixmap(icon.pixmap(16))
+        if icon:
+            self._icon.setPixmap(icon.pixmap(16))
+        else:
+            self._icon.clear()
 
     # noinspection PyPep8Naming
     def setText(self, text: str):
