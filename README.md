@@ -23,7 +23,7 @@ Image Library is *not* available on PyPI. Might be some day… I dunno… When I
 ### Version 4.0+
 
 Download the attached zip file in the release then unpack it where you want to install the app. Once unpacked, run the
-`setup.sh` file to install all required dependencies.
+`setup.sh` (Linux users) or `setup.bat` (Windows users) file to install all required dependencies.
 
 ### Version 3.1 and prior
 
