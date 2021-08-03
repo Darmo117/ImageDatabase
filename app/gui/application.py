@@ -355,8 +355,7 @@ class Application(QtW.QMainWindow):
 
     def _export_images(self):
         """Opens a file saver then writes all images to a playlist file."""
-        images = self._current_tab().get_images()
-        if len(images) > 0:
+        if images := self._current_tab().selected_images():
             file = utils.gui.open_playlist_saver(parent=self)
             if file:
                 da.write_playlist(file, images)
@@ -369,7 +368,7 @@ class Application(QtW.QMainWindow):
 
     def _edit_images(self, images: typ.List[model.Image]):
         """Opens the 'Edit Images' dialog then updates all edited images."""
-        if len(images) > 0:
+        if images:
             dialog = dialogs.EditImageDialog(self._image_dao, self._tags_dao, show_skip=len(images) > 1, parent=self)
             dialog.set_on_close_action(lambda _: self._fetch_and_refresh())
             tags = {}
@@ -502,14 +501,14 @@ class Application(QtW.QMainWindow):
 
     def _update_menus(self):
         selection_size = len(self._current_tab().selected_indexes())
-        one_element = selection_size == 1
-        list_not_empty = selection_size != 0
-        self._export_item.setEnabled(self._current_tab().count() > 0)
-        self._rename_image_item.setEnabled(one_element)
-        self._replace_image_item.setEnabled(one_element)
-        self._edit_images_item.setEnabled(list_not_empty)
-        self._delete_images_item.setEnabled(list_not_empty)
-        self._move_images_item.setEnabled(list_not_empty)
+        one_element_selected = selection_size == 1
+        selection_not_empty = selection_size != 0
+        self._export_item.setEnabled(selection_not_empty)
+        self._rename_image_item.setEnabled(one_element_selected)
+        self._replace_image_item.setEnabled(one_element_selected)
+        self._edit_images_item.setEnabled(selection_not_empty)
+        self._delete_images_item.setEnabled(selection_not_empty)
+        self._move_images_item.setEnabled(selection_not_empty)
 
     def _current_tab(self) -> image_list.ImageListView:
         # noinspection PyTypeChecker

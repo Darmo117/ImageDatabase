@@ -8,7 +8,7 @@
           "item": {
             "add_files": "Add &Files…",
             "add_directory": "Add &Directory…",
-            "export_playlist": "Export As &Playlist…",
+            "export_playlist": "Export Selection As &Playlist…",
             "exit": "&Exit"
           }
         },
