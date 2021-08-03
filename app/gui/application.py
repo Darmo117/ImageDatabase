@@ -592,10 +592,10 @@ class Application(QtW.QMainWindow):
             if success is None:  # Update cancelled
                 if message:
                     utils.gui.show_info(message)
-                sys.exit(-2)
+                sys.exit(2)
             elif not success:  # Update failed
                 utils.gui.show_error(message)
-                sys.exit(-3)
+                sys.exit(3)
             else:
                 if message:  # Update successed
                     utils.gui.show_info(message)
@@ -606,7 +606,7 @@ class Application(QtW.QMainWindow):
         except BaseException as e:
             logger.exception(e)
             print(e, file=sys.stderr)
-            sys.exit(-1)
+            sys.exit(1)
 
 
 class _SearchThread(QtC.QThread):
