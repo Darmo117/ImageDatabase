@@ -270,8 +270,7 @@
         "error": {
           "saving": "Une erreur est survenu ! Certains changements n’ont pas pu être appliqués.",
           "empty_cell": "La cellule est vide !",
-          "duplicate_value": "La valeur est déjà utilisée ! Veuillez en choisir une autre.",
-          "invalid_tag_type_name": "Les libellés de types peuvent comporter uniquement des lettres, des chiffres ou des « _ » !",
+          "duplicate_value": "La valeur est déjà utilisée à la ligne {row} ! Veuillez en choisir une autre.",
           "invalid_tag_type_symbol": "Les symboles doivent être composés d’un seul caractère. Lettres, chiffres, « _ », « + », « - », « : », « ( » et « ) » ne sont pas autorisés.",
           "invalid_tag_name": "Les libellés d’étiquettes ne peuvent comporter uniquement des lettres, des chiffres ou des « _ » !",
           "duplicate_tag_name": "Une étiquette avec le même nom existe déjà !"

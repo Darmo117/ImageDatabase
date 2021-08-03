@@ -15,7 +15,7 @@ from .. import components
 _Type = typ.TypeVar('_Type')
 
 
-class Tab(abc.ABC, typ.Generic[_Type]):
+class Tab(abc.ABC, typ.Generic[_Type]):  # TODO Check error messages
     """This class represents a tab containing a single table.
     This is a generic class. _Type is the type of the values displayed in each row.
     """
@@ -190,7 +190,7 @@ class Tab(abc.ABC, typ.Generic[_Type]):
         """
         ok = True
         for col, check_duplicates in self._columns_to_check.items():
-            ok &= self._check_column(col, True, check_duplicates)[0] == self._OK
+            ok &= self._check_column(col, check_duplicates)[0] == self._OK
             if not ok:
                 break
         return ok
@@ -222,11 +222,10 @@ class Tab(abc.ABC, typ.Generic[_Type]):
         """
         pass
 
-    def _check_column(self, column: int, check_format: bool, check_duplicates: bool) -> typ.Tuple[int, int, str]:
+    def _check_column(self, column: int, check_duplicates: bool) -> typ.Tuple[int, int, str]:
         """Checks column’s integrity.
 
         :param column: The column to check.
-        :param check_format: Whether to check the format of cell values.
         :param check_duplicates: Whether to check for any duplicate cell values.
         :return: A tuple with 3 values: table integrity which is one of OK, DUPLICATE, EMPTY or FORMAT; row of the
                  invalid cell or -1 if whole column is valid; the error message.
@@ -238,19 +237,21 @@ class Tab(abc.ABC, typ.Generic[_Type]):
         for row in range(self._table.rowCount()):
             if self._table.isRowHidden(row):
                 continue
+
             if self._table.item(row, column).text().strip() == '':
                 return self._EMPTY, row, _t('dialog.edit_tags.error.empty_cell')
-            if check_format:
-                ok, message = self._check_cell_format(row, column)
-                if not ok:
-                    return self._FORMAT, False, message
+
+            ok, message = self._check_cell_format(row, column)
+            if not ok:
+                return self._FORMAT, row, message
+
             if check_duplicates:
                 cell_value = self._table.item(row, column).text()
                 for r in range(self._table.rowCount()):
                     if self._table.isRowHidden(r):
                         continue
                     if r != row and self._table.item(r, column).text() == cell_value:
-                        return self._DUPLICATE, row, _t('dialog.edit_tags.error.duplicate_value')
+                        return self._DUPLICATE, r, _t('dialog.edit_tags.error.duplicate_value', row=row)
         return self._OK, -1, ''
 
     @abc.abstractmethod
@@ -374,19 +375,16 @@ class TagTypesTab(Tab[model.TagType]):
     def _cell_edited(self, row: int, col: int):
         if self._initialized and self._editable:
             if col != 3:
-                _, invalid_row, message = self._check_column(col, False, self._columns_to_check.get(col, True))
-                if invalid_row == row:
+                status, invalid_row, message = self._check_column(col, self._columns_to_check.get(col, True))
+                if status != self._OK:
                     utils.gui.show_error(message, parent=self._owner)
-                else:
-                    ok, message = self._check_cell_format(row, col)
-                    if not ok:
-                        utils.gui.show_error(message, parent=self._owner)
 
             if row not in self._added_rows:
                 if self.get_value(row) != self._values[row]:
                     self._changed_rows.add(row)
                 elif row in self._changed_rows:
                     self._changed_rows.remove(row)
+
             if self._cell_changed is not None:
                 cell = self._table.item(row, col)
                 if cell is None:
@@ -678,19 +676,16 @@ class _TagsTab(Tab[_TagType], typ.Generic[_TagType], metaclass=abc.ABCMeta):
     def _cell_edited(self, row: int, col: int):
         if self._initialized and self._editable:
             if col != self._type_column:
-                _, invalid_row, message = self._check_column(col, False, self._columns_to_check.get(col, True))
-                if invalid_row == row:
+                status, invalid_row, message = self._check_column(col, self._columns_to_check.get(col, True))
+                if status != self._OK:
                     utils.gui.show_error(message, parent=self._owner)
-                else:
-                    ok, message = self._check_cell_format(row, col)
-                    if not ok:
-                        utils.gui.show_error(message, parent=self._owner)
 
             if row not in self._added_rows:
                 if self.get_value(row) != self._values[row][0]:
                     self._changed_rows.add(row)
                 elif row in self._changed_rows:
                     self._changed_rows.remove(row)
+
             if self._cell_changed is not None:
                 text = self._table.item(row, col).text() if col != self._type_column else \
                     self._table.cellWidget(row, col).currentText()

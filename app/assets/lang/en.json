@@ -270,8 +270,7 @@
         "error": {
           "saving": "An error occured! Some changes may not have been saved.",
           "empty_cell": "Cell is empty!",
-          "duplicate_value": "Value is already used! Please choose another.",
-          "invalid_tag_type_name": "Type label should only be letters, digits or “_”!",
+          "duplicate_value": "Value is already used on row {row}! Please choose another.",
           "invalid_tag_type_symbol": "Symbol should only be one character long and any character except letters, digits, “_”, “+”, “-”, “:”, “(” and “)”!",
           "invalid_tag_name": "Tag label should only be letters, digits or “_”!",
           "duplicate_tag_name": "A tag with this name already exists!"

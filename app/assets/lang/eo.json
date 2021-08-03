@@ -270,8 +270,7 @@
         "error": {
           "saving": "Eraro aperis! Kelkaj ŝanĝoj ne aplikiĝis.",
           "empty_cell": "La ĉelo malplenas!",
-          "duplicate_value": "Tiu valoro jam estas uzata! Bonvolu elekti alian.",
-          "invalid_tag_type_name": "Tipnomoj nur povas enhavi leterojn, ciferojn aŭ “_”!",
+          "duplicate_value": "Tiu valoro jam estas uzata en la vicio {row}! Bonvolu elekti alian.",
           "invalid_tag_type_symbol": "Tipsimboloj devas enhavi nur unu signon. Leteroj, ciferoj, “_”, “+”, “-”, “:”, “(” kaj “)” estas malpermesitaj.",
           "invalid_tag_name": "Etikednomoj nur povas enhavi leterojn, ciferojn aŭ “_”!",
           "duplicate_tag_name": "Samnoma etikedo jam ekzistas!"
