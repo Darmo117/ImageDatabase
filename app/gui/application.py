@@ -582,6 +582,8 @@ class Application(QtW.QMainWindow):
                     utils.gui.show_info(message)
                 cls().show()
                 sys.exit(app.exec_())
+        except SystemExit:
+            raise
         except BaseException as e:
             logger.exception(e)
             print(e, file=sys.stderr)
