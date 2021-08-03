@@ -153,12 +153,12 @@
             "replacement": "Anstataŭo"
           },
           "tags_replacer": {
-            "title": "",
-            "tag_to_replace": "",
-            "replacement_tag": "",
-            "delete_tag_after": "",
+            "title": "Anstataŭigi etiketon",
+            "tag_to_replace": "Anstataŭi:",
+            "replacement_tag": "Per:",
+            "delete_tag_after": "Forigi etikedon post anstataŭado",
             "replace_tag_button": {
-              "label": ""
+              "label": "Anstataŭigi"
             }
           }
         }

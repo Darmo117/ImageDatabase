@@ -130,7 +130,8 @@ class OperationsDialog(_dialog_base.Dialog):
         tag_to_repl = self._tag_to_replace_input.text()
         repl_tag = self._replacement_tag_input.text()
         self._paths_apply_button.setDisabled(not regex)
-        self._tags_apply_button.setDisabled(tag_to_repl not in self._tags or repl_tag not in self._tags)
+        self._tags_apply_button.setDisabled(tag_to_repl not in self._tags
+                                            or (repl_tag != '' and repl_tag not in self._tags))
         self._state.regex = regex
         self._state.replacement = self._replacement_input.text()
         self._state.tag_to_replace = tag_to_repl
@@ -150,7 +151,7 @@ class OperationsDialog(_dialog_base.Dialog):
             to_replace = None
             replacement = None
 
-        if to_replace and replacement:
+        if to_replace:
             delete_tag_after = mode == _WorkerThread.TAGS and self._delete_tag_after.isChecked()
             self._thread = _WorkerThread(to_replace, replacement, mode, delete_tag_after=delete_tag_after)
             self._thread.progress_signal.connect(self._on_progress_update)
@@ -289,10 +290,10 @@ class _WorkerThread(threads.WorkerThread):
             self._error = _t('thread.search.error.image_loading_error')
         else:
             tag_to_replace = tags_dao.get_tag_from_label(self._to_replace)
-            replacement_tag = tags_dao.get_tag_from_label(self._replacement)
+            replacement_tag = tags_dao.get_tag_from_label(self._replacement) if self._replacement else None
             if not tag_to_replace:
                 self._error = _t('thread.search.error.non_existent_tag', label=self._to_replace)
-            elif not replacement_tag:
+            elif self._replacement and not replacement_tag:
                 self._error = _t('thread.search.error.non_existent_tag', label=self._replacement)
             elif isinstance(tag_to_replace, model.CompoundTag):
                 self._error = _t('thread.search.error.compound_tag', label=self._to_replace)
@@ -307,7 +308,8 @@ class _WorkerThread(threads.WorkerThread):
                     self.progress_signal.emit(progress, (self._mode, image.path), self.STATUS_UNKNOWN)
                     tags = [tag for tag in image_dao.get_image_tags(image.id, tags_dao)
                             if tag.label not in (self._to_replace, self._replacement)]
-                    tags.append(replacement_tag)
+                    if replacement_tag:
+                        tags.append(replacement_tag)
                     ok = image_dao.update_image_tags(image.id, tags)
                     if ok:
                         self._affected += 1

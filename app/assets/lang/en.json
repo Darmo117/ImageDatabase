@@ -154,8 +154,8 @@
           },
           "tags_replacer": {
             "title": "Replace tag",
-            "tag_to_replace": "Tag to replace",
-            "replacement_tag": "Replace with…",
+            "tag_to_replace": "Replace:",
+            "replacement_tag": "With:",
             "delete_tag_after": "Delete tag after replacement",
             "replace_tag_button": {
               "label": "Replace"

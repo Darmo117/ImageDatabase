@@ -153,12 +153,12 @@
             "replacement": "Remplacer par"
           },
           "tags_replacer": {
-            "title": "",
-            "tag_to_replace": "",
-            "replacement_tag": "",
-            "delete_tag_after": "",
+            "title": "Remplacer une étiquette",
+            "tag_to_replace": "Remplacer :",
+            "replacement_tag": "Par :",
+            "delete_tag_after": "Supprimer l’étiquette après remplacement",
             "replace_tag_button": {
-              "label": ""
+              "label": "Remplacer"
             }
           }
         }
