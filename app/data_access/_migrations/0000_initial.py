@@ -40,14 +40,16 @@ def migrate(connection: sqlite3.Connection, thread: gui.threads.WorkerThread):
                 (data_access.ImageDao.encode_hash(image_hash) if image_hash is not None else None, ident)
             )
         except sqlite3.Error as e:
+            cursor.close()
             thread.error = str(e)
             thread.cancel()
-        thread.progress_signal.emit(
-            (i + 1) / total_rows,
-            _t(f'popup.database_update.migration_0000.hashing_image_text', image=path, index=i + 1,
-               total=total_rows),
-            thread.STATUS_SUCCESS
-        )
+        else:
+            thread.progress_signal.emit(
+                (i + 1) / total_rows,
+                _t(f'popup.database_update.migration_0000.hashing_image_text', image=path, index=i + 1,
+                   total=total_rows),
+                thread.STATUS_SUCCESS
+            )
     else:
         cursor.close()
         connection.commit()
