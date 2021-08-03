@@ -156,7 +156,7 @@ class Application(QtW.QMainWindow):
             'Ctrl+R'
         )
         self._replace_image_item = edit_menu.addAction(
-            utils.gui.icon('image-replace'),  # TODO find system icon
+            utils.gui.icon('image-replace'),
             _t('main_window.menu.edit.item.replace_image'),
             self._replace_image,
             'Ctrl+Shift+R'
@@ -168,7 +168,7 @@ class Application(QtW.QMainWindow):
             'Ctrl+M'
         )
         self._edit_images_item = edit_menu.addAction(
-            utils.gui.icon('image-edit'),  # TODO find system icon
+            utils.gui.icon('image-edit'),
             _t('main_window.menu.edit.item.edit_images'),
             lambda: self._edit_images(self._current_tab().selected_images()),
             'Ctrl+E'

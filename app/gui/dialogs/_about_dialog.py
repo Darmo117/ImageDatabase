@@ -23,7 +23,7 @@ class AboutDialog(_dialog_base.Dialog):
                          modal=True,
                          mode=_dialog_base.Dialog.CLOSE)
 
-    def _init_body(self) -> QtW.QLayout:  # TODO translate link menu
+    def _init_body(self) -> QtW.QLayout:
         self.setMinimumSize(200, 140)
 
         body = QtW.QHBoxLayout()
