@@ -90,7 +90,7 @@ class CommandLineDialog(_dialog_base.Dialog):
                         self._print_rows(rows, self._column_names)
                         rows.clear()
                         self._command_line.print(_t('SQL_console.display_more'))
-                        self._results_offset = i
+                        self._results_offset += i
                         break
                     upper_bound = min(self._results_offset + i + limit, self._results_total)
                     self._command_line.print(_t('SQL_console.results', start=self._results_offset + i + 1,
