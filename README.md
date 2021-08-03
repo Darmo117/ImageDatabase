@@ -11,6 +11,7 @@ Main features:
 - Tag completion in queries and image tags editor
 - Export query results as “playlists” (XML files)
 - Apply pattern-based transformations to images paths
+- Replace a tag by another on all concerned images at once
 - List similar images (hash-based)
 - Fully translated interface, available in English, French, and Esperanto
 - Integrated SQL console
