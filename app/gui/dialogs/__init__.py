@@ -5,4 +5,5 @@ from ._edit_image_dialog import EditImageDialog
 from ._edit_tags_dialog import EditTagsDialog
 from ._move_images_dialog import MoveImagesDialog
 from ._operations_dialog import OperationsDialog
+from ._progress_dialog import ProgressDialog
 from ._settings_dialog import SettingsDialog

@@ -4,8 +4,6 @@ import shutil
 import sqlite3
 import typing as typ
 
-import PyQt5.QtWidgets as QtW
-
 from ._migrations import migrations
 from .. import config, constants, gui, utils
 from ..i18n import translate as _t
@@ -38,7 +36,7 @@ def update_database_if_needed() -> typ.Tuple[typ.Optional[bool], typ.Optional[st
     if not setup and not utils.gui.show_question(_t('popup.update_needed.text')):  # Update cancelled
         return None, None
 
-    progress_dialog = QtW.QProgressDialog('', _t('dialog.common.cancel_button.label'), 0, 100)
+    progress_dialog = gui.ProgressDialog()
     progress_dialog.setWindowTitle(_t('popup.database_update.title'))
 
     def update_progress(progress: float, data: str, _):

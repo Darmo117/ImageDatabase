@@ -231,9 +231,10 @@ class Application(QtW.QMainWindow):
     def _apply_transformation(self):
         def _on_close(d: dialogs.OperationsDialog):
             self._operations_dialog_state = d.state
-            self._fetch_images()
+            self._fetch_and_refresh()
 
-        dialog = dialogs.OperationsDialog(state=self._operations_dialog_state, parent=self)
+        tags = list(map(lambda t: t.label, self._tags_dao.get_all_tags(tag_class=model.Tag, sort_by_label=True)))
+        dialog = dialogs.OperationsDialog(tags, state=self._operations_dialog_state, parent=self)
         dialog.set_on_close_action(_on_close)
         dialog.show()
 

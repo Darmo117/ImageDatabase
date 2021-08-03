@@ -151,6 +151,15 @@
             "description": "Vous pouvez effectuer une opération substitution sur les chemins des images qui correspondent à la valeur du premier champs. Supporte les expressions régulières.",
             "regex": "Chercher",
             "replacement": "Remplacer par"
+          },
+          "tags_replacer": {
+            "title": "",
+            "tag_to_replace": "",
+            "replacement_tag": "",
+            "delete_tag_after": "",
+            "replace_tag_button": {
+              "label": ""
+            }
           }
         }
       },
@@ -464,6 +473,10 @@
           "image_loading_error": "Les images n’ont pas pu être chargées !",
           "max_recursion": "Profondeur de récursion maximale ({max_depth}) atteinte !"
         }
+      },
+      "perform_operation": {
+        "non_existent_tag": "L’étiquette « {label} » n’existe pas !",
+        "compound_tag": "Les étiquettes composées ne sont pas autorisées !"
       }
     },
     "query_parser": {

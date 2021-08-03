@@ -8,7 +8,7 @@ import PyQt5.QtWidgets as QtW
 
 from app import utils, data_access, config, model
 from app.i18n import translate as _t
-from . import _dialog_base
+from . import _dialog_base, _progress_dialog
 from .. import components, threads
 
 
@@ -127,16 +127,7 @@ class MoveImagesDialog(_dialog_base.Dialog):
         self.close()
 
     def _apply(self) -> bool:
-        self._progress_dialog = QtW.QProgressDialog(
-            '',
-            _t('dialog.common.cancel_button.label'),
-            0,
-            100,
-            parent=self
-        )
-        self._progress_dialog.setWindowTitle(_t('popup.progress.title'))
-        self._progress_dialog.setMinimumDuration(500)
-        self._progress_dialog.setModal(True)
+        self._progress_dialog = _progress_dialog.ProgressDialog(parent=self)
 
         destination = pathlib.Path(self._destination_input.text()).absolute()
         self._thread = _WorkerThread(self._images, destination, self._delete_empty_dirs_check.isChecked())

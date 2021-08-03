@@ -151,6 +151,15 @@
             "description": "You can perform a substitution operation on the paths of all images that match the given pattern. Supports regular expressions.",
             "regex": "Pattern",
             "replacement": "Replacement"
+          },
+          "tags_replacer": {
+            "title": "Replace tag",
+            "tag_to_replace": "Tag to replace",
+            "replacement_tag": "Replace with…",
+            "delete_tag_after": "Delete tag after replacement",
+            "replace_tag_button": {
+              "label": "Replace"
+            }
           }
         }
       },
@@ -461,6 +470,10 @@
           "image_loading_error": "Failed to load images!",
           "max_recursion": "Maximum recursion depth of {max_depth} reached!"
         }
+      },
+      "perform_operation": {
+        "non_existent_tag": "Tag “{label}” does not exist!",
+        "compound_tag": "Compound tags are not allowed!"
       }
     },
     "query_parser": {

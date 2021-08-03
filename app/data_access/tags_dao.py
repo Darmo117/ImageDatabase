@@ -59,6 +59,26 @@ class TagsDao(DAO):
         tag_type = self.get_tag_type_from_symbol(s[0]) if has_type else None
         return model.Tag(0, label, tag_type)
 
+    def get_tag_from_label(self, label: str) -> typ.Optional[model.Tag]:
+        """Returns the tag that has the given label.
+
+        :param label:
+        :return:
+        """
+        cursor = self._connection.cursor()
+        try:
+            cursor.execute('SELECT id, label, definition, type_id FROM tags WHERE label = ?', (label,))
+        except sqlite3.Error as e:
+            logger.exception(e)
+            cursor.close()
+            return None
+        else:
+            results = cursor.fetchall()
+            cursor.close()
+            if results:
+                return self._get_tag(results[0])
+            return None
+
     def get_tag_type_from_symbol(self, symbol: str) -> typ.Optional[model.TagType]:
         """Returns the type with from the given symbol.
 
@@ -317,9 +337,25 @@ class TagsDao(DAO):
             cursor.close()
             return True
 
+    def _get_tag(self, result: typ.Tuple[int, str, typ.Optional[str], typ.Optional[int]]) -> model.Tag:
+        """Creates a Tag object based on the given result tuple."""
+        if result[2]:
+            return model.CompoundTag(
+                ident=result[0],
+                label=result[1],
+                definition=result[2],
+                tag_type=self.get_tag_type_from_id(result[3]) if result[3] is not None else None
+            )
+        else:
+            return model.Tag(
+                ident=result[0],
+                label=result[1],
+                tag_type=self.get_tag_type_from_id(result[3]) if result[3] is not None else None
+            )
+
     @staticmethod
     def _get_tag_type(result: typ.Tuple[int, str, str, int]) -> model.TagType:
-        """Creates an TagType object based on the given result tuple."""
+        """Creates a TagType object based on the given result tuple."""
         return model.TagType(
             ident=result[0],
             label=result[1],

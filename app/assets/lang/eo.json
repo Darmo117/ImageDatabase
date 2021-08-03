@@ -151,6 +151,15 @@
             "description": "Vi povas anstataŭigi erojn de bildindikoj per alia. Se vi alklakas “Apliki”, la anstataŭo aplikos al ĉiu bildindiko, kio kongruas al la ŝablono.",
             "regex": "Ŝablono",
             "replacement": "Anstataŭo"
+          },
+          "tags_replacer": {
+            "title": "",
+            "tag_to_replace": "",
+            "replacement_tag": "",
+            "delete_tag_after": "",
+            "replace_tag_button": {
+              "label": ""
+            }
           }
         }
       },
@@ -464,6 +473,10 @@
           "image_loading_error": "La bildoj ne povas ŝargi!",
           "max_recursion": "La maksimuma profundo ({max_depth}) estas atingita!"
         }
+      },
+      "perform_operation": {
+        "non_existent_tag": "La etikedo “{label}” ne ekzistas!",
+        "compound_tag": "Kunmetetikedoj estas malpermesitaj!"
       }
     },
     "query_parser": {
