@@ -130,7 +130,7 @@ class OperationsDialog(_dialog_base.Dialog):
         tag_to_repl = self._tag_to_replace_input.text()
         repl_tag = self._replacement_tag_input.text()
         self._paths_apply_button.setDisabled(not regex)
-        self._tags_apply_button.setDisabled(tag_to_repl not in self._tags
+        self._tags_apply_button.setDisabled(tag_to_repl not in self._tags or tag_to_repl == repl_tag
                                             or (repl_tag != '' and repl_tag not in self._tags))
         self._state.regex = regex
         self._state.replacement = self._replacement_input.text()
