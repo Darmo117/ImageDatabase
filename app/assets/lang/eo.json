@@ -429,6 +429,30 @@
       },
       "directories_deletion_errors": {
         "text": "La ĉi-sube dosierujoj ne povis esti forigitaj:\n{errors}"
+      },
+      "progress": {
+        "title": "Progress",
+        "status_label": "Status:",
+        "status": {
+          "success": "Success",
+          "failed": "Failed",
+          "unknown": "N/A"
+        }
+      },
+      "update_needed": {
+        "text": "La datumbazo necesas ĝisdatigi sin. Ĉu vi volas daŭrigi?\nSavkopio estos farita. Vi povas interrompi la ĝisdatigadon iam ajn."
+      },
+      "database_update": {
+        "title": "Ĝisdatigado de la datumbazo",
+        "migration_0000": {
+          "hashing_image_text": "Haketado de la bildo {index}/{total}:\n{image}"
+        }
+      },
+      "update_cancelled": {
+        "text": "La datumbaza ĝisdatigado estis nuligita."
+      },
+      "database_updated": {
+        "text": "La datumbaza ĝisdatigado sukcesis!"
       }
     },
     "thread": {

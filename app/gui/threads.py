@@ -39,3 +39,8 @@ class WorkerThread(QtC.QThread):
     def error(self) -> typ.Optional[str]:
         """If the operation failed, returns the reason; otherwise returns None."""
         return self._error
+
+    @error.setter
+    def error(self, value: str):
+        """Sets the error message."""
+        self._error = value

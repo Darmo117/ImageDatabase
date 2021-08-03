@@ -429,6 +429,30 @@
       },
       "directories_deletion_errors": {
         "text": "Les dossiers ci-dessous n’ont pas pu être supprimés :\n{errors}"
+      },
+      "progress": {
+        "title": "Progress",
+        "status_label": "Status:",
+        "status": {
+          "success": "Success",
+          "failed": "Failed",
+          "unknown": "N/A"
+        }
+      },
+      "update_needed": {
+        "text": "La base de données doit être mise à jour. Voulez-vous continuer ?\nUne sauvegarde sera effectuée. La mise à jour peut être interrompue à tout moment."
+      },
+      "database_update": {
+        "title": "Mise à jour de la base de données",
+        "migration_0000": {
+          "hashing_image_text": "Hashage de l’image {index}/{total} :\n{image}"
+        }
+      },
+      "update_cancelled": {
+        "text": "La mise à jour de la base de données a été annulée."
+      },
+      "database_updated": {
+        "text": "La base de données a été mise à jour !"
       }
     },
     "thread": {

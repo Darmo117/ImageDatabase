@@ -435,6 +435,21 @@
           "failed": "Failed",
           "unknown": "N/A"
         }
+      },
+      "update_needed": {
+        "text": "The database needs to update. Do you want to proceed?\nA backup will be created. You can stop the update at any moment."
+      },
+      "database_update": {
+        "title": "Updating database",
+        "migration_0000": {
+          "hashing_image_text": "Hashing image {index}/{total}:\n{image}"
+        }
+      },
+      "update_cancelled": {
+        "text": "Database update was cancelled."
+      },
+      "database_updated": {
+        "text": "Database was updated successfully!"
       }
     },
     "thread": {

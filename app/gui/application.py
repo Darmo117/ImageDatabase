@@ -561,24 +561,31 @@ class Application(QtW.QMainWindow):
     @classmethod
     def run(cls):
         """Run an instance of this Application class."""
+
         try:
             if os.name == 'nt':
                 # Arbitrary string to display app icon in the taskbar on Windows.
                 ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID('image_library')
 
             config.load_config()
-
-            da.update_database_if_needed()
-
             app = QtW.QApplication(sys.argv)
-
-            cls().show()
+            success, message = da.update_database_if_needed()
+            if success is None:  # Update cancelled
+                if message:
+                    utils.gui.show_info(message)
+                sys.exit(-2)
+            elif not success:  # Update failed
+                utils.gui.show_error(message)
+                sys.exit(-3)
+            else:
+                if message:  # Update successed
+                    utils.gui.show_info(message)
+                cls().show()
+                sys.exit(app.exec_())
         except BaseException as e:
             logger.exception(e)
             print(e, file=sys.stderr)
-            sys.exit(-2)
-        else:
-            sys.exit(app.exec_())
+            sys.exit(-1)
 
 
 class _SearchThread(QtC.QThread):
