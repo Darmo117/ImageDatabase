@@ -239,7 +239,15 @@ class Canvas(QtW.QGraphicsView):
         if image_path.exists():
             ext = os.path.splitext(image_path.name)[1]
             self._image = QtG.QPixmap(str(image_path), format=ext)
-            self.scene().addPixmap(self._image)
+            reader = QtG.QImageReader(str(image_path))
+            if reader.imageCount() <= 1:
+                self.scene().addPixmap(self._image)
+            else:
+                gif_anim = QtW.QLabel()  # Must not set parent
+                movie = QtG.QMovie(str(image_path), parent=gif_anim)
+                gif_anim.setMovie(movie)
+                movie.start()
+                self.scene().addWidget(gif_anim)
             self.fit()
             border = '0'
         else:

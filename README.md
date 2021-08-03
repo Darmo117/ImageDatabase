@@ -16,8 +16,6 @@ Main features:
 - Integrated SQL console
 - Database auto-update
 
-*GIFs are not animated because I don’t know how to do that yet. Any help would be really appreciated!*
-
 ## Installation
 
 Image Library is *not* available on PyPI. Might be some day… I dunno… When I take the time to look into that.
