@@ -305,6 +305,7 @@ class EllipsisLabel(QtW.QLabel):
     def mouseReleaseEvent(self, event: QtG.QMouseEvent):
         if self._on_click:
             self._on_click(self)
+        super().mouseReleaseEvent(event)
 
 
 class LabelWithIcon(QtW.QWidget):
