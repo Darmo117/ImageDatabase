@@ -1,5 +1,4 @@
 """Utility functions to display popup messages and file dialogs, and various functions related to Qt."""
-import os
 import pathlib
 import platform
 import subprocess
@@ -8,6 +7,7 @@ import typing as typ
 import PyQt5.QtGui as QtG
 import PyQt5.QtWidgets as QtW
 
+from . import files
 from .. import constants, config
 from ..i18n import translate as _t
 
@@ -155,9 +155,8 @@ def open_file_chooser(single_selection: bool, mode: int, parent: QtW.QWidget = N
 
     if selection:
         def check_ext(p: str) -> bool:
-            ext = os.path.splitext(p)[1].lower()[1:]
-            return ((mode == FILTER_IMAGES and ext in constants.IMAGE_FILE_EXTENSIONS)
-                    or (mode == FILTER_DB and ext == 'sqlite3'))
+            return ((mode == FILTER_IMAGES and files.accept_image_file(p))
+                    or (mode == FILTER_DB and files.get_extension(p) == 'sqlite3'))
 
         # Check extensions if user removed filter
         if single_selection:
@@ -203,8 +202,7 @@ def open_directory_chooser(parent: QtW.QWidget = None) -> typ.Optional[typ.List[
         options=options
     )
     if directory:
-        return [pathlib.Path(f).absolute() for f in pathlib.Path(directory).glob('*.*')
-                if os.path.splitext(f.name)[1].lower()[1:] in constants.IMAGE_FILE_EXTENSIONS]
+        return [f.absolute() for f in pathlib.Path(directory).glob('*.*') if files.accept_image_file(f)]
     return None
 
 

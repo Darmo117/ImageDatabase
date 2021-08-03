@@ -313,7 +313,7 @@ class Application(QtW.QMainWindow):
         images = self._current_tab().selected_images()
         if len(images) == 1:
             image = images[0]
-            file_name, ext = os.path.splitext(os.path.basename(image.path))
+            file_name, ext = os.path.splitext(image.path.name)
             new_name = utils.gui.show_text_input(_t('popup.rename_image.text'), _t('popup.rename_image.title'),
                                                  text=file_name, parent=self)
             if new_name is not None and file_name != new_name:
@@ -535,7 +535,7 @@ class Application(QtW.QMainWindow):
             except ValueError:
                 event.ignore()
             else:
-                if all(map(lambda f: os.path.splitext(f.name)[1].lower()[1:] in constants.IMAGE_FILE_EXTENSIONS, urls)):
+                if utils.files.accept_image_files(urls):
                     event.accept()
                 else:
                     event.ignore()

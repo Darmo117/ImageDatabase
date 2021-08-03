@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import os
 import pathlib
 import typing as typ
 
@@ -237,7 +236,7 @@ class Canvas(QtW.QGraphicsView):
         """
         self.setScene(QtW.QGraphicsScene())
         if image_path.exists():
-            ext = os.path.splitext(image_path.name)[1]
+            ext = utils.files.get_extension(image_path.name)
             self._image = QtG.QPixmap(str(image_path), format=ext)
             reader = QtG.QImageReader(str(image_path))
             if reader.imageCount() <= 1:
