@@ -121,7 +121,7 @@
         "box": {
           "database": {
             "title": "Base de données",
-            "db_path_warning": "Ce fichier de base de données n’existe pas. Il sera créé au prochain lancement de l’application.",
+            "db_path_warning": "Ce fichier de base de données n’existe pas.\nIl sera créé au prochain lancement de l’application.",
             "db_path": {
               "label": "Fichier de base de données"
             },

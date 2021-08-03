@@ -32,6 +32,9 @@ class SettingsDialog(_dialog_base.Dialog):
         retain_size = self._db_path_warning_label.sizePolicy()
         retain_size.setRetainSizeWhenHidden(True)
         self._db_path_warning_label.setSizePolicy(retain_size)
+        font = self._db_path_warning_label.font()
+        font.setPointSizeF(font.pointSizeF() * 0.8)
+        self._db_path_warning_label.setFont(font)
         db_box_layout.addWidget(self._db_path_warning_label, 0, 0, 1, 3)
 
         db_box_layout.addWidget(QtW.QLabel(_t('dialog.settings.box.database.db_path.label')), 1, 0)
@@ -110,7 +113,7 @@ class SettingsDialog(_dialog_base.Dialog):
         layout.addStretch()
 
         self.setMinimumSize(300, 300)
-        self.setGeometry(0, 0, 400, 400)
+        self.setGeometry(0, 0, 450, 420)
 
         body_layout = QtW.QVBoxLayout()
         scroll = QtW.QScrollArea(parent=self)

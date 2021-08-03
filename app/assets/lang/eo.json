@@ -121,7 +121,7 @@
         "box": {
           "database": {
             "title": "Datumbazo",
-            "db_path_warning": "Tiu datumbaza dosiero ne ekzistas. Ĝi estos kreita kiam vi restartos la programon.",
+            "db_path_warning": "Tiu datumbaza dosiero ne ekzistas.\nĜi estos kreita kiam vi restartos la programon.",
             "db_path": {
               "label": "Datumbaza diosiero"
             },

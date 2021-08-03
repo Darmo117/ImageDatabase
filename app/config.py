@@ -12,7 +12,7 @@ class ConfigError(ValueError):
 
 
 _DEFAULT_LANG_CODE = 'en'
-_DEFAULT_DB_PATH = pathlib.Path('library.sqlite3')
+_DEFAULT_DB_PATH = pathlib.Path('library.sqlite3').absolute()
 _DEFAULT_LOAD_THUMBS = True
 _DEFAULT_THUMBS_SIZE = 200
 _DEFAULT_THUMBS_LOAD_THRESHOLD = 50
@@ -189,7 +189,8 @@ def load_config():
                                   f'{constants.MIN_THUMB_LOAD_THRESHOLD}px and {constants.MAX_THUMB_LOAD_THRESHOLD}px')
 
             # Database section
-            database_path = pathlib.Path(config_parser.get(_DB_SECTION, _FILE_KEY, fallback=_DEFAULT_DB_PATH))
+            database_path = pathlib.Path(
+                config_parser.get(_DB_SECTION, _FILE_KEY, fallback=_DEFAULT_DB_PATH)).absolute()
         except ValueError as e:
             raise ConfigError(e)
         except KeyError as e:

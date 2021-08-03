@@ -35,7 +35,7 @@ def update_database_if_needed() -> typ.Tuple[typ.Optional[bool], typ.Optional[st
     if db_version == len(migrations):  # DB up to date, return now
         return True, None
 
-    if not utils.gui.show_question(_t('popup.update_needed.text')):  # Update cancelled
+    if not setup and not utils.gui.show_question(_t('popup.update_needed.text')):  # Update cancelled
         return None, None
 
     progress_dialog = QtW.QProgressDialog('', _t('dialog.common.cancel_button.label'), 0, 100)
@@ -59,7 +59,7 @@ def update_database_if_needed() -> typ.Tuple[typ.Optional[bool], typ.Optional[st
         message = _t('popup.update_cancelled.text')
         status = None
     else:
-        message = _t('popup.database_updated.text')
+        message = _t('popup.database_updated.text') if not setup else None
         status = True
 
     return status, message
