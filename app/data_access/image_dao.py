@@ -366,7 +366,6 @@ class ImageDao(DAO):
         SELECT id, path, hash
         FROM images
         WHERE hash IS NOT NULL
-          AND path != "{0}"
           AND SIMILAR(hash, (
             SELECT hash
             FROM images
