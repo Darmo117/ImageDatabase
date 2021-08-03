@@ -211,6 +211,8 @@ class ThumbnailList(flow_layout.ScrollingFlowWidget, ImageListView):
         self._selection_changed = on_selection_changed
         self._on_item_double_clicked = on_item_double_clicked
         self._last_index = -1
+        bg_color = QtW.QApplication.palette().color(QtG.QPalette.Normal, QtG.QPalette.Base)
+        self.setStyleSheet(f'background-color: {bg_color.name()}')
         self._init_contextual_menu()
 
     def _on_selection_changed(self):
@@ -379,8 +381,8 @@ class _FlowImageItem(QtW.QFrame, ImageItem):
             bg_color = QtW.QApplication.palette().color(QtG.QPalette.Active, QtG.QPalette.Highlight)
             fg_color = QtW.QApplication.palette().color(QtG.QPalette.Active, QtG.QPalette.HighlightedText)
         else:
-            bg_color = QtW.QApplication.palette().color(QtG.QPalette.Normal, QtG.QPalette.Window)
-            fg_color = QtW.QApplication.palette().color(QtG.QPalette.Normal, QtG.QPalette.WindowText)
+            bg_color = QtW.QApplication.palette().color(QtG.QPalette.Normal, QtG.QPalette.Base)
+            fg_color = QtW.QApplication.palette().color(QtG.QPalette.Normal, QtG.QPalette.Text)
         self.setStyleSheet(f'background-color: {bg_color.name()}; color: {fg_color.name()}')
 
     def mousePressEvent(self, event: QtG.QMouseEvent):
