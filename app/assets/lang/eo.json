@@ -326,11 +326,17 @@
       "question": {
         "title": "Demando"
       },
+      "no_files_selected": {
+        "text": "Neniom da dosieroj selektitaj!"
+      },
       "empty_directory": {
         "text": "Tiu dosierujo ne enhavas bildojn!"
       },
-      "no_files_selected": {
-        "text": "Neniom da dosieroj selektitaj!"
+      "no_files_found": {
+        "text": "Neniom da bildoj estis trovitaj!"
+      },
+      "maximum_recursion": {
+        "text": "Maksimuma profundeco de serĉado da {depth} subdosierujoj estas atingita!"
       },
       "image_registered": {
         "text": "Tiu bildo estas registrata."
@@ -357,9 +363,6 @@
           "images": "Bildo",
           "database": "Datumbazo"
         }
-      },
-      "open_directory_chooser": {
-        "caption": "Ovri dosierujon"
       },
       "directory_chooser": {
         "caption": "Selekti dosierujon"

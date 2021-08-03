@@ -187,26 +187,7 @@ def open_playlist_saver(parent: typ.Optional[QtW.QWidget] = None) -> typ.Optiona
     return pathlib.Path(file).absolute() if file else None
 
 
-def open_directory_chooser(parent: QtW.QWidget = None) -> typ.Optional[typ.List[pathlib.Path]]:
-    """Opens a directory chooser then returns all the image files it contains.
-
-    :param parent: Chooser’s parent.
-    :return: All image file paths directly inside the chosen directory or None if the chooser was cancelled.
-    """
-    options = QtW.QFileDialog.ShowDirsOnly
-    if config.CONFIG.debug:
-        options |= QtW.QFileDialog.DontUseNativeDialog
-    directory = QtW.QFileDialog.getExistingDirectory(
-        caption=_t('popup.open_directory_chooser.caption'),
-        parent=parent,
-        options=options
-    )
-    if directory:
-        return [f.absolute() for f in pathlib.Path(directory).glob('*.*') if files.accept_image_file(f)]
-    return None
-
-
-def choose_directory(parent: QtW.QWidget = None) -> typ.Optional[pathlib.Path]:
+def open_directory_chooser(parent: QtW.QWidget = None) -> typ.Optional[pathlib.Path]:
     """Opens a directory chooser.
 
     :param parent: Chooser’s parent.

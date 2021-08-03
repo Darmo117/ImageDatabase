@@ -255,7 +255,7 @@ class EditImageDialog(_dialog_base.Dialog):
         if self._mode == EditImageDialog.REPLACE:
             destination = utils.gui.open_file_chooser(single_selection=True, mode=utils.gui.FILTER_IMAGES, parent=self)
         else:
-            destination = utils.gui.choose_directory(parent=self)
+            destination = utils.gui.open_directory_chooser(parent=self)
         if destination:
             if self._mode == EditImageDialog.REPLACE:
                 img = self._images[0]

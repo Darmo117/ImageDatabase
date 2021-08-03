@@ -326,11 +326,17 @@
       "question": {
         "title": "Question"
       },
+      "no_files_selected": {
+        "text": "Aucune image sélectionnée !"
+      },
       "empty_directory": {
         "text": "Ce dossier ne contient aucune image !"
       },
-      "no_files_selected": {
-        "text": "Aucune image sélectionnée !"
+      "no_files_found": {
+        "text": "Aucune image n’a pu être trouvée !"
+      },
+      "maximum_recursion": {
+        "text": "La limite de profondeur de recherche de {depth} sous-dossiers a été atteinte !"
       },
       "image_registered": {
         "text": "Cette image a déjà été enregistrée."
@@ -357,9 +363,6 @@
           "images": "Image",
           "database": "Base de données"
         }
-      },
-      "open_directory_chooser": {
-        "caption": "Ouvrir un dossier"
       },
       "directory_chooser": {
         "caption": "Choisir un dossier"

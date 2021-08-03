@@ -79,7 +79,7 @@ class MoveImagesDialog(_dialog_base.Dialog):
             selection = utils.gui.open_file_chooser(
                 single_selection=single_selection, mode=utils.gui.FILTER_IMAGES, parent=self)
         else:
-            selection = utils.gui.choose_directory(parent=self)
+            selection = utils.gui.open_directory_chooser(parent=self)
         return selection
 
     def _update_ui(self):

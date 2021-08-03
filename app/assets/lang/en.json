@@ -326,11 +326,17 @@
       "question": {
         "title": "Question"
       },
+      "no_files_selected": {
+        "text": "No files selected!"
+      },
       "empty_directory": {
         "text": "No images in this directory!"
       },
-      "no_files_selected": {
-        "text": "No files selected!"
+      "no_files_found": {
+        "text": "No images found!"
+      },
+      "maximum_recursion": {
+        "text": "Maximum search depth of {depth} sub-directories has been reached!"
       },
       "image_registered": {
         "text": "This image has already been registered."
@@ -357,9 +363,6 @@
           "images": "Image file",
           "database": "Database file"
         }
-      },
-      "open_directory_chooser": {
-        "caption": "Open Directory"
       },
       "directory_chooser": {
         "caption": "Choose Directory"

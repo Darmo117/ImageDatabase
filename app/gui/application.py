@@ -229,8 +229,8 @@ class Application(QtW.QMainWindow):
         dialog.show()
 
     def _apply_transformation(self):
-        def _on_close(dialog: dialogs.OperationsDialog):
-            self._operations_dialog_state = dialog.state
+        def _on_close(d: dialogs.OperationsDialog):
+            self._operations_dialog_state = d.state
             self._fetch_images()
 
         dialog = dialogs.OperationsDialog(state=self._operations_dialog_state, parent=self)
@@ -258,12 +258,16 @@ class Application(QtW.QMainWindow):
 
     def _add_directory(self):
         """Opens a file chooser then adds the images from the selected directory to the database."""
-        files = utils.gui.open_directory_chooser(parent=self)
-        if files is not None:
-            if len(files) == 0:
-                utils.gui.show_info(_t('popup.empty_directory.text'), parent=self)
+        if directory := utils.gui.open_directory_chooser(parent=self):
+            try:
+                files = utils.files.get_files_from_directory(directory)
+            except RecursionError as e:
+                utils.gui.show_error(_t('popup.maximum_recursion.text', depth=str(e)), parent=self)
             else:
-                self._add_images(files)
+                if not files:
+                    utils.gui.show_info(_t('popup.empty_directory.text'), parent=self)
+                else:
+                    self._add_images(files)
 
     def _add_images(self, image_paths: typ.List[pathlib.Path]):
         """Opens the 'Add Images' dialog then adds the images to the database.
@@ -462,7 +466,7 @@ class Application(QtW.QMainWindow):
             self._input_field.setEnabled(True)
         else:
             images = self._thread.fetched_images
-            images.sort(key=lambda i: i.path)
+            images.sort(key=lambda i_: i_.path)
 
             if config.CONFIG.load_thumbnails:
                 load_thumbs = True
@@ -519,44 +523,59 @@ class Application(QtW.QMainWindow):
 
     def dropEvent(self, event: QtG.QDropEvent):
         # No need to check for ValueError of _get_urls as it is already handled in dragEnterEvent and dragMoveEvent
-        self._add_images(self._get_urls(event))
+        files = []
+        for path in self._get_paths(event):
+            if path.is_file():
+                files.append(path)
+            else:
+                try:
+                    files.extend(utils.files.get_files_from_directory(path))
+                except RecursionError as e:
+                    utils.gui.show_error(_t('popup.maximum_recursion.text', depth=str(e)), parent=self)
+                    break
+        else:
+            if not files:
+                utils.gui.show_info(_t('popup.no_files_found.text'), parent=self)
+            else:
+                self._add_images(files)
 
     @staticmethod
     def _check_drag(event: QtG.QDragMoveEvent):
-        """
-        Checks the validity of files dragged into this list. If at least one file has an extension that is not in the
-        config.FILE_EXTENSION array, the event is cancelled.
+        """Checks the validity of files/directories dragged into this list.
+        If at least one file has an extension that is not in the
+        config.IMAGE_FILE_EXTENSIONS list, the event is cancelled.
 
         :param event: The drag event.
         """
         if event.mimeData().hasUrls():
             try:
-                urls = Application._get_urls(event)
+                paths = Application._get_paths(event)
             except ValueError:
                 event.ignore()
             else:
-                if utils.files.accept_image_files(urls):
-                    event.accept()
+                for path in paths:
+                    if not path.is_dir() and not utils.files.accept_image_file(path):
+                        event.ignore()
+                        break
                 else:
-                    event.ignore()
+                    event.accept()
         else:
             event.ignore()
 
     @staticmethod
-    def _get_urls(event: QtG.QDropEvent) -> typ.List[pathlib.Path]:
-        """
-        Extracts all file URLs from the drop event.
+    def _get_paths(event: QtG.QDropEvent) -> typ.List[pathlib.Path]:
+        """Extracts all file paths from the drop event.
 
         :param event: The drop event.
-        :return: URLs of dropped files.
+        :return: Paths of dropped files.
         :raises ValueError: If one of the URLs is not a local file.
         """
-        urls = []
+        paths = []
         for url in event.mimeData().urls():
             if not url.isLocalFile():
                 raise ValueError(_t('main_window.error.remote_URL'))
-            urls.append(pathlib.Path(url.toLocalFile()).absolute())
-        return urls
+            paths.append(pathlib.Path(url.toLocalFile()).absolute())
+        return paths
 
     @classmethod
     def run(cls):
