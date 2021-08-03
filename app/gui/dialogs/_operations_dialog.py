@@ -292,13 +292,13 @@ class _WorkerThread(threads.WorkerThread):
             tag_to_replace = tags_dao.get_tag_from_label(self._to_replace)
             replacement_tag = tags_dao.get_tag_from_label(self._replacement) if self._replacement else None
             if not tag_to_replace:
-                self._error = _t('thread.search.error.non_existent_tag', label=self._to_replace)
+                self._error = _t('thread.perform_operations.error.non_existent_tag', label=self._to_replace)
             elif self._replacement and not replacement_tag:
-                self._error = _t('thread.search.error.non_existent_tag', label=self._replacement)
+                self._error = _t('thread.perform_operations.error.non_existent_tag', label=self._replacement)
             elif isinstance(tag_to_replace, model.CompoundTag):
-                self._error = _t('thread.search.error.compound_tag', label=self._to_replace)
+                self._error = _t('thread.perform_operations.error.compound_tag', label=self._to_replace)
             elif isinstance(replacement_tag, model.CompoundTag):
-                self._error = _t('thread.search.error.compound_tag', label=self._replacement)
+                self._error = _t('thread.perform_operations.error.compound_tag', label=self._replacement)
             else:
                 total = len(images)
                 progress = 0

@@ -474,7 +474,7 @@
           "max_recursion": "Profondeur de récursion maximale ({max_depth}) atteinte !"
         }
       },
-      "perform_operation": {
+      "perform_operations": {
         "non_existent_tag": "L’étiquette « {label} » n’existe pas !",
         "compound_tag": "Les étiquettes composées ne sont pas autorisées !"
       }

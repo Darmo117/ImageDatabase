@@ -474,7 +474,7 @@
           "max_recursion": "La maksimuma profundo ({max_depth}) estas atingita!"
         }
       },
-      "perform_operation": {
+      "perform_operations": {
         "non_existent_tag": "La etikedo “{label}” ne ekzistas!",
         "compound_tag": "Kunmetetikedoj estas malpermesitaj!"
       }

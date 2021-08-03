@@ -471,7 +471,7 @@
           "max_recursion": "Maximum recursion depth of {max_depth} reached!"
         }
       },
-      "perform_operation": {
+      "perform_operations": {
         "non_existent_tag": "Tag “{label}” does not exist!",
         "compound_tag": "Compound tags are not allowed!"
       }
