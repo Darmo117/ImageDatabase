@@ -8,7 +8,7 @@ import PyQt5.QtCore as QtC
 import PyQt5.QtGui as QtG
 import PyQt5.QtWidgets as QtW
 
-from app import data_access as da, model, utils
+from app import data_access as da, model, utils, config
 from app.i18n import translate as _t
 from . import _dialog_base, _edit_tags_dialog, _similar_images_dialog
 from .. import components
@@ -253,9 +253,12 @@ class EditImageDialog(_dialog_base.Dialog):
     def _on_dest_button_clicked(self):
         """Opens a directory chooser then sets the destination path to the one selected if any."""
         if self._mode == EditImageDialog.REPLACE:
-            destination = utils.gui.open_file_chooser(single_selection=True, mode=utils.gui.FILTER_IMAGES, parent=self)
+            destination = utils.gui.open_file_chooser(single_selection=True, mode=utils.gui.FILTER_IMAGES,
+                                                      directory=config.CONFIG.last_directory, parent=self)
+            config.CONFIG.last_directory = destination.parent
         else:
-            destination = utils.gui.open_directory_chooser(parent=self)
+            destination = utils.gui.open_directory_chooser(directory=config.CONFIG.last_directory, parent=self)
+            config.CONFIG.last_directory = destination
         if destination:
             if self._mode == EditImageDialog.REPLACE:
                 img = self._images[0]

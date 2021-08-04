@@ -46,6 +46,7 @@ class Config:
         self.thumbnail_size = thumbnail_size
         self.thumbnail_load_threshold = thumbnail_load_threshold
         self._debug = debug
+        self._last_directory = None
 
     @property
     def language(self) -> i18n.Language:
@@ -74,6 +75,14 @@ class Config:
     @property
     def debug(self) -> bool:
         return self._debug
+
+    @property
+    def last_directory(self) -> typ.Optional[pathlib.Path]:
+        return self._last_directory
+
+    @last_directory.setter
+    def last_directory(self, value: pathlib.Path):
+        self._last_directory = value
 
     @property
     def app_needs_restart(self) -> bool:

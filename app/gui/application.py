@@ -250,16 +250,19 @@ class Application(QtW.QMainWindow):
 
     def _add_image(self):
         """Opens a file chooser then adds the selected images to the database."""
-        files = utils.gui.open_file_chooser(single_selection=False, mode=utils.gui.FILTER_IMAGES, parent=self)
+        files = utils.gui.open_file_chooser(single_selection=False, mode=utils.gui.FILTER_IMAGES,
+                                            directory=config.CONFIG.last_directory, parent=self)
         if files is not None:
             if len(files) == 0:
                 utils.gui.show_info(_t('popup.no_files_selected.text'), parent=self)
             else:
+                config.CONFIG.last_directory = files[0].parent
                 self._add_images(files)
 
     def _add_directory(self):
         """Opens a file chooser then adds the images from the selected directory to the database."""
-        if directory := utils.gui.open_directory_chooser(parent=self):
+        if directory := utils.gui.open_directory_chooser(directory=config.CONFIG.last_directory, parent=self):
+            config.CONFIG.last_directory = directory
             try:
                 files = utils.files.get_files_from_directory(directory)
             except RecursionError as e:
@@ -347,7 +350,7 @@ class Application(QtW.QMainWindow):
             image = images[0]
             dialog = dialogs.EditImageDialog(self._image_dao, self._tags_dao, mode=dialogs.EditImageDialog.REPLACE,
                                              parent=self)
-            dialog.set_on_close_action(lambda _: self._fetch_images())
+            dialog.set_on_close_action(lambda _: self._fetch_and_refresh())
             tags = self._image_dao.get_image_tags(image.id, self._tags_dao)
             if tags is None:
                 utils.gui.show_error(_t('popup.tag_load_error.text'))
@@ -357,8 +360,9 @@ class Application(QtW.QMainWindow):
     def _export_images(self):
         """Opens a file saver then writes all images to a playlist file."""
         if images := self._current_tab().selected_images():
-            file = utils.gui.open_playlist_saver(parent=self)
+            file = utils.gui.open_playlist_saver(directory=config.CONFIG.last_directory, parent=self)
             if file:
+                config.CONFIG.last_directory = file.parent
                 da.write_playlist(file, images)
                 utils.gui.show_info(_t('popup.playlist_exported.text'), parent=self)
 

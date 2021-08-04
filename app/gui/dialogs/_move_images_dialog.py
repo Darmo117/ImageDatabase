@@ -15,7 +15,7 @@ from .. import components, threads
 class MoveImagesDialog(_dialog_base.Dialog):
     """This dialog provides tools to apply transformations to images."""
 
-    def __init__(self, images: typ.List[model.Image], parent: typ.Optional[QtW.QWidget] = None):
+    def __init__(self, images: typ.List[model.Image], parent: QtW.QWidget = None):
         self._images = images
         super().__init__(parent=parent, title=_t('dialog.move_images.title'), modal=True,
                          mode=_dialog_base.Dialog.OK_CANCEL)
@@ -69,18 +69,10 @@ class MoveImagesDialog(_dialog_base.Dialog):
         return []
 
     def _set_destination(self):
-        selection = self._open_files_chooser(select_files=False)
+        selection = utils.gui.open_directory_chooser(directory=config.CONFIG.last_directory, parent=self)
         if selection:
+            config.CONFIG.last_directory = selection
             self._destination_input.setText(str(selection))
-
-    def _open_files_chooser(self, select_files: bool, single_selection: bool = True) \
-            -> typ.Optional[typ.Union[typ.List[pathlib.Path], pathlib.Path]]:
-        if select_files:
-            selection = utils.gui.open_file_chooser(
-                single_selection=single_selection, mode=utils.gui.FILTER_IMAGES, parent=self)
-        else:
-            selection = utils.gui.open_directory_chooser(parent=self)
-        return selection
 
     def _update_ui(self):
         dest = self._destination_input.text()

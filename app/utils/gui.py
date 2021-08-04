@@ -95,43 +95,17 @@ def show_text_input(message: str, title: str, text: str = '', parent: QtW.QWidge
     return input_d.textValue() if ok else None
 
 
-def show_int_input(message: str, title: str, value: int = 0, min_value: int = None, max_value: int = None,
-                   parent: QtW.QWidget = None) -> typ.Optional[int]:
-    """Shows an input popup.
-
-    :param message: Popup’s message.
-    :param title: Popup’s title.
-    :param value: Value to show in the input field.
-    :param min_value: Minimum value.
-    :param max_value: Maximum value.
-    :param parent: Popup’s parent.
-    :return: The typed text or None if the popup was cancelled.
-    """
-    input_d = QtW.QInputDialog(parent=parent)
-    input_d.setWindowTitle(title)
-    input_d.setLabelText(message)
-    input_d.setInputMode(QtW.QInputDialog.IntInput)
-    if min_value is not None:
-        input_d.setIntMinimum(min_value)
-    if max_value is not None:
-        input_d.setIntMaximum(max_value)
-    input_d.setIntValue(value)
-    input_d.setOkButtonText(_t('dialog.common.ok_button.label'))
-    input_d.setCancelButtonText(_t('dialog.common.cancel_button.label'))
-    ok = input_d.exec_()
-    return input_d.intValue() if ok else None
-
-
 FILTER_IMAGES = 0
 FILTER_DB = 1
 
 
-def open_file_chooser(single_selection: bool, mode: int, parent: QtW.QWidget = None) \
+def open_file_chooser(single_selection: bool, mode: int, directory: pathlib.Path = None, parent: QtW.QWidget = None) \
         -> typ.Union[typ.List[pathlib.Path], pathlib.Path, None]:
     """Opens a file chooser for images.
 
     :param single_selection: Whether the user can select only a single file.
     :param mode: What file filter to apply.
+    :param directory: The directory to open the chooser in.
     :param parent: Chooser’s parent.
     :return: The selected files or None if the chooser was cancelled.
     """
@@ -148,6 +122,7 @@ def open_file_chooser(single_selection: bool, mode: int, parent: QtW.QWidget = N
     function = QtW.QFileDialog.getOpenFileName if single_selection else QtW.QFileDialog.getOpenFileNames
     selection, _ = function(
         caption=_t('popup.file_chooser.caption.' + caption_k),
+        directory=str(directory) if directory else None,
         filter=_t('popup.file_chooser.filter.' + filter_k) + f' ({exts})',
         parent=parent,
         **kwargs
@@ -166,9 +141,37 @@ def open_file_chooser(single_selection: bool, mode: int, parent: QtW.QWidget = N
     return None
 
 
-def open_playlist_saver(parent: typ.Optional[QtW.QWidget] = None) -> typ.Optional[pathlib.Path]:
+def open_directory_chooser(directory: pathlib.Path = None, parent: QtW.QWidget = None) -> typ.Optional[pathlib.Path]:
+    """Opens a directory chooser.
+
+    :param directory: The directory to open the chooser in.
+    :param parent: Chooser’s parent.
+    :return: The selected directory or None if the chooser was cancelled.
+    """
+    options = QtW.QFileDialog.ShowDirsOnly
+    if config.CONFIG.debug:
+        options |= QtW.QFileDialog.DontUseNativeDialog
+    if directory:
+        if directory.is_file():
+            d = str(directory.parent)
+        else:
+            d = str(directory)
+    else:
+        d = None
+    dir_ = QtW.QFileDialog.getExistingDirectory(
+        caption=_t('popup.directory_chooser.caption'),
+        directory=d,
+        parent=parent,
+        options=options
+    )
+    return pathlib.Path(dir_).absolute() if dir_ else None
+
+
+def open_playlist_saver(directory: pathlib.Path = None, parent: typ.Optional[QtW.QWidget] = None) \
+        -> typ.Optional[pathlib.Path]:
     """Opens a file saver for playlists.
 
+    :param directory: The directory to open the chooser in.
     :param parent: Saver’s parent.
     :return: The selected file’s path or None if the saver was cancelled.
     """
@@ -178,6 +181,7 @@ def open_playlist_saver(parent: typ.Optional[QtW.QWidget] = None) -> typ.Optiona
     ext = '.play'
     file, _ = QtW.QFileDialog.getSaveFileName(
         caption=_t('popup.playlist_saver.caption'),
+        directory=str(directory) if directory else None,
         filter=_t('popup.playlist_saver.filter') + f' (*{ext})',
         parent=parent,
         **kwargs
@@ -185,23 +189,6 @@ def open_playlist_saver(parent: typ.Optional[QtW.QWidget] = None) -> typ.Optiona
     if file and not file.endswith(ext):
         file += ext
     return pathlib.Path(file).absolute() if file else None
-
-
-def open_directory_chooser(parent: QtW.QWidget = None) -> typ.Optional[pathlib.Path]:
-    """Opens a directory chooser.
-
-    :param parent: Chooser’s parent.
-    :return: The selected directory or None if the chooser was cancelled.
-    """
-    options = QtW.QFileDialog.ShowDirsOnly
-    if config.CONFIG.debug:
-        options |= QtW.QFileDialog.DontUseNativeDialog
-    directory = QtW.QFileDialog.getExistingDirectory(
-        caption=_t('popup.directory_chooser.caption'),
-        parent=parent,
-        options=options
-    )
-    return pathlib.Path(directory).absolute() if directory else None
 
 
 def center(window: QtW.QWidget):

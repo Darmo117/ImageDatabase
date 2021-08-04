@@ -135,8 +135,10 @@ class SettingsDialog(_dialog_base.Dialog):
         return [self._apply_button]
 
     def _open_db_file_chooser(self):
-        file = utils.gui.open_file_chooser(single_selection=True, mode=utils.gui.FILTER_DB, parent=self)
+        file = utils.gui.open_file_chooser(single_selection=True, mode=utils.gui.FILTER_DB,
+                                           directory=config.CONFIG.last_directory, parent=self)
         if file:
+            config.CONFIG.last_directory = file.parent
             self._db_path_input.setText(str(file))
 
     def _update_ui(self):
