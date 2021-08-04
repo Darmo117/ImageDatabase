@@ -282,7 +282,7 @@ class Application(QtW.QMainWindow):
                             if (s := self._image_dao.image_registered(i)) != self._image_dao.IMG_NOT_REGISTERED}
             registered = [s == self._image_dao.IMG_REGISTERED for s in similarities.values()]
 
-            if registered and all(registered):  # If list is empty, all() returns True
+            if len(image_paths) == len(registered) and all(registered):
                 if len(registered) > 1:
                     text = _t('popup.images_registered.text')
                 else:

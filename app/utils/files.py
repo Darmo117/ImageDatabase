@@ -44,5 +44,5 @@ def get_extension(filename: typ.Union[str, pathlib.Path], keep_dot: bool = False
     """
     ext = os.path.splitext(str(filename))[1]
     if not keep_dot and ext:
-        return ext[1:]
-    return ext
+        return ext[1:].lower()
+    return ext.lower()
