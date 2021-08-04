@@ -127,8 +127,8 @@ class OperationsDialog(_dialog_base.Dialog):
 
     def _update_ui(self):
         regex = self._regex_input.text()
-        tag_to_repl = self._tag_to_replace_input.text()
-        repl_tag = self._replacement_tag_input.text()
+        tag_to_repl = self._tag_to_replace_input.text().strip()
+        repl_tag = self._replacement_tag_input.text().strip()
         self._paths_apply_button.setDisabled(not regex)
         self._tags_apply_button.setDisabled(tag_to_repl not in self._tags or tag_to_repl == repl_tag
                                             or (repl_tag != '' and repl_tag not in self._tags))
@@ -145,8 +145,8 @@ class OperationsDialog(_dialog_base.Dialog):
             to_replace = self._regex_input.text()
             replacement = self._replacement_input.text()
         elif mode == _WorkerThread.TAGS:
-            to_replace = self._tag_to_replace_input.text()
-            replacement = self._replacement_tag_input.text()
+            to_replace = self._tag_to_replace_input.text().strip()
+            replacement = self._replacement_tag_input.text().strip()
         else:
             to_replace = None
             replacement = None

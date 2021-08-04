@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import pathlib
+import re
 import typing as typ
 
 import PyQt5.QtCore as QtC
@@ -439,7 +440,7 @@ class AutoCompleteLineEdit(TranslatedLineEdit):
         text_under_cursor = ''
         i = self.cursorPosition() - 1
 
-        while i >= 0 and text[i] != self._SEPARATOR:
+        while i >= 0 and not re.match(r'\W', text[i]):
             text_under_cursor = text[i] + text_under_cursor
             i -= 1
 
