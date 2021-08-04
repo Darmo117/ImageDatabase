@@ -90,9 +90,9 @@ You can search for images by typing queries in the search field. Syntax is as fo
 Special tags accept two types of values: plain text, in between `"` and regular expressions (regex) in between `/`.
 
 As seen in the examples above, plain text values accept two special characters, `*` and `?` that match respectively 0 or
-more, and 0 or 1 characters. You can disable them by putting a `\ ` before (e.g.: `\*` will match the character `*`
-literally). You also have to escape all single `\ ` by doubling them: `\\`. For instance, to match all images whose path
-begin with `C:\Users\me\images\ `, you will have to type `path:"C:\\Users\\me\\images\\*"`. If a path or file name
+more, and 0 or 1 characters. You can disable them by putting a `\` before (e.g.: `\*` will match the character `*`
+literally). You also have to escape all single `\` by doubling them: `\\`. For instance, to match all images whose path
+begin with `C:\Users\me\images\`, you will have to type `path:"C:\\Users\\me\\images\\*"`. If a path or file name
 contains a double quote, you have to escape it in the same way: `\"`.
 
 Regular expressions follow Python’s format. See [this page](https://www.w3schools.com/python/python_regex.asp) for
