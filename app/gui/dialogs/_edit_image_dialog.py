@@ -396,12 +396,10 @@ class EditImageDialog(_dialog_base.Dialog):
             try:
                 self._image_to_replace.unlink()
             except OSError:
-                return False, _t('popup.delete_image_error.text', files=[str(self._destination)])
-            else:
-                image = self._images[0]
-                new_hash = utils.image.get_hash(image.path)
-                return (self._image_dao.update_image(image.id, self._destination, new_hash),
-                        _t('dialog.edit_image.error.'))
+                pass
+            image = self._images[0]
+            new_hash = utils.image.get_hash(image.path)
+            return self._image_dao.update_image(image.id, self._destination, new_hash), _t('dialog.edit_image.error.')
         else:
             return False, _t('dialog.edit_image.error.file_does_not_exists')
 
