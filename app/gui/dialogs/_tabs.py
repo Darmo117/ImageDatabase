@@ -152,7 +152,7 @@ class Tab(abc.ABC, typ.Generic[_Type]):
         :param query: The string pattern to search for.
         :return: True if a match was found; False if none; None if the query has a syntax error.
         """
-        if selected_rows := self._table.selectionModel().selectedRows():
+        if selected_rows := self._table.selectionModel().selectedIndexes():
             start_row = selected_rows[0].row() + 1
         else:
             start_row = 0
