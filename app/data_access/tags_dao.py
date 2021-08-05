@@ -181,10 +181,23 @@ class TagsDao(DAO):
         :param get_count: If true, result will be a list of tuples containing the tag and its use count.
         :return: The list of tags or tag/count pairs or None if an exception occured.
         """
-        query = 'SELECT id, label, type_id, definition'
+        counts = {}
         if get_count:
-            query += ', (SELECT COUNT(tag_id) FROM image_tag WHERE tags.id = tag_id) AS count'
-        query += ' FROM tags'
+            cursor_ = self._connection.cursor()
+            try:
+                cursor_.execute("""
+                SELECT tag_id, COUNT(*)
+                FROM image_tag
+                GROUP BY tag_id
+                """)
+            except sqlite3.Error as e:
+                logger.exception(e)
+                cursor_.close()
+            else:
+                counts = {tag_id: count for tag_id, count in cursor_.fetchall()}
+            cursor_.close()
+
+        query = 'SELECT id, label, type_id, definition FROM tags'
         if sort_by_label:
             query += ' ORDER BY label'
         cursor = self._connection.cursor()
@@ -195,18 +208,29 @@ class TagsDao(DAO):
             cursor.close()
             return None
         else:
-            def row_to_tag(row: typ.Tuple[int, str, int, str, int]) \
-                    -> typ.Optional[typ.Union[typ.Tuple[model.Tag, int], model.Tag]]:
-                tag_type = self.get_tag_type_from_id(row[2]) if row[2] is not None else None
-                if row[3] is None and (tag_class == model.Tag or tag_class is None):
-                    tag = model.Tag(row[0], row[1], tag_type)
-                elif row[3] is not None and (tag_class == model.CompoundTag or tag_class is None):
-                    tag = model.CompoundTag(row[0], row[1], row[3], tag_type)
+            tags = []
+            tag_types = {}  # Cache tag types for efficiency
+            for row in cursor.fetchall():
+                tag_type_id = row[2]
+                if tag_type_id is not None:
+                    if tag_type_id not in tag_types:
+                        tag_types[tag_type_id] = self.get_tag_type_from_id(tag_type_id)
+                    tag_type = tag_types[tag_type_id]
                 else:
-                    return None
-                return (tag, int(row[4])) if get_count else tag
+                    tag_type = None
 
-            tags = list(filter(lambda t: t is not None, map(row_to_tag, cursor.fetchall())))
+                tag = None
+                if row[3] is None and (tag_class == model.Tag or tag_class is None):
+                    tag = model.Tag(ident=row[0], label=row[1], tag_type=tag_type)
+                elif row[3] is not None and (tag_class == model.CompoundTag or tag_class is None):
+                    tag = model.CompoundTag(ident=row[0], label=row[1], definition=row[3], tag_type=tag_type)
+
+                if tag:
+                    if get_count:
+                        tags.append((tag, counts.get(tag.id, 0)))
+                    else:
+                        tags.append(tag)
+
             cursor.close()
             return tags
 
@@ -218,6 +242,23 @@ class TagsDao(DAO):
         :param get_count: If true, result will be a list of tuples containing the tag type and its use count.
         :return: All currently defined tag types.
         """
+        counts = {}
+        if get_count:
+            cursor_ = self._connection.cursor()
+            try:
+                cursor_.execute("""
+                SELECT type_id, COUNT(*)
+                FROM tags
+                WHERE type_id IS NOT NULL
+                GROUP BY type_id
+                """)
+            except sqlite3.Error as e:
+                logger.exception(e)
+                cursor_.close()
+            else:
+                counts = {type_id: count for type_id, count in cursor_.fetchall()}
+            cursor_.close()
+
         query = 'SELECT id, label, symbol, color'
         if get_count:
             query += ', (SELECT COUNT(*) FROM tags WHERE tag_types.id = type_id) AS count'
@@ -235,9 +276,9 @@ class TagsDao(DAO):
             results = cursor.fetchall()
             cursor.close()
             types = []
-            for ident, label, symbol, color, *count in results:
+            for ident, label, symbol, color in results:
                 tag_type = self._get_tag_type((ident, label, symbol, color))
-                types.append(tag_type if not get_count else (tag_type, count[0]))
+                types.append(tag_type if not get_count else (tag_type, counts.get(tag_type.id, 0)))
             return types
 
     def tag_exists(self, tag_id: int, tag_name: str) -> typ.Optional[bool]:
