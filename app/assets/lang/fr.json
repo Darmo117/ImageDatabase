@@ -356,12 +356,6 @@
       "some_images_registered": {
         "text": "Certaines de ces images ont déjà été enregistrées ; elles vont être ignorées."
       },
-      "similar_images_found": {
-        "text": "Certaines images ont peut-être déjà été enregistrées.\nSouhaitez-vous les ajouter quand-même ?"
-      },
-      "similar_image_found": {
-        "text": "Cette image a peut-être déjà été enregistrée.\nSouhaitez-vous l’ajouter quand-même ?"
-      },
       "file_chooser": {
         "caption": {
           "image": "Ouvrir une image",

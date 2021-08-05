@@ -197,6 +197,10 @@ class EditImageDialog(_dialog_base.Dialog):
                 [t.label for t in self._tags_dao.get_all_tags(tag_class=model.Tag, sort_by_label=True)])
 
         image = self._images[index]
+        # Calculate hash if in add mode
+        if self._mode == EditImageDialog.ADD:
+            hash_ = utils.image.get_hash(image.path)
+            self._images[index] = image = model.Image(id=image.id, path=image.path, hash=hash_)
 
         self._image_path_lbl.setText(str(image.path))
         self._image_path_lbl.setToolTip(str(image.path))

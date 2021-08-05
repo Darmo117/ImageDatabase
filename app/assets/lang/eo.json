@@ -356,12 +356,6 @@
       "some_images_registered": {
         "text": "Kelkaj bildoj estas registrataj; ĉi-tiuj estos ignorataj."
       },
-      "similar_images_found": {
-        "text": "Kelkaj bildoj eble estas registrataj.\nĈu vi volas kvankam aligi ilin?"
-      },
-      "similar_image_found": {
-        "text": "Tiu bildo eble estas registrata.\nĈu vi volas kvankam aligi ĝin?"
-      },
       "file_chooser": {
         "caption": {
           "image": "Ovri bildon",

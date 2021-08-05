@@ -13,7 +13,7 @@ class Image:
     """This class represents an image."""
     id: int
     path: pathlib.Path
-    hash: int
+    hash: typ.Optional[int]
 
     def __lt__(self, other):
         if not isinstance(other, Image):

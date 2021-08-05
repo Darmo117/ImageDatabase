@@ -356,12 +356,6 @@
       "some_images_registered": {
         "text": "Some of these images have already been registered; they will be ignored."
       },
-      "similar_images_found": {
-        "text": "Some images may have already been registered.\nDo you wish to add them anyway?"
-      },
-      "similar_image_found": {
-        "text": "This image may have already been registered.\nDo you wish to add it anyway?"
-      },
       "file_chooser": {
         "caption": {
           "image": "Open Image",

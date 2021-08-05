@@ -96,28 +96,28 @@ class ImageDao(DAO):
     IMG_NOT_REGISTERED = 2
     """Indicates that the given image is not registered."""
 
-    def image_registered(self, image_path: pathlib.Path) -> typ.Optional[int]:
-        """Tells whether other similar images may have already been registered.
+    def image_registered(self, image_path: pathlib.Path) -> bool:
+        """Tells whether the given image has already been registered, i.e. if an entry for the path already exists.
+
+        :param image_path: Path to the image.
+        :return: A boolean value indicating whether it is already registered or not.
+        """
+        cursor = self._connection.cursor()
+        cursor.execute("SELECT * FROM images WHERE path = ?", (str(image_path),))
+        result = cursor.fetchone()
+        cursor.close()
+        return result is not None
+
+    def get_similar_images(self, image_path: pathlib.Path) \
+            -> typ.Optional[typ.List[typ.Tuple[model.Image, int, float, bool]]]:
+        """Returns a list of all images that may be similar to the given one.
+
         Two images are considered similar if the Hamming distance between their respective hashes is ≤ 10
         (cf. http://www.hackerfactor.com/blog/index.php?/archives/529-Kind-of-Like-That.html) or if their
         paths are the exact same. Hashes are computed using the “difference hashing” method
         (cf. https://www.pyimagesearch.com/2017/11/27/image-hashing-opencv-python/).
 
         @see IMG_REGISTERED, IMG_SIMILAR, IMG_NOT_REGISTERED
-
-        :param image_path: Path to the image.
-        :return: An int corresponding to the registration state. Returns None if an error occured.
-        """
-        images = self.get_similar_images(image_path)
-        if images is None:
-            return None
-        if any([e[3] for e in images]):
-            return self.IMG_REGISTERED
-        return self.IMG_SIMILAR if images else self.IMG_NOT_REGISTERED
-
-    def get_similar_images(self, image_path: pathlib.Path) \
-            -> typ.Optional[typ.List[typ.Tuple[model.Image, int, float, bool]]]:
-        """Returns a list of all images that may be similar to the given one.
 
         :param image_path: Path to the image.
         :return: A list of candidate images with their Hamming distance, confidence score and a boolean indicating

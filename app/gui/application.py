@@ -278,11 +278,9 @@ class Application(QtW.QMainWindow):
         Checks for potential duplicates.
         """
         if image_paths:
-            similarities = {i: s for i in image_paths
-                            if (s := self._image_dao.image_registered(i)) != self._image_dao.IMG_NOT_REGISTERED}
-            registered = [s == self._image_dao.IMG_REGISTERED for s in similarities.values()]
+            registered = [self._image_dao.image_registered(p) for p in image_paths]
 
-            if len(image_paths) == len(registered) and all(registered):
+            if all(registered):
                 if len(registered) > 1:
                     text = _t('popup.images_registered.text')
                 else:
@@ -293,28 +291,16 @@ class Application(QtW.QMainWindow):
             if any(registered):
                 utils.gui.show_info(_t('popup.some_images_registered.text'), parent=self)
 
-            add_all = True
-            similar = map(lambda s: s == self._image_dao.IMG_SIMILAR, similarities.values())
-            if any(similar):
-                if len(image_paths) > 1:
-                    text = _t('popup.similar_images_found.text')
-                else:
-                    text = _t('popup.similar_image_found.text')
-                add_all = utils.gui.show_question(text, cancel=True, parent=self)
+            images_to_add = []
+            for i, path in enumerate(image_paths):
+                if not registered[i]:
+                    images_to_add.append(model.Image(id=0, path=path, hash=None))
 
-            if add_all is not None:
-                images_to_add = []
-                for i in image_paths:
-                    s = similarities.get(i)
-                    if s != self._image_dao.IMG_REGISTERED and (add_all or s != self._image_dao.IMG_SIMILAR):
-                        images_to_add.append(model.Image(id=0, path=i, hash=utils.image.get_hash(i)))
-
-                if images_to_add:
-                    dialog = dialogs.EditImageDialog(self._image_dao, self._tags_dao, show_skip=len(images_to_add) > 1,
-                                                     mode=dialogs.EditImageDialog.ADD, parent=self)
-                    dialog.set_on_close_action(lambda _: self._fetch_and_refresh())
-                    dialog.set_images(images_to_add, {})
-                    dialog.show()
+            dialog = dialogs.EditImageDialog(self._image_dao, self._tags_dao, show_skip=len(images_to_add) > 1,
+                                             mode=dialogs.EditImageDialog.ADD, parent=self)
+            dialog.set_on_close_action(lambda _: self._fetch_and_refresh())
+            dialog.set_images(images_to_add, {})
+            dialog.show()
 
     def _rename_image(self):
         """Opens the 'Rename Image' dialog then renames the selected image."""
