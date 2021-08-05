@@ -104,7 +104,7 @@ class Application(QtW.QMainWindow):
         self._input_field.setFocus()
 
         self._update_menus()
-        self._refresh_tree()
+        self._refresh_tree_and_completer()
 
     # noinspection PyUnresolvedReferences
     def _init_menu(self):
@@ -355,7 +355,7 @@ class Application(QtW.QMainWindow):
     def _fetch_and_refresh(self):
         """Fetches images then refreshes the list."""
         self._fetch_images()
-        self._refresh_tree()
+        self._refresh_tree_and_completer()
 
     def _edit_images(self, images: typ.List[model.Image]):
         """Opens the 'Edit Images' dialog then updates all edited images."""
@@ -396,7 +396,7 @@ class Application(QtW.QMainWindow):
     def _edit_tags(self):
         """Opens the 'Edit Tags' dialog. Tags tree is refreshed afterwards."""
         dialog = dialogs.EditTagsDialog(self._tags_dao, parent=self)
-        dialog.set_on_close_action(lambda _: self._refresh_tree())
+        dialog.set_on_close_action(lambda _: self._refresh_tree_and_completer())
         dialog.show()
 
     def _on_delete_item(self, item: QtW.QTreeWidgetItem):
@@ -411,12 +411,12 @@ class Application(QtW.QMainWindow):
             delete = utils.gui.show_question(_t('popup.delete_tag_type_confirm.text', label=label), parent=self)
             if delete:
                 self._tags_dao.delete_type(o.id)
-                self._refresh_tree()
+                self._refresh_tree_and_completer()
         else:
             delete = utils.gui.show_question(_t('popup.delete_tag_confirm.text', label=label), parent=self)
             if delete:
                 self._tags_dao.delete_tag(o.id)
-                self._refresh_tree()
+                self._refresh_tree_and_completer()
 
     def _on_insert_tag(self, item: QtW.QTreeWidgetItem):
         """Called when a tag from the tags tree has to be inserted.
@@ -425,15 +425,11 @@ class Application(QtW.QMainWindow):
         """
         self._input_field.setText((self._input_field.text() + ' ' + item.text(0)).lstrip())
 
-    def _update_completer(self):
-        """Resets the query completer with all current tags."""
-        tags = map(lambda t: t.label, self._tags_dao.get_all_tags(sort_by_label=True))
-        self._input_field.set_completer_model(tags)
-
-    def _refresh_tree(self, *_):
-        """Refreshes the tags tree."""
-        self._tag_tree.refresh(self._tags_dao.get_all_tag_types(), self._tags_dao.get_all_tags())
-        self._update_completer()
+    def _refresh_tree_and_completer(self):
+        """Refreshes the tags tree and query completer."""
+        tags = self._tags_dao.get_all_tags(sort_by_label=True)
+        self._tag_tree.refresh(self._tags_dao.get_all_tag_types(), tags)
+        self._input_field.set_completer_model(map(lambda t: t.label, tags))
 
     def _fetch_images(self, tagless_images: bool = False):
         """Fetches images matching the typed query. Starts a search thread to avoid freezing the whole application.
