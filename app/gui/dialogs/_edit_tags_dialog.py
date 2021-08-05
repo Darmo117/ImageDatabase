@@ -111,13 +111,17 @@ class EditTagsDialog(_dialog_base.Dialog):
 
     def _init_buttons(self) -> typ.List[QtW.QAbstractButton]:
         if self._editable:
+            def apply():
+                self._apply()
+                self._init_tabs()
+
             self._ok_btn.setEnabled(False)
             self._apply_btn = QtW.QPushButton(
                 self.style().standardIcon(QtW.QStyle.SP_DialogApplyButton),
                 _t('dialog.common.apply_button.label'),
                 parent=self
             )
-            self._apply_btn.clicked.connect(self._apply)
+            self._apply_btn.clicked.connect(apply)
             self._apply_btn.setEnabled(False)
             return [self._apply_btn]
         else:
@@ -176,7 +180,6 @@ class EditTagsDialog(_dialog_base.Dialog):
         else:
             self._apply_btn.setEnabled(False)
             super()._apply()
-            self._init_tabs()
 
         return True
 

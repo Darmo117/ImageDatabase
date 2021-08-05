@@ -24,8 +24,6 @@ class Tab(abc.ABC, typ.Generic[_Type]):
     _EMPTY = 2
     _FORMAT = 4
 
-    _FETCH_COLOR = QtG.QColor(140, 200, 255)
-
     def __init__(self, owner: QtW.QWidget, dao: da.TagsDao, title: str, addable: bool, deletable: bool, editable: bool,
                  columns_to_check: typ.List[typ.Tuple[int, bool]], search_columns: typ.List[int],
                  selection_changed: typ.Optional[typ.Callable[[None], None]] = None,
@@ -60,8 +58,6 @@ class Tab(abc.ABC, typ.Generic[_Type]):
         # noinspection PyTypeChecker
         self._table: QtW.QTableWidget = None
 
-        self._highlighted_cell = None
-
         self._values = []
         self._changed_rows = set()
         self._added_rows = set()
@@ -73,7 +69,6 @@ class Tab(abc.ABC, typ.Generic[_Type]):
 
         # Use system colors
         self._DISABLED_COLOR = QtW.QApplication.palette().color(QtG.QPalette.Disabled, QtG.QPalette.Base)
-        self._NORMAL_COLOR = QtW.QApplication.palette().color(QtG.QPalette.Normal, QtG.QPalette.Base)
 
     @abc.abstractmethod
     def init(self):
@@ -157,14 +152,13 @@ class Tab(abc.ABC, typ.Generic[_Type]):
         :param query: The string pattern to search for.
         :return: True if a match was found; False if none; None if the query has a syntax error.
         """
-        if self._highlighted_cell is not None:
-            self._highlighted_cell.setBackground(self._NORMAL_COLOR)
-
         if selected_rows := self._table.selectionModel().selectedRows():
-            start_row = selected_rows[0].row()
+            start_row = selected_rows[0].row() + 1
         else:
-            start_row = self._highlighted_cell.row() + 1 if self._highlighted_cell else 0
-            self._highlighted_cell = None
+            start_row = 0
+
+        for item in self._table.selectedItems():
+            item.setSelected(False)
 
         # Check for any invalid \
         if re.search(r'((?<!\\)\\(?:\\\\)*)([^*?\\]|$)', query):
@@ -178,16 +172,20 @@ class Tab(abc.ABC, typ.Generic[_Type]):
         regex = re.compile(pattern, re.IGNORECASE)
 
         row_count = self._table.rowCount()
+        found = False
         for col in self._search_columns:
             for row in range(start_row, row_count):
                 item = self._table.item(row, col)
                 if regex.fullmatch(item.text()):
                     self._table.setFocus()
                     self._table.scrollToItem(item)
-                    item.setBackground(self._FETCH_COLOR)
-                    self._highlighted_cell = item
-                    return True
-        return False
+                    item.setSelected(True)
+                    found = True
+                    break
+            if found:
+                break
+
+        return found
 
     @abc.abstractmethod
     def apply(self) -> bool:
@@ -421,7 +419,8 @@ class TagTypesTab(Tab[model.TagType]):
         id_item.setWhatsThis('ident')
         # noinspection PyTypeChecker
         id_item.setFlags(id_item.flags() & ~QtC.Qt.ItemIsEditable & ~QtC.Qt.ItemIsSelectable)
-        id_item.setBackground(self._DISABLED_COLOR)
+        if self._editable:
+            id_item.setBackground(self._DISABLED_COLOR)
         self._table.setItem(row, 0, id_item)
 
         label_item = QtW.QTableWidgetItem(tag_type.label if defined
@@ -456,7 +455,8 @@ class TagTypesTab(Tab[model.TagType]):
         number_item = _IntTableWidgetItem(str(tag_type.count if defined else 0))
         # noinspection PyTypeChecker
         number_item.setFlags(number_item.flags() & ~QtC.Qt.ItemIsEditable & ~QtC.Qt.ItemIsSelectable)
-        number_item.setBackground(self._DISABLED_COLOR)
+        if self._editable:
+            number_item.setBackground(self._DISABLED_COLOR)
         self._table.setItem(row, 4, number_item)
 
     def _show_color_picker(self):
@@ -529,12 +529,16 @@ class _TagsTab(Tab[_TagType], typ.Generic[_TagType], metaclass=abc.ABCMeta):
         self._table.setColumnWidth(0, 30)
         self._table.setHorizontalHeaderLabels(self._columns)
 
-        self._values = self._tags_dao.get_all_tags(self._tag_class, sort_by_label=True, get_count=True)
+        self._values = self._tags_dao.get_all_tags(self._tag_class, sort_by_label=True,
+                                                   get_count=self._tag_class == model.Tag)
         self._table.setRowCount(len(self._values) if self._values is not None else 0)
 
         if self._values is not None:
+            if self._tag_class == model.CompoundTag:  # Add dummy count
+                self._values = [(v, 0) for v in self._values]
             for i, (tag, count) in enumerate(self._values):
                 tag.count = count
+                # noinspection PyTypeChecker
                 self._set_row(tag, i)
         else:
             utils.gui.show_error(_t('popup.tags_load_error.text'), parent=self._owner)
@@ -578,6 +582,8 @@ class _TagsTab(Tab[_TagType], typ.Generic[_TagType], metaclass=abc.ABCMeta):
             cell = self._table.item(row, i)
             if cell is None:
                 cell = self._table.cellWidget(row, i)
+            if cell is None:
+                continue
             arg = cell.whatsThis()
             if arg == '':
                 continue
@@ -627,7 +633,8 @@ class _TagsTab(Tab[_TagType], typ.Generic[_TagType], metaclass=abc.ABCMeta):
         id_item.setWhatsThis('ident')
         # noinspection PyTypeChecker
         id_item.setFlags(id_item.flags() & ~QtC.Qt.ItemIsEditable & ~QtC.Qt.ItemIsSelectable)
-        id_item.setBackground(self._DISABLED_COLOR)
+        if self._editable:
+            id_item.setBackground(self._DISABLED_COLOR)
         self._table.setItem(row, 0, id_item)
 
         label_item = QtW.QTableWidgetItem(tag.label if defined else 'new_tag')
@@ -672,10 +679,11 @@ class _TagsTab(Tab[_TagType], typ.Generic[_TagType], metaclass=abc.ABCMeta):
             self._table.setCellWidget(row, self._type_column, combo)
 
         # count property is added to tag argument before calling this method.
-        number_item = _IntTableWidgetItem(str(tag.count if defined else 0))
+        number_item = _IntTableWidgetItem(str(getattr(tag, 'count') if defined else 0))
         # noinspection PyTypeChecker
         number_item.setFlags(number_item.flags() & ~QtC.Qt.ItemIsEditable & ~QtC.Qt.ItemIsSelectable)
-        number_item.setBackground(self._DISABLED_COLOR)
+        if self._editable:
+            number_item.setBackground(self._DISABLED_COLOR)
         self._table.setItem(row, self._tag_use_count_column, number_item)
 
     def _get_value_for_column(self, column_name: str, value: _TagType, default: bool) -> typ.Tuple[str, str]:
