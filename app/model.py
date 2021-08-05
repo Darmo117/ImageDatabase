@@ -88,7 +88,7 @@ class Tag:
     """This class represents an image tag. Tags can be associated to a type."""
     LABEL_PATTERN = re.compile(r'^\w+$')
 
-    def __init__(self, ident: int, label: str, tag_type: typ.Optional[TagType] = None):
+    def __init__(self, ident: int, label: str, tag_type: TagType = None):
         """Creates a tag with an optional type.
 
         :param ident: Tag’s SQLite ID.
@@ -136,7 +136,7 @@ class CompoundTag(Tag):
     tag images directly.
     """
 
-    def __init__(self, ident: int, label: str, definition: str, tag_type: typ.Optional[TagType] = None):
+    def __init__(self, ident: int, label: str, definition: str, tag_type: TagType = None):
         """Creates a compound tag.
 
         :param ident: Tag’s SQLite ID.
