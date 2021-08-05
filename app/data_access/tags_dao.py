@@ -259,10 +259,7 @@ class TagsDao(DAO):
                 counts = {type_id: count for type_id, count in cursor_.fetchall()}
             cursor_.close()
 
-        query = 'SELECT id, label, symbol, color'
-        if get_count:
-            query += ', (SELECT COUNT(*) FROM tags WHERE tag_types.id = type_id) AS count'
-        query += ' FROM tag_types ORDER BY label'
+        query = 'SELECT id, label, symbol, color FROM tag_types ORDER BY label'
         if sort_by_symbol:
             query += ', symbol'
         cursor = self._connection.cursor()
