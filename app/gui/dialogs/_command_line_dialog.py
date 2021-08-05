@@ -61,7 +61,7 @@ class CommandLineDialog(_dialog_base.Dialog):
                 self._command_line.print_error(e)
                 cursor.close()
             else:
-                if input_.startswith('select'):
+                if input_.lower().startswith('select'):
                     results = cursor.fetchall()
                     if cursor.description is not None:
                         column_names = tuple(desc[0] for desc in cursor.description)

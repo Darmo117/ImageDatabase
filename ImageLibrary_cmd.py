@@ -57,7 +57,7 @@ def main():
             print(f'{e}\033[0m')
             cursor.close()
         else:
-            if cmd.startswith('select'):
+            if cmd.lower().startswith('select'):
                 results = cursor.fetchall()
                 if cursor.description is not None:
                     column_names = tuple(desc[0] for desc in cursor.description)
