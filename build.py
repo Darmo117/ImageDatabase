@@ -26,7 +26,7 @@ for file in TO_COPY:
     to_copy = pathlib.Path(file).absolute()
     dest = BUILD_DIR / file
     if to_copy.is_dir():
-        shutil.copytree(to_copy, dest)
+        shutil.copytree(to_copy, dest, ignore=lambda _1, _2: '__pycache__')
     else:
         shutil.copy(to_copy, dest)
 
