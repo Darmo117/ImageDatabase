@@ -638,15 +638,12 @@ class _SearchThread(QtC.QThread):
         meta_tag_values = {}
         index = 0
         # Replace metatag values with placeholders to avoid them being altered in the next step
-        while 'there are matches':
-            # In-quotes pattern *MUST* be the same as PLAIN_TEXT and REGEX in grammar.lark file
-            if match := re.search(fr'(\w+\s*:\s*(["/])((\\\\)*|(.*?[^\\](\\\\)*))\2)', self._query):
-                index += 1
-                meta_tag_values[index] = match[1]
-                # noinspection PyUnresolvedReferences
-                self._query = re.sub(re.escape(match[1]), f'%%{index}%%', self._query, count=1)
-            else:
-                break
+        # In-quotes pattern *MUST* be the same as PLAIN_TEXT and REGEX in grammar.lark file
+        while match := re.search(fr'(\w+\s*:\s*(["/])((\\\\)*|(.*?[^\\](\\\\)*))\2)', self._query):
+            index += 1
+            meta_tag_values[index] = match[1]
+            # noinspection PyUnresolvedReferences
+            self._query = re.sub(re.escape(match[1]), f'%%{index}%%', self._query, count=1)
 
         # Cannot use application’s as SQLite connections cannot be shared between threads
         tags_dao = da.TagsDao(config.CONFIG.database_path)
