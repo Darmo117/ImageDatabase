@@ -32,6 +32,7 @@ class Application(QtW.QMainWindow):
 
         self._image_dao = da.ImageDao(config.CONFIG.database_path)
         self._tags_dao = da.TagsDao(config.CONFIG.database_path)
+        self._search_thread = None
 
         self._operations_dialog_state: typ.Optional[dialogs.OperationsDialog.State] = None
 
@@ -440,18 +441,18 @@ class Application(QtW.QMainWindow):
         if len(tags) > 0 or tagless_images:
             self._search_btn.setEnabled(False)
             self._input_field.setEnabled(False)
-            self._thread = _SearchThread(tags, tagless_images=tagless_images)
-            self._thread.finished.connect(self._on_fetch_done)
-            self._thread.start()
+            self._search_thread = _SearchThread(tags, tagless_images=tagless_images)
+            self._search_thread.finished.connect(self._on_fetch_done)
+            self._search_thread.start()
 
     def _on_fetch_done(self):
         """Called when image searching is done."""
-        if self._thread.failed:
-            utils.gui.show_error(self._thread.error, parent=self)
+        if self._search_thread.failed:
+            utils.gui.show_error(self._search_thread.error, parent=self)
             self._search_btn.setEnabled(True)
             self._input_field.setEnabled(True)
         else:
-            images = self._thread.fetched_images
+            images = self._search_thread.fetched_images
             images.sort(key=lambda i_: i_.path)
 
             if config.CONFIG.load_thumbnails:
