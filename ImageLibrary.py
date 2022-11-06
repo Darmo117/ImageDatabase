@@ -1,6 +1,22 @@
 #!/usr/bin/python3
-"""Program's entry point."""
+import os.path
+import pathlib
 
-from app import Application
+import app
 
-Application.run()
+
+def main():
+    lock_file = pathlib.Path('.lock')
+    if lock_file.exists():
+        print('The application is already running!')
+    else:
+        with lock_file.open(mode='w') as f:
+            f.write(str(os.getpid()))
+        try:
+            app.Application.run()
+        finally:
+            lock_file.unlink(missing_ok=True)
+
+
+if __name__ == '__main__':
+    main()
