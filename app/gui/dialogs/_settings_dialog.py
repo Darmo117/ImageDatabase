@@ -1,9 +1,8 @@
 import pathlib
-import typing as typ
 
 import PyQt5.QtWidgets as QtW
 
-from app import config, utils, i18n, constants
+from app import config, constants, i18n, utils
 from app.i18n import translate as _t
 from . import _dialog_base
 from .. import components
@@ -12,12 +11,12 @@ from .. import components
 class SettingsDialog(_dialog_base.Dialog):
     """This dialog lets users edit app settings."""
 
-    def __init__(self, parent: typ.Optional[QtW.QWidget] = None):
+    def __init__(self, parent: QtW.QWidget = None):
         self._initial_config = config.CONFIG.copy(replace_by_pending=True)
         super().__init__(parent, _t('dialog.settings.title'), modal=True)
         self._update_ui()
 
-    def _init_body(self) -> typ.Optional[QtW.QLayout]:
+    def _init_body(self) -> QtW.QLayout | None:
         layout = QtW.QVBoxLayout()
 
         # Database
@@ -125,7 +124,7 @@ class SettingsDialog(_dialog_base.Dialog):
 
         return body_layout
 
-    def _init_buttons(self) -> typ.List[QtW.QAbstractButton]:
+    def _init_buttons(self) -> list[QtW.QAbstractButton]:
         self._apply_button = QtW.QPushButton(
             self.style().standardIcon(QtW.QStyle.SP_DialogApplyButton),
             _t('dialog.common.apply_button.label'),

@@ -1,9 +1,9 @@
-import collections
+from __future__ import annotations
+
 import dataclasses
 import json
 import pathlib
 import sys
-import typing as typ
 
 from . import constants
 from .logging import logger
@@ -13,7 +13,7 @@ from .logging import logger
 class Language:
     name: str
     code: str
-    _mappings: typ.Mapping[str, str]
+    _mappings: dict[str, str]
 
     def translate(self, key: str, default: str = None, **kwargs):
         """Translates the given key in this language.
@@ -25,7 +25,7 @@ class Language:
         """
         return self._mappings.get(key, default or key).format(**kwargs)
 
-    def __eq__(self, other):
+    def __eq__(self, other: Language):
         return isinstance(other, Language) and self.code == other.code
 
 
@@ -41,11 +41,11 @@ def translate(key: str, default: str = None, **kwargs):
     return config.CONFIG.language.translate(key, default=default, **kwargs)
 
 
-def get_language(code: str) -> typ.Optional[Language]:
+def get_language(code: str) -> Language | None:
     return _LANGUAGES.get(code)
 
 
-def get_languages() -> typ.List[Language]:
+def get_languages() -> list[Language]:
     return sorted(_LANGUAGES.values(), key=lambda lang: lang.name)
 
 
@@ -58,7 +58,7 @@ def load_languages() -> bool:
     return len(_LANGUAGES) != 0
 
 
-def _get_language_for_file(path: pathlib.Path) -> typ.Optional[typ.Tuple[Language, str]]:
+def _get_language_for_file(path: pathlib.Path) -> tuple[Language, str] | None:
     """Loads the language from the given file.
 
     :param path: File path.
@@ -79,8 +79,7 @@ def _get_language_for_file(path: pathlib.Path) -> typ.Optional[typ.Tuple[Languag
         return None
 
 
-def _build_mapping(json_object: typ.Mapping[str, typ.Union[str, typ.Mapping]], root: str = None) \
-        -> typ.Dict[str, str]:
+def _build_mapping(json_object: dict[str, str | dict], root: str = None) -> dict[str, str]:
     """
     Converts a JSON object to a flat key-value mapping.
     This function is recursive.
@@ -99,7 +98,7 @@ def _build_mapping(json_object: typ.Mapping[str, typ.Union[str, typ.Mapping]], r
             key = k
         if isinstance(v, str):
             mapping[key] = str(v)
-        elif isinstance(v, collections.Mapping):
+        elif isinstance(v, dict):
             mapping = dict(mapping, **_build_mapping(v, key))
         else:
             raise ValueError(f'illegal value type "{type(v)}" for translation value')

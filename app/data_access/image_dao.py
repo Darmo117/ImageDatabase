@@ -1,7 +1,6 @@
 import pathlib
 import re
 import sqlite3
-import typing as typ
 
 import sympy as sp
 
@@ -15,7 +14,7 @@ from ..logging import logger
 class ImageDao(DAO):
     """This class manages images."""
 
-    def get_images(self, tags: sp.Basic) -> typ.Optional[typ.List[model.Image]]:
+    def get_images(self, tags: sp.Basic) -> list[model.Image] | None:
         """Returns all images matching the given tags.
 
         :param tags: Tags query.
@@ -36,7 +35,7 @@ class ImageDao(DAO):
             cursor.close()
             return [self._get_image(r) for r in results]
 
-    def get_tagless_images(self) -> typ.Optional[typ.List[model.Image]]:
+    def get_tagless_images(self) -> list[model.Image] | None:
         """Returns the list of images that do not have any tag.
 
         :return: The list of images or None if an error occured.
@@ -61,7 +60,7 @@ class ImageDao(DAO):
             cursor.close()
             return [self._get_image(r) for r in results]
 
-    def get_image_tags(self, image_id: int, tags_dao: TagsDao) -> typ.Optional[typ.List[model.Tag]]:
+    def get_image_tags(self, image_id: int, tags_dao: TagsDao) -> list[model.Tag] | None:
         """Returns all tags for the given image.
 
         :param image_id: Image’s ID.
@@ -109,7 +108,7 @@ class ImageDao(DAO):
         return result is not None
 
     def get_similar_images(self, image_path: pathlib.Path) \
-            -> typ.Optional[typ.List[typ.Tuple[model.Image, int, float, bool]]]:
+            -> list[tuple[model.Image, int, float, bool]] | None:
         """Returns a list of all images that may be similar to the given one.
 
         Two images are considered similar if the Hamming distance between their respective hashes is ≤ 10
@@ -137,7 +136,7 @@ class ImageDao(DAO):
         # Sort by: sameness (desc), distance (asc), confidence (desc), path (normal)
         return sorted(images, key=lambda e: (not e[3], e[1], -e[2], e[0]))
 
-    def add_image(self, image_path: pathlib.Path, tags: typ.List[model.Tag]) -> bool:
+    def add_image(self, image_path: pathlib.Path, tags: list[model.Tag]) -> bool:
         """Adds an image.
 
         :param image_path: Path to the image.
@@ -164,7 +163,7 @@ class ImageDao(DAO):
             self._connection.commit()
             return True
 
-    def update_image(self, image_id: int, new_path: pathlib.Path, new_hash: typ.Union[int, None]) -> bool:
+    def update_image(self, image_id: int, new_path: pathlib.Path, new_hash: int | None) -> bool:
         """Sets the path of the given image.
 
         :param image_id: Image’s ID.
@@ -186,7 +185,7 @@ class ImageDao(DAO):
             cursor.close()
             return True
 
-    def update_image_tags(self, image_id: int, tags: typ.List[model.Tag]) -> bool:
+    def update_image_tags(self, image_id: int, tags: list[model.Tag]) -> bool:
         """Sets the tags for the given image.
 
         :param image_id: Image’s ID.
@@ -224,7 +223,7 @@ class ImageDao(DAO):
             cursor.close()
             return True
 
-    def _get_image(self, result: typ.Tuple[int, str, bytes]) -> model.Image:
+    def _get_image(self, result: tuple[int, str, bytes]) -> model.Image:
         """Creates an Image object from a result tuple."""
         return model.Image(
             id=result[0],
@@ -249,7 +248,7 @@ class ImageDao(DAO):
         return result[0]
 
     @staticmethod
-    def _get_query(sympy_expr: sp.Basic) -> typ.Optional[str]:
+    def _get_query(sympy_expr: sp.Basic) -> str | None:
         """Transforms a SymPy expression into an SQL query.
 
         :param sympy_expr: The SymPy query.

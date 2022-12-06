@@ -1,5 +1,4 @@
 import abc
-import typing as typ
 
 import PyQt5.QtCore as QtC
 
@@ -36,7 +35,7 @@ class WorkerThread(QtC.QThread):
         return self._error is not None
 
     @property
-    def error(self) -> typ.Optional[str]:
+    def error(self) -> str | None:
         """If the operation failed, returns the reason; otherwise returns None."""
         return self._error
 

@@ -13,7 +13,7 @@ _T = typ.TypeVar('_T', model.Tag, model.CompoundTag)
 class TagsDao(DAO):
     """This class manages tags and tag types."""
 
-    def get_all_types(self) -> typ.Optional[typ.List[model.TagType]]:
+    def get_all_types(self) -> list[model.TagType] | None:
         """Returns all tag types.
 
         :return: All tag types or None if an exception occured.
@@ -59,7 +59,7 @@ class TagsDao(DAO):
         tag_type = self.get_tag_type_from_symbol(s[0]) if has_type else None
         return model.Tag(0, label, tag_type)
 
-    def get_tag_from_label(self, label: str) -> typ.Optional[model.Tag]:
+    def get_tag_from_label(self, label: str) -> model.Tag | None:
         """Returns the tag that has the given label.
 
         :param label:
@@ -79,7 +79,7 @@ class TagsDao(DAO):
                 return self._get_tag(results[0])
             return None
 
-    def get_tag_type_from_symbol(self, symbol: str) -> typ.Optional[model.TagType]:
+    def get_tag_type_from_symbol(self, symbol: str) -> model.TagType | None:
         """Returns the type with from the given symbol.
 
         :param symbol: The type symbol.
@@ -99,7 +99,7 @@ class TagsDao(DAO):
                 return self._get_tag_type(results[0])
             return None
 
-    def get_tag_type_from_id(self, ident: int) -> typ.Optional[model.TagType]:
+    def get_tag_type_from_id(self, ident: int) -> model.TagType | None:
         """Returns the type with the given ID.
 
         :param ident: The SQLite ID.
@@ -173,7 +173,7 @@ class TagsDao(DAO):
             return True
 
     def get_all_tags(self, tag_class: typ.Type[_T] = None, sort_by_label: bool = False, get_count: bool = False) \
-            -> typ.Optional[typ.Union[typ.List[typ.Tuple[_T, int]], typ.List[_T]]]:
+            -> list[tuple[_T, int]] | list[_T] | None:
         """Returns all tags. Result can be sorted by label. You can also query use count for each tag.
 
         :param tag_class: Sets type of tags to return. If None all tags wil be returned.
@@ -235,7 +235,7 @@ class TagsDao(DAO):
             return tags
 
     def get_all_tag_types(self, sort_by_symbol: bool = False, get_count: bool = False) \
-            -> typ.Optional[typ.Union[typ.List[model.TagType], typ.List[typ.Tuple[model.TagType, int]]]]:
+            -> list[model.TagType] | list[tuple[model.TagType, int]] | None:
         """Returns all tag types.
 
         :param sort_by_symbol: Whether to sort types by symbol along with labels.
@@ -278,7 +278,7 @@ class TagsDao(DAO):
                 types.append(tag_type if not get_count else (tag_type, counts.get(tag_type.id, 0)))
             return types
 
-    def tag_exists(self, tag_id: int, tag_name: str) -> typ.Optional[bool]:
+    def tag_exists(self, tag_id: int, tag_name: str) -> bool | None:
         """Checks wether a tag with the same name exists.
 
         :param tag_id: Tag’s ID.
@@ -297,7 +297,7 @@ class TagsDao(DAO):
             cursor.close()
             return exists
 
-    def get_tag_class(self, tag_name: str) -> typ.Union[typ.Type[model.Tag], typ.Type[model.CompoundTag], None]:
+    def get_tag_class(self, tag_name: str) -> typ.Type[model.Tag] | typ.Type[model.CompoundTag] | None:
         """Returns the type of the given tag if any.
 
         :param tag_name: Tag’s name.
@@ -375,7 +375,7 @@ class TagsDao(DAO):
             cursor.close()
             return True
 
-    def _get_tag(self, result: typ.Tuple[int, str, typ.Optional[str], typ.Optional[int]]) -> model.Tag:
+    def _get_tag(self, result: tuple[int, str, str | None, int | None]) -> model.Tag:
         """Creates a Tag object based on the given result tuple."""
         if result[2]:
             return model.CompoundTag(
@@ -392,7 +392,7 @@ class TagsDao(DAO):
             )
 
     @staticmethod
-    def _get_tag_type(result: typ.Tuple[int, str, str, int]) -> model.TagType:
+    def _get_tag_type(result: tuple[int, str, str, int]) -> model.TagType:
         """Creates a TagType object based on the given result tuple."""
         return model.TagType(
             ident=result[0],

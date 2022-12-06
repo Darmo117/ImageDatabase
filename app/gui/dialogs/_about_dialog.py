@@ -1,4 +1,3 @@
-import typing as typ
 from datetime import datetime
 
 import PyQt5.QtCore as QtC
@@ -13,7 +12,7 @@ from . import _dialog_base
 class AboutDialog(_dialog_base.Dialog):
     """This dialog shows information about the application."""
 
-    def __init__(self, parent: typ.Optional[QtW.QWidget] = None):
+    def __init__(self, parent: QtW.QWidget = None):
         """Creates the 'About' dialog.
 
         :param parent: The widget this dialog is attached to.

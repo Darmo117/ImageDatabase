@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import pathlib
 import re
-import typing as typ
 from dataclasses import dataclass
 
 import PyQt5.QtGui as QtG
@@ -13,22 +12,22 @@ class Image:
     """This class represents an image."""
     id: int
     path: pathlib.Path
-    hash: typ.Optional[int]
+    hash: int | None
 
-    def __lt__(self, other):
+    def __lt__(self, other: Image):
         if not isinstance(other, Image):
             raise ValueError(f'expected Image, got {type(other)}')
         return self.path < other.path
 
-    def __gt__(self, other):
+    def __gt__(self, other: Image):
         if not isinstance(other, Image):
             raise ValueError(f'expected Image, got {type(other)}')
         return self.path > other.path
 
-    def __le__(self, other):
+    def __le__(self, other: Image):
         return self == other or self < other
 
-    def __ge__(self, other):
+    def __ge__(self, other: Image):
         return self == other or self > other
 
 
@@ -74,7 +73,7 @@ class TagType:
         """Returns this type’s color."""
         return self._color
 
-    def __eq__(self, other):
+    def __eq__(self, other: TagType):
         if not isinstance(other, TagType):
             return False
         return (self.id == other.id and self.label == other.label and self.symbol == other.symbol and
@@ -125,7 +124,7 @@ class Tag:
     def __repr__(self):
         return self._label
 
-    def __eq__(self, other):
+    def __eq__(self, other: Tag):
         if not isinstance(other, Tag):
             return False
         return self.id == other.id and self.label == other.label and self.type == other.type
@@ -152,7 +151,7 @@ class CompoundTag(Tag):
         """Returns the tag expression defining this tag."""
         return self._definition
 
-    def __eq__(self, other):
+    def __eq__(self, other: CompoundTag):
         if not super().__eq__(other) or not isinstance(other, CompoundTag):
             return False
         return self.definition == other.definition

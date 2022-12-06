@@ -23,13 +23,13 @@ class TagTree(QtW.QTreeWidget):
 
     def __init__(self, on_delete_item: typ.Callable[[QtW.QTreeWidgetItem], None],
                  on_insert_tag: typ.Callable[[QtW.QTreeWidgetItem], None],
-                 parent: typ.Optional[QtW.QWidget] = None):
+                 parent: QtW.QWidget = None):
         """Creates a tag tree widget.
 
         :param parent: The widget this tree belongs to.
         """
         super().__init__(parent)
-        self.setHeaderLabel(_t('main_window.tags_tree.title', amount=0))
+        self.setHeaderLabel(_t('main_window.tags_tree.title', amount='0'))
 
         self._delete_item = on_delete_item
         self._insert_tag = on_insert_tag
@@ -149,7 +149,7 @@ class TagTree(QtW.QTreeWidget):
         super().selectionChanged(selected, deselected)
         self._update_actions()
 
-    def refresh(self, types: typ.List[model.TagType], tags: typ.List[model.Tag]):
+    def refresh(self, types: list[model.TagType], tags: list[model.Tag]):
         """Refreshes this tree with the given tag types and tags. Tags without a type or with a type not present in the
         list are added under the “Unclassified” type node.
 
@@ -205,7 +205,7 @@ class TagTree(QtW.QTreeWidget):
             the tag type symbol will be returned along with the label.
         :return: The item’s label.
         """
-        o: typ.Union[model.Tag, model.TagType] = item.data(0, TagTree.DATA_OBJECT)
+        o: model.Tag | model.TagType = item.data(0, TagTree.DATA_OBJECT)
         if item.whatsThis(0) == TagTree.TAG_TYPE:
             if o:
                 return o.label + (f' ({o.symbol})' if keep_symbols else '')
@@ -477,7 +477,7 @@ class IntLineEdit(TranslatedLineEdit):
         """Sets the integer value."""
         self.setText(str(i))
 
-    def value(self) -> typ.Optional[int]:
+    def value(self) -> int | None:
         """Returns the current value or None if it is not an integer."""
         try:
             return int(self.text())

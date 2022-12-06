@@ -12,7 +12,7 @@ from app import config, constants, data_access as da
 from app.i18n import translate as _t
 
 
-def print_rows(rows: typ.List[typ.Tuple[str, ...]], column_names: typ.Sequence[str]):
+def print_rows(rows: list[tuple[str, ...]], column_names: typ.Sequence[str]):
     """Prints rows in a table.
 
     :param rows: List of rows.

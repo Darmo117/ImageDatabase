@@ -1,11 +1,10 @@
 """Functions related to image hashing."""
 import pathlib
-import typing as typ
 
 import cv2
 
 
-def get_hash(image_path: pathlib.Path, diff_size: int = 8) -> typ.Optional[int]:
+def get_hash(image_path: pathlib.Path, diff_size: int = 8) -> int | None:
     """Computes the difference hash of the image at the given path.
 
     :param image_path: Image’s path.
@@ -26,7 +25,7 @@ def get_hash(image_path: pathlib.Path, diff_size: int = 8) -> typ.Optional[int]:
     return sum([2 ** i for i, v in enumerate(diff.flatten()) if v])
 
 
-def compare_hashes(hash1: int, hash2: int, diff_size: int = 8) -> typ.Tuple[int, typ.Optional[float], bool]:
+def compare_hashes(hash1: int, hash2: int, diff_size: int = 8) -> tuple[int, float | None, bool]:
     """Compares two image hashes. Two hashes are considered similar if their Hamming distance
     is ≤ 10 (cf. http://www.hackerfactor.com/blog/index.php?/archives/529-Kind-of-Like-That.html).
 
@@ -50,7 +49,7 @@ def compare_hashes(hash1: int, hash2: int, diff_size: int = 8) -> typ.Tuple[int,
     return dist_counter, confidence, similar
 
 
-def image_size(image_path: pathlib.Path) -> typ.Optional[typ.Tuple[int, int]]:
+def image_size(image_path: pathlib.Path) -> tuple[int, int] | None:
     """Returns the size of the given image file.
 
     :param image_path: Path to the image.

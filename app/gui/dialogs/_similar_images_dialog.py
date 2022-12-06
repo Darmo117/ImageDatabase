@@ -1,16 +1,14 @@
-import typing as typ
-
 import PyQt5.QtWidgets as QtW
 from PyQt5.QtCore import Qt
 
-from app import model, data_access, utils
+from app import data_access, model, utils
 from app.i18n import translate as _t
 from . import _dialog_base
 from .. import components
 
 
 class SimilarImagesDialog(_dialog_base.Dialog):
-    def __init__(self, images: typ.List[typ.Tuple[model.Image, float]], image_dao: data_access.ImageDao,
+    def __init__(self, images: list[tuple[model.Image, float]], image_dao: data_access.ImageDao,
                  tags_dao: data_access.TagsDao, parent: QtW.QWidget = None):
         self._images = images
         self._index = -1
@@ -105,7 +103,7 @@ class SimilarImagesDialog(_dialog_base.Dialog):
         index = int(self.sender().whatsThis())
         utils.gui.show_file(self._images[index][0].path)
 
-    def get_tags(self) -> typ.Optional[typ.List[model.Tag]]:
+    def get_tags(self) -> list[model.Tag] | None:
         if self._applied and 0 <= self._index < len(self._images):
             return self._image_dao.get_image_tags(self._images[self._index][0].id, self._tags_dao)
         return None

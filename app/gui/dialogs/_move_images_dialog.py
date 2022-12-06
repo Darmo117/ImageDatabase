@@ -2,11 +2,10 @@ from __future__ import annotations
 
 import pathlib
 import shutil
-import typing as typ
 
 import PyQt5.QtWidgets as QtW
 
-from app import utils, data_access, config, model
+from app import config, data_access, model, utils
 from app.i18n import translate as _t
 from . import _dialog_base, _progress_dialog
 from .. import components, threads
@@ -15,7 +14,7 @@ from .. import components, threads
 class MoveImagesDialog(_dialog_base.Dialog):
     """This dialog provides tools to apply transformations to images."""
 
-    def __init__(self, images: typ.List[model.Image], parent: QtW.QWidget = None):
+    def __init__(self, images: list[model.Image], parent: QtW.QWidget = None):
         self._images = images
         super().__init__(parent=parent, title=_t('dialog.move_images.title'), modal=True,
                          mode=_dialog_base.Dialog.OK_CANCEL)
@@ -63,7 +62,7 @@ class MoveImagesDialog(_dialog_base.Dialog):
 
         return layout
 
-    def _init_buttons(self) -> typ.List[QtW.QAbstractButton]:
+    def _init_buttons(self) -> list[QtW.QAbstractButton]:
         self._ok_btn.setText(_t('dialog.move_images.move_button.label'))
 
         return []
@@ -135,7 +134,7 @@ class MoveImagesDialog(_dialog_base.Dialog):
 class _WorkerThread(threads.WorkerThread):
     """Moves the selected files and directories to the selected destination."""
 
-    def __init__(self, images: typ.List[model.Image], destination: pathlib.Path, delete_directories_if_empty: bool):
+    def __init__(self, images: list[model.Image], destination: pathlib.Path, delete_directories_if_empty: bool):
         super().__init__()
         self._images = images
         self._destination = destination
@@ -187,9 +186,9 @@ class _WorkerThread(threads.WorkerThread):
                 stop = nb == len(dirs)
 
     @property
-    def failed_images(self) -> typ.List[model.Image]:
+    def failed_images(self) -> list[model.Image]:
         return self._failed_images
 
     @property
-    def failed_deletions(self) -> typ.List[pathlib.Path]:
+    def failed_deletions(self) -> list[pathlib.Path]:
         return self._failed_deletions

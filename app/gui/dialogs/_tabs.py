@@ -25,10 +25,10 @@ class Tab(abc.ABC, typ.Generic[_Type]):
     _FORMAT = 4
 
     def __init__(self, owner: QtW.QWidget, dao: da.TagsDao, title: str, addable: bool, deletable: bool, editable: bool,
-                 columns_to_check: typ.List[typ.Tuple[int, bool]], search_columns: typ.List[int],
-                 selection_changed: typ.Optional[typ.Callable[[None], None]] = None,
-                 cell_changed: typ.Optional[typ.Callable[[int, int, str], None]] = None,
-                 rows_deleted: typ.Optional[typ.Callable[[typ.List[_Type]], None]] = None):
+                 columns_to_check: list[tuple[int, bool]], search_columns: list[int],
+                 selection_changed: typ.Callable[[None], None] = None,
+                 cell_changed: typ.Callable[[int, int, str], None] = None,
+                 rows_deleted: typ.Callable[[list[_Type]], None] = None):
         """Initializes this tab.
 
         :param owner: Tab’s owner.
@@ -145,7 +145,7 @@ class Tab(abc.ABC, typ.Generic[_Type]):
                 if self._rows_deleted is not None:
                     self._rows_deleted(to_delete)
 
-    def search(self, query: str) -> typ.Optional[bool]:
+    def search(self, query: str) -> bool | None:
         """Searches for a string inside the table.
         Starts the search from the currently selected row, or from the first one if none is selected.
 
@@ -208,7 +208,7 @@ class Tab(abc.ABC, typ.Generic[_Type]):
         return ok
 
     @abc.abstractmethod
-    def get_value(self, row: int) -> typ.Optional[_Type]:
+    def get_value(self, row: int) -> _Type | None:
         """Returns the value for the given row.
 
         :param row: The row.
@@ -217,7 +217,7 @@ class Tab(abc.ABC, typ.Generic[_Type]):
         pass
 
     @abc.abstractmethod
-    def _set_row(self, value: typ.Optional[_Type], row: int):
+    def _set_row(self, value: _Type | None, row: int):
         """Sets the value at the given row.
 
         :param value: The value.
@@ -234,7 +234,7 @@ class Tab(abc.ABC, typ.Generic[_Type]):
         """
         pass
 
-    def _check_column(self, column: int, check_duplicates: bool) -> typ.Tuple[int, int, str]:
+    def _check_column(self, column: int, check_duplicates: bool) -> tuple[int, int, str]:
         """Checks column’s integrity.
 
         :param column: The column to check.
@@ -281,9 +281,9 @@ class TagTypesTab(Tab[model.TagType]):
     """This class represents a tab containing a table that displays all defined tag types."""
 
     def __init__(self, owner: QtW.QWidget, dao: da.TagsDao, editable: bool,
-                 selection_changed: typ.Optional[typ.Callable[[None], None]] = None,
-                 cell_changed: typ.Optional[typ.Callable[[int, int, str], None]] = None,
-                 rows_deleted: typ.Optional[typ.Callable[[typ.List[_Type]], None]] = None):
+                 selection_changed: typ.Callable[[None], None] = None,
+                 cell_changed: typ.Callable[[int, int, str], None] = None,
+                 rows_deleted: typ.Callable[[list[_Type]], None] = None):
         """Initializes this tab.
 
         :param owner: Tab’s owner.
@@ -364,7 +364,7 @@ class TagTypesTab(Tab[model.TagType]):
 
         return ok
 
-    def get_value(self, row: int) -> typ.Optional[model.TagType]:
+    def get_value(self, row: int) -> model.TagType | None:
         args = {}
 
         for i in range(self._table.columnCount()):
@@ -407,13 +407,13 @@ class TagTypesTab(Tab[model.TagType]):
         text = self._table.item(row, col).text()
         if col == 1:
             return model.TagType.LABEL_PATTERN.match(text) is not None, \
-                   _t('dialog.edit_tags.error.invalid_tag_name')
+                _t('dialog.edit_tags.error.invalid_tag_name')
         if col == 2:
             return (model.TagType.SYMBOL_PATTERN.match(text) is not None,
                     _t('dialog.edit_tags.error.invalid_tag_type_symbol'))
         return True, ''
 
-    def _set_row(self, tag_type: typ.Optional[model.TagType], row: int):
+    def _set_row(self, tag_type: model.TagType | None, row: int):
         defined = tag_type is not None
         id_item = _IntTableWidgetItem(str(tag_type.id) if defined else str(self._dummy_type_id))
         id_item.setWhatsThis('ident')
@@ -485,11 +485,11 @@ class _TagsTab(Tab[_TagType], typ.Generic[_TagType], metaclass=abc.ABCMeta):
     COMBO_ITEM_PATTERN = re.compile(r'^(\d+) - (.+)$')
 
     def __init__(self, owner: QtW.QWidget, dao: da.TagsDao, title: str, addable: bool, editable: bool,
-                 tag_class: typ.Type[_TagType], additional_columns: typ.List[typ.Tuple[str, bool]],
-                 additional_search_columns: typ.List[int],
-                 selection_changed: typ.Optional[typ.Callable[[None], None]] = None,
-                 cell_changed: typ.Optional[typ.Callable[[int, int, str], None]] = None,
-                 rows_deleted: typ.Optional[typ.Callable[[typ.List[_TagType]], None]] = None):
+                 tag_class: typ.Type[_TagType], additional_columns: list[tuple[str, bool]],
+                 additional_search_columns: list[int],
+                 selection_changed: typ.Callable[[None], None] = None,
+                 cell_changed: typ.Callable[[int, int, str], None] = None,
+                 rows_deleted: typ.Callable[[list[_TagType]], None] = None):
         """Initializes this tab.
 
         :param owner: Tab’s owner.
@@ -575,7 +575,7 @@ class _TagsTab(Tab[_TagType], typ.Generic[_TagType], metaclass=abc.ABCMeta):
 
         return ok
 
-    def get_value(self, row: int) -> typ.Optional[_TagType]:
+    def get_value(self, row: int) -> _TagType | None:
         args = {}
 
         for i in range(self._table.columnCount()):
@@ -613,7 +613,7 @@ class _TagsTab(Tab[_TagType], typ.Generic[_TagType], metaclass=abc.ABCMeta):
                         combo.setItemText(i, self._get_combo_text(tag_type.id, tag_type.label))
                         break
 
-    def delete_types(self, deleted_types: typ.List[model.TagType]):
+    def delete_types(self, deleted_types: list[model.TagType]):
         """Removes from all comboboxes the tag types that have been deleted.
 
         :param deleted_types: All deleted tag types.
@@ -627,7 +627,7 @@ class _TagsTab(Tab[_TagType], typ.Generic[_TagType], metaclass=abc.ABCMeta):
                 if current_type == label:
                     combo.setCurrentIndex(0)
 
-    def _set_row(self, tag: typ.Optional[_TagType], row: int):
+    def _set_row(self, tag: _TagType | None, row: int):
         defined = tag is not None
         id_item = _IntTableWidgetItem(str(tag.id if defined else self._dummy_type_id))
         id_item.setWhatsThis('ident')
@@ -686,7 +686,7 @@ class _TagsTab(Tab[_TagType], typ.Generic[_TagType], metaclass=abc.ABCMeta):
             number_item.setBackground(self._DISABLED_COLOR)
         self._table.setItem(row, self._tag_use_count_column, number_item)
 
-    def _get_value_for_column(self, column_name: str, value: _TagType, default: bool) -> typ.Tuple[str, str]:
+    def _get_value_for_column(self, column_name: str, value: _TagType, default: bool) -> tuple[str, str]:
         """Returns the value for the given column and tag.
 
         :param column_name: Column’s name.
@@ -729,7 +729,7 @@ class _TagsTab(Tab[_TagType], typ.Generic[_TagType], metaclass=abc.ABCMeta):
             combo = self._owner.sender()
             self._cell_edited(combo.property('row'), self._type_column)
 
-    def _label_from_combo(self, text: str) -> typ.Optional[str]:
+    def _label_from_combo(self, text: str) -> str | None:
         """Returns the label of the tag type represented by the given text from a combobox.
 
         :param text: The text to get the label from.
@@ -740,7 +740,7 @@ class _TagsTab(Tab[_TagType], typ.Generic[_TagType], metaclass=abc.ABCMeta):
             return match.group(2)
         return None
 
-    def _id_from_combo(self, text: str) -> typ.Optional[int]:
+    def _id_from_combo(self, text: str) -> int | None:
         """Returns the ID of the tag type represented by the given text from a combobox.
 
         :param text: The text to get the ID from.
@@ -764,9 +764,9 @@ class _TagsTab(Tab[_TagType], typ.Generic[_TagType], metaclass=abc.ABCMeta):
 
 class TagsTab(_TagsTab[model.Tag]):
     def __init__(self, owner: QtW.QWidget, dao: da.TagsDao, editable: bool,
-                 selection_changed: typ.Optional[typ.Callable[[None], None]] = None,
-                 cell_changed: typ.Optional[typ.Callable[[int, int, str], None]] = None,
-                 rows_deleted: typ.Optional[typ.Callable[[typ.List[model.Tag]], None]] = None):
+                 selection_changed: typ.Callable[[None], None] = None,
+                 cell_changed: typ.Callable[[int, int, str], None] = None,
+                 rows_deleted: typ.Callable[[list[model.Tag]], None] = None):
         """Initializes this tab.
 
         :param owner: Tab’s owner.
@@ -793,9 +793,9 @@ class TagsTab(_TagsTab[model.Tag]):
 
 class CompoundTagsTab(_TagsTab[model.CompoundTag]):
     def __init__(self, owner: QtW.QWidget, dao: da.TagsDao, editable: bool,
-                 selection_changed: typ.Optional[typ.Callable[[None], None]] = None,
-                 cell_changed: typ.Optional[typ.Callable[[int, int, str], None]] = None,
-                 rows_deleted: typ.Optional[typ.Callable[[typ.List[model.CompoundTag]], None]] = None):
+                 selection_changed: typ.Callable[[None], None] = None,
+                 cell_changed: typ.Callable[[int, int, str], None] = None,
+                 rows_deleted: typ.Callable[[list[model.CompoundTag]], None] = None):
         """Initializes this tab.
 
         :param owner: Tab’s owner.
@@ -825,7 +825,7 @@ class CompoundTagsTab(_TagsTab[model.CompoundTag]):
         super().init()
         self._table.setColumnHidden(self._tag_use_count_column, True)
 
-    def _get_value_for_column(self, column_name: str, tag: model.CompoundTag, default: bool) -> typ.Tuple[str, str]:
+    def _get_value_for_column(self, column_name: str, tag: model.CompoundTag, default: bool) -> tuple[str, str]:
         return (tag.definition if not default else ''), 'definition'
 
     def _check_cell_format(self, row: int, col: int) -> (bool, str):

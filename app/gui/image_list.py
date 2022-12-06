@@ -79,22 +79,22 @@ class ImageListView:
         pass
 
     @abc.abstractmethod
-    def selected_items(self) -> typ.List[ImageItem]:
+    def selected_items(self) -> list[ImageItem]:
         """Returns selected items."""
         pass
 
     @abc.abstractmethod
-    def selected_images(self) -> typ.List[model.Image]:
+    def selected_images(self) -> list[model.Image]:
         """Returns selected images."""
         pass
 
     @abc.abstractmethod
-    def selected_indexes(self) -> typ.List[int]:
+    def selected_indexes(self) -> list[int]:
         """Returns selected indexes sorted in ascending order."""
         pass
 
     @abc.abstractmethod
-    def get_images(self) -> typ.List[model.Image]:
+    def get_images(self) -> list[model.Image]:
         """Returns all images from this list."""
         pass
 
@@ -162,16 +162,16 @@ class ImageList(QtW.QListWidget, ImageListView):
     def select_all(self):
         self.selectAll()
 
-    def selected_items(self) -> typ.List[ImageItem]:
+    def selected_items(self) -> list[ImageItem]:
         return [self.item(i) for i in self.selected_indexes()]
 
-    def selected_images(self) -> typ.List[model.Image]:
+    def selected_images(self) -> list[model.Image]:
         return [self.item(i).image for i in self.selected_indexes()]
 
-    def selected_indexes(self) -> typ.List[int]:
+    def selected_indexes(self) -> list[int]:
         return sorted(map(QtC.QModelIndex.row, self.selectedIndexes()))
 
-    def get_images(self) -> typ.List[model.Image]:
+    def get_images(self) -> list[model.Image]:
         return [self.item(i).image for i in range(self.count())]
 
     def item(self, row: int) -> ImageItem:
@@ -224,16 +224,16 @@ class ThumbnailList(flow_layout.ScrollingFlowWidget, ImageListView):
             item.selected = True
         self._on_selection_changed()
 
-    def selected_items(self) -> typ.List[ImageItem]:
+    def selected_items(self) -> list[ImageItem]:
         return [item for item in self._flow_layout.items if item.selected]
 
-    def selected_images(self) -> typ.List[model.Image]:
+    def selected_images(self) -> list[model.Image]:
         return [item.image for item in self._flow_layout.items if item.selected]
 
-    def selected_indexes(self) -> typ.List[int]:
+    def selected_indexes(self) -> list[int]:
         return [i for i, item in enumerate(self._flow_layout.items) if item.selected]
 
-    def get_images(self) -> typ.List[model.Image]:
+    def get_images(self) -> list[model.Image]:
         return [item.image for item in self._flow_layout.items]
 
     def item(self, index: int) -> ImageItem:
@@ -305,7 +305,7 @@ class ThumbnailList(flow_layout.ScrollingFlowWidget, ImageListView):
         self._last_index = item.index
         self._on_item_double_clicked(item.image)
 
-    def _deselect_except(self, item: typ.Optional[_FlowImageItem]):
+    def _deselect_except(self, item: _FlowImageItem | None):
         """Deselects all items apart from the given one.
 
         :param item: The item to keep selected.

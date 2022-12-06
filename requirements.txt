@@ -1,11 +1,29 @@
-# Do not pip freeze!
-
+contourpy==1.0.6
 cv2imageload==1.0.6
-lark-parser==0.11.3
-# Versions 4.2+ do not work.
-# See https://stackoverflow.com/questions/60042568/this-application-failed-to-start-because-no-qt-platform-plugin-could-be-initiali
-opencv-contrib-python==4.1.2.30
+cycler==0.11.0
+decorator==5.1.1
+fonttools==4.38.0
+imageio==2.22.4
+kiwisolver==1.4.4
+lark-parser==0.12.0
+matplotlib==3.6.2
+mpmath==1.2.1
+networkx==2.8.8
+numpy==1.23.5
+opencv-python-headless==4.6.0.66
+packaging==21.3
+Pillow==9.3.0
+pyparsing==3.0.9
 pyperclip==1.8.2
-PyQt5==5.15.4
-scikit-image==0.18.2
-sympy==1.8
+PyQt5==5.15.7
+PyQt5-Qt5==5.15.2
+PyQt5-sip==12.11.0
+PyQt5-stubs==5.15.6.0
+python-dateutil==2.8.2
+PyWavelets==1.4.1
+scikit-image==0.19.3
+scipy==1.9.3
+six==1.16.0
+sympy==1.11.1
+tifffile==2022.10.10
+validators==0.20.0

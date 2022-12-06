@@ -2,13 +2,12 @@
 import pathlib
 import platform
 import subprocess
-import typing as typ
 
 import PyQt5.QtGui as QtG
 import PyQt5.QtWidgets as QtW
 
 from . import files
-from .. import constants, config
+from .. import config, constants
 from ..i18n import translate as _t
 
 
@@ -49,7 +48,7 @@ def show_error(message: str, title: str = 'popup.error.title', parent: QtW.QWidg
 
 
 def show_question(message: str, title: str = 'popup.question.title', cancel: bool = False,
-                  parent: QtW.QWidget = None) -> typ.Optional[bool]:
+                  parent: QtW.QWidget = None) -> bool | None:
     """Shows a question popup.
 
     :param message: Popup’s message.
@@ -76,7 +75,7 @@ def show_question(message: str, title: str = 'popup.question.title', cancel: boo
     return answers[mb.exec_()]
 
 
-def show_text_input(message: str, title: str, text: str = '', parent: QtW.QWidget = None) -> typ.Optional[str]:
+def show_text_input(message: str, title: str, text: str = '', parent: QtW.QWidget = None) -> str | None:
     """Shows an input popup.
 
     :param message: Popup’s message.
@@ -100,7 +99,7 @@ FILTER_DB = 1
 
 
 def open_file_chooser(single_selection: bool, mode: int, directory: pathlib.Path = None, parent: QtW.QWidget = None) \
-        -> typ.Union[typ.List[pathlib.Path], pathlib.Path, None]:
+        -> list[pathlib.Path] | pathlib.Path | None:
     """Opens a file chooser for images.
 
     :param single_selection: Whether the user can select only a single file.
@@ -141,7 +140,7 @@ def open_file_chooser(single_selection: bool, mode: int, directory: pathlib.Path
     return None
 
 
-def open_directory_chooser(directory: pathlib.Path = None, parent: QtW.QWidget = None) -> typ.Optional[pathlib.Path]:
+def open_directory_chooser(directory: pathlib.Path = None, parent: QtW.QWidget = None) -> pathlib.Path | None:
     """Opens a directory chooser.
 
     :param directory: The directory to open the chooser in.
@@ -167,8 +166,7 @@ def open_directory_chooser(directory: pathlib.Path = None, parent: QtW.QWidget =
     return pathlib.Path(dir_).absolute() if dir_ else None
 
 
-def open_playlist_saver(directory: pathlib.Path = None, parent: typ.Optional[QtW.QWidget] = None) \
-        -> typ.Optional[pathlib.Path]:
+def open_playlist_saver(directory: pathlib.Path = None, parent: QtW.QWidget = None) -> pathlib.Path | None:
     """Opens a file saver for playlists.
 
     :param directory: The directory to open the chooser in.

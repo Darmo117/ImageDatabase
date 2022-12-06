@@ -17,8 +17,7 @@ class Dialog(QtW.QDialog):
     OK_CANCEL = 0
     CLOSE = 1
 
-    def __init__(self, parent: typ.Optional[QtW.QWidget] = None, title: typ.Optional[str] = None, modal: bool = True,
-                 mode: int = OK_CANCEL):
+    def __init__(self, parent: QtW.QWidget = None, title: str = None, modal: bool = True, mode: int = OK_CANCEL):
         """Creates a dialog window.
 
         :param parent: The widget this dialog is attached to.
@@ -57,7 +56,7 @@ class Dialog(QtW.QDialog):
         self.setLayout(body)
         utils.gui.center(self)
 
-    def _init_body(self) -> typ.Optional[QtW.QLayout]:
+    def _init_body(self) -> QtW.QLayout | None:
         """Initializes this dialog’s body.
 
         :return: The components to disply in this dialog.
@@ -101,7 +100,7 @@ class Dialog(QtW.QDialog):
 
         return box
 
-    def _init_buttons(self) -> typ.List[QtW.QAbstractButton]:
+    def _init_buttons(self) -> list[QtW.QAbstractButton]:
         """Use this method to return additional buttons.
 
         :return: The list of additional buttons.
@@ -138,7 +137,7 @@ class Dialog(QtW.QDialog):
         """
         return True
 
-    def _get_error(self) -> typ.Optional[str]:
+    def _get_error(self) -> str | None:
         """Returns the reason data is invalid. If data is valid, None is returned."""
         return None
 

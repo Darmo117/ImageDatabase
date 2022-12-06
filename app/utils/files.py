@@ -1,12 +1,11 @@
 """Utility functions to handle files."""
 import os
 import pathlib
-import typing as typ
 
 from app import constants
 
 
-def get_files_from_directory(directory: pathlib.Path, recursive: bool = True) -> typ.List[pathlib.Path]:
+def get_files_from_directory(directory: pathlib.Path, recursive: bool = True) -> list[pathlib.Path]:
     """Returns all image files contained in the given directory.
 
     :param directory: The directory to look into.
@@ -16,7 +15,7 @@ def get_files_from_directory(directory: pathlib.Path, recursive: bool = True) ->
     """
     max_depth = 20
 
-    def aux(root: pathlib.Path, depth: int = 0) -> typ.List[pathlib.Path]:
+    def aux(root: pathlib.Path, depth: int = 0) -> list[pathlib.Path]:
         if depth > max_depth:
             raise RecursionError(max_depth)
         files = []
@@ -30,12 +29,12 @@ def get_files_from_directory(directory: pathlib.Path, recursive: bool = True) ->
     return aux(directory)
 
 
-def accept_image_file(filename: typ.Union[str, pathlib.Path]) -> bool:
+def accept_image_file(filename: str | pathlib.Path) -> bool:
     """Indicates whether the given file has a valid image extension."""
     return get_extension(filename) in constants.IMAGE_FILE_EXTENSIONS
 
 
-def get_extension(filename: typ.Union[str, pathlib.Path], keep_dot: bool = False) -> str:
+def get_extension(filename: str | pathlib.Path, keep_dot: bool = False) -> str:
     """Returns the extension of the given file.
 
     :param filename: File’s name.

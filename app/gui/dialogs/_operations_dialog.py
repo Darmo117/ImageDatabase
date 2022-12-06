@@ -7,17 +7,35 @@ import typing as typ
 
 import PyQt5.QtWidgets as QtW
 
-from app import data_access, queries, config, utils, model
+from app import config, data_access, model, queries, utils
 from app.i18n import translate as _t
 from . import _dialog_base, _progress_dialog
-from .. import threads, components
+from .. import components, threads
 
 
 class OperationsDialog(_dialog_base.Dialog):
     """This dialog provides tools to apply transformations to images."""
 
-    def __init__(self, tags: typ.Iterable[str], state: OperationsDialog.FormState = None,
-                 parent: typ.Optional[QtW.QWidget] = None):
+    @dataclasses.dataclass
+    class State:
+        regex: str = ''
+        replacement: str = ''
+
+        tag_to_replace: str = ''
+        replacement_tag: str = ''
+        delete_tag_after_replacement: bool = True
+
+        def copy(self) -> OperationsDialog.State:
+            return OperationsDialog.State(
+                regex=self.regex,
+                replacement=self.replacement,
+                tag_to_replace=self.tag_to_replace,
+                replacement_tag=self.replacement_tag,
+                delete_tag_after_replacement=self.delete_tag_after_replacement
+            )
+
+    def __init__(self, tags: typ.Iterable[str], state: OperationsDialog.State = None,
+                 parent: QtW.QWidget = None):
         self._state = state.copy() if state else self.State()
         self._tags = tags
         super().__init__(parent=parent, title=_t('dialog.perform_operations.title'), modal=True,
@@ -196,26 +214,8 @@ class OperationsDialog(_dialog_base.Dialog):
         self._update_ui()
 
     @property
-    def state(self) -> OperationsDialog.FormState:
+    def state(self) -> OperationsDialog.State:
         return self._state.copy()
-
-    @dataclasses.dataclass
-    class State:
-        regex: str = ''
-        replacement: str = ''
-
-        tag_to_replace: str = ''
-        replacement_tag: str = ''
-        delete_tag_after_replacement: bool = True
-
-        def copy(self) -> OperationsDialog.State:
-            return OperationsDialog.State(
-                regex=self.regex,
-                replacement=self.replacement,
-                tag_to_replace=self.tag_to_replace,
-                replacement_tag=self.replacement_tag,
-                delete_tag_after_replacement=self.delete_tag_after_replacement
-            )
 
 
 class _WorkerThread(threads.WorkerThread):
@@ -237,7 +237,7 @@ class _WorkerThread(threads.WorkerThread):
         self._replacement = replacement
         self._delete_tag_after = delete_tag_after
         self._affected = 0
-        self._failed_images: typ.List[model.Image] = []
+        self._failed_images: list[model.Image] = []
 
     def run(self):
         if self._mode == self.PATHS:
@@ -323,7 +323,7 @@ class _WorkerThread(threads.WorkerThread):
                     tags_dao.delete_tag(tag_to_replace.id)
 
     @property
-    def failed_images(self) -> typ.List[model.Image]:
+    def failed_images(self) -> list[model.Image]:
         return self._failed_images
 
     @property

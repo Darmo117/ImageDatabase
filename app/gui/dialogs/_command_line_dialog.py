@@ -14,7 +14,7 @@ from .. import components
 class CommandLineDialog(_dialog_base.Dialog):
     """A simple command line interface to interact with the database."""
 
-    def __init__(self, parent: typ.Optional[QtW.QWidget] = None):
+    def __init__(self, parent: QtW.QWidget = None):
         super().__init__(
             parent=parent,
             title=_t('dialog.command_line.title'),
@@ -101,7 +101,7 @@ class CommandLineDialog(_dialog_base.Dialog):
                 self._print_rows(rows, self._column_names)
                 self._results = None
 
-    def _print_rows(self, rows: typ.List[typ.Tuple[str, ...]], column_names: typ.Sequence[str]):
+    def _print_rows(self, rows: list[tuple[str, ...]], column_names: typ.Sequence[str]):
         """Prints rows in a table.
 
         :param rows: List of rows.

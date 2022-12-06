@@ -2,14 +2,13 @@ import os
 import pathlib
 import shutil
 import sqlite3
-import typing as typ
 
 from ._migrations import migrations
 from .. import config, constants, gui, utils
 from ..i18n import translate as _t
 
 
-def update_database_if_needed() -> typ.Tuple[typ.Optional[bool], typ.Optional[str]]:
+def update_database_if_needed() -> tuple[bool | None, str | None]:
     """Updates the database if it needs to be."""
     db_file = config.CONFIG.database_path
     setup = not db_file.exists()

@@ -1,11 +1,10 @@
 import pathlib
-import typing as typ
 import xml.etree.ElementTree as ETree
 
 from .. import model
 
 
-def write_playlist(file: pathlib.Path, images: typ.List[model.Image]):
+def write_playlist(file: pathlib.Path, images: list[model.Image]):
     """
     Writes the given images as a playlist in the specified file.
 

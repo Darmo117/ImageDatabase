@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import configparser
 import pathlib
-import typing as typ
 
 from . import constants, i18n, logging
 
@@ -57,7 +56,7 @@ class Config:
         self._language_pending = value
 
     @property
-    def language_pending(self) -> typ.Optional[i18n.Language]:
+    def language_pending(self) -> i18n.Language | None:
         return self._language_pending
 
     @property
@@ -69,7 +68,7 @@ class Config:
         self._database_path_pending = value
 
     @property
-    def database_path_pending(self) -> typ.Optional[pathlib.Path]:
+    def database_path_pending(self) -> pathlib.Path | None:
         return self._database_path_pending
 
     @property
@@ -77,7 +76,7 @@ class Config:
         return self._debug
 
     @property
-    def last_directory(self) -> typ.Optional[pathlib.Path]:
+    def last_directory(self) -> pathlib.Path | None:
         return self._last_directory
 
     @last_directory.setter
@@ -215,7 +214,7 @@ def load_config():
         CONFIG.save()
 
 
-def _to_bool(value: typ.Union[str, bool]) -> bool:
+def _to_bool(value: str | bool) -> bool:
     if isinstance(value, bool):
         return value
     elif value.lower() in ['true', '1', 'yes']:

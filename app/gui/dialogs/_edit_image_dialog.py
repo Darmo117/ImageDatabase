@@ -8,7 +8,7 @@ import PyQt5.QtCore as QtC
 import PyQt5.QtGui as QtG
 import PyQt5.QtWidgets as QtW
 
-from app import data_access as da, model, utils, config
+from app import config, data_access as da, model, utils
 from app.i18n import translate as _t
 from . import _dialog_base, _edit_tags_dialog, _similar_images_dialog
 from .. import components
@@ -45,8 +45,8 @@ class EditImageDialog(_dialog_base.Dialog):
         self._show_skip = show_skip
 
         self._index = -1
-        self._images: typ.List[model.Image] = []
-        self._tags: typ.Dict[int, typ.List[model.Tag]] = {}
+        self._images: list[model.Image] = []
+        self._tags: dict[int, list[model.Tag]] = {}
 
         self._image_dao = image_dao
         self._tags_dao = tags_dao
@@ -55,10 +55,10 @@ class EditImageDialog(_dialog_base.Dialog):
 
         self._tags_input.setFocus()
 
-        self._destination: typ.Optional[pathlib.Path] = None
-        self._image_to_replace: typ.Optional[pathlib.Path] = None
+        self._destination: pathlib.Path | None = None
+        self._image_to_replace: pathlib.Path | None = None
         self._tags_changed = False
-        self._similar_images: typ.List[typ.Tuple[model.Image, float]] = []
+        self._similar_images: list[tuple[model.Image, float]] = []
 
         self._tags_dialog = None
 
@@ -145,7 +145,7 @@ class EditImageDialog(_dialog_base.Dialog):
 
         return layout
 
-    def _init_buttons(self) -> typ.List[QtW.QAbstractButton]:
+    def _init_buttons(self) -> list[QtW.QAbstractButton]:
         if self._mode == EditImageDialog.REPLACE:
             self._ok_btn.setDisabled(True)
 
@@ -169,7 +169,7 @@ class EditImageDialog(_dialog_base.Dialog):
         """Shows the current image in the system’s file explorer."""
         utils.gui.show_file(self._images[self._index].path)
 
-    def set_images(self, images: typ.List[model.Image], tags: typ.Dict[int, typ.List[model.Tag]]):
+    def set_images(self, images: list[model.Image], tags: dict[int, list[model.Tag]]):
         """Sets the images to display. If more than one image are given, they will be displayed one after another when
         the user clicks on 'OK' or 'Skip'.
 
@@ -181,7 +181,7 @@ class EditImageDialog(_dialog_base.Dialog):
         self._tags = tags
         self._set(self._index)
 
-    def set_image(self, image: model.Image, tags: typ.List[model.Tag]):
+    def set_image(self, image: model.Image, tags: list[model.Tag]):
         """Sets the image to display.
 
         :param image: The image to display.
@@ -234,7 +234,7 @@ class EditImageDialog(_dialog_base.Dialog):
 
         self.setWindowTitle(self._get_title())
 
-    def _set_tags(self, tags: typ.List[model.Tag], clear_undo_redo: bool = True):
+    def _set_tags(self, tags: list[model.Tag], clear_undo_redo: bool = True):
         self._tags_input.clear()
         self._tags_input.insertPlainText(' '.join(sorted([tag.raw_label() for tag in tags])))
         if clear_undo_redo:
@@ -284,17 +284,17 @@ class EditImageDialog(_dialog_base.Dialog):
     def _text_changed(self):
         self._tags_changed = True
 
-    def _get_tags(self) -> typ.List[model.Tag]:
+    def _get_tags(self) -> list[model.Tag]:
         return [self._tags_dao.create_tag_from_string(t) for t in self._tags_input.toPlainText().split()]
 
     @staticmethod
-    def _get_duplicate_tags(tags: typ.List[model.Tag]) -> typ.List[str]:
+    def _get_duplicate_tags(tags: list[model.Tag]) -> list[str]:
         return [t for t, c in collections.Counter([t.label for t in tags]).items() if c > 1]
 
-    def _get_compound_tags(self, tags: typ.List[model.Tag]) -> typ.List[str]:
+    def _get_compound_tags(self, tags: list[model.Tag]) -> list[str]:
         return [t.label for t in tags if self._tags_dao.get_tag_class(t.label) == model.CompoundTag]
 
-    def _get_error(self) -> typ.Optional[str]:
+    def _get_error(self) -> str | None:
         try:
             tags = self._get_tags()
         except ValueError as e:
@@ -337,7 +337,7 @@ class EditImageDialog(_dialog_base.Dialog):
 
         return close
 
-    def _get_new_path(self, image: model.Image) -> typ.Optional[pathlib.Path]:
+    def _get_new_path(self, image: model.Image) -> pathlib.Path | None:
         """Returns the new image path. It is obtained by appending the image name to the destination path.
 
         :param image: The image to move.
@@ -349,8 +349,8 @@ class EditImageDialog(_dialog_base.Dialog):
         else:
             return None
 
-    def _add(self, image: model.Image, tags: typ.List[model.Tag], new_path: typ.Optional[pathlib.Path]) \
-            -> typ.Tuple[bool, typ.Optional[str]]:
+    def _add(self, image: model.Image, tags: list[model.Tag], new_path: pathlib.Path | None) \
+            -> tuple[bool, str | None]:
         """Adds an image to the database.
 
         :param image: The image to add.
@@ -369,8 +369,8 @@ class EditImageDialog(_dialog_base.Dialog):
         else:
             return False, _t('dialog.edit_image.error.file_does_not_exists')
 
-    def _edit(self, image: model.Image, tags: typ.List[model.Tag], new_path: typ.Optional[pathlib.Path]) \
-            -> typ.Tuple[bool, typ.Optional[str]]:
+    def _edit(self, image: model.Image, tags: list[model.Tag], new_path: pathlib.Path | None) \
+            -> tuple[bool, str | None]:
         """Edits an image from the database.
 
         :param image: The image to edit.
@@ -391,7 +391,7 @@ class EditImageDialog(_dialog_base.Dialog):
         else:
             return False, _t('dialog.edit_image.error.file_does_not_exists')
 
-    def _replace(self) -> typ.Tuple[bool, typ.Optional[str]]:
+    def _replace(self) -> tuple[bool, str | None]:
         """Replaces an image by another one. The old image is deleted. The new image will stay in its directory.
 
         :return: True if everything went well.
@@ -408,7 +408,7 @@ class EditImageDialog(_dialog_base.Dialog):
             return False, _t('dialog.edit_image.error.file_does_not_exists')
 
     @staticmethod
-    def _move_image(path: pathlib.Path, new_path: pathlib.Path) -> typ.Tuple[bool, typ.Optional[str]]:
+    def _move_image(path: pathlib.Path, new_path: pathlib.Path) -> tuple[bool, str | None]:
         """Moves an image to a specific directory.
 
         :param path: Image’s path.

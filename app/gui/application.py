@@ -3,7 +3,6 @@ import os
 import pathlib
 import re
 import sys
-import typing as typ
 
 import PyQt5.QtCore as QtC
 import PyQt5.QtGui as QtG
@@ -34,7 +33,7 @@ class Application(QtW.QMainWindow):
         self._tags_dao = da.TagsDao(config.CONFIG.database_path)
         self._search_thread = None
 
-        self._operations_dialog_state: typ.Optional[dialogs.OperationsDialog.State] = None
+        self._operations_dialog_state: dialogs.OperationsDialog.State | None = None
 
         self.setAcceptDrops(True)
         self._init_ui()
@@ -274,7 +273,7 @@ class Application(QtW.QMainWindow):
                 else:
                     self._add_images(files)
 
-    def _add_images(self, image_paths: typ.List[pathlib.Path]):
+    def _add_images(self, image_paths: list[pathlib.Path]):
         """Opens the 'Add Images' dialog then adds the images to the database.
         Checks for potential duplicates.
         """
@@ -358,7 +357,7 @@ class Application(QtW.QMainWindow):
         self._fetch_images()
         self._refresh_tree_and_completer()
 
-    def _edit_images(self, images: typ.List[model.Image]):
+    def _edit_images(self, images: list[model.Image]):
         """Opens the 'Edit Images' dialog then updates all edited images."""
         if images:
             dialog = dialogs.EditImageDialog(self._image_dao, self._tags_dao, show_skip=len(images) > 1, parent=self)
@@ -550,7 +549,7 @@ class Application(QtW.QMainWindow):
             event.ignore()
 
     @staticmethod
-    def _get_paths(event: QtG.QDropEvent) -> typ.List[pathlib.Path]:
+    def _get_paths(event: QtG.QDropEvent) -> list[pathlib.Path]:
         """Extracts all file paths from the drop event.
 
         :param event: The drop event.
@@ -666,7 +665,7 @@ class _SearchThread(QtC.QThread):
             self._query = self._query.replace(f'%%{index}%%', value, 1)
 
     @property
-    def fetched_images(self) -> typ.List[model.Image]:
+    def fetched_images(self) -> list[model.Image]:
         """Returns all fetched images."""
         return self._images
 
@@ -676,6 +675,6 @@ class _SearchThread(QtC.QThread):
         return self._error is not None
 
     @property
-    def error(self) -> typ.Optional[str]:
+    def error(self) -> str | None:
         """If the operation failed, returns the reason; otherwise returns None."""
         return self._error

@@ -1,7 +1,4 @@
 """PyQt5 port of the layouts/flowlayout example from Qt v4.x"""
-
-import typing as typ
-
 import PyQt5.QtCore as QtC
 import PyQt5.QtWidgets as QtW
 from PyQt5.QtCore import Qt
@@ -23,10 +20,10 @@ class FlowLayout(QtW.QLayout):
             self.setContentsMargins(margin, margin, margin, margin)
         self.setSpacing(spacing)
 
-        self._item_list: typ.List[QtW.QLayoutItem] = []
+        self._item_list: list[QtW.QLayoutItem] = []
 
     @property
-    def items(self) -> typ.List[QtW.QWidget]:
+    def items(self) -> list[QtW.QWidget]:
         """Returns a list of all inner widgets in the order they have been added."""
         return [item.widget() for item in self._item_list]
 

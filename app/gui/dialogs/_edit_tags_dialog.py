@@ -1,5 +1,3 @@
-import typing as typ
-
 import PyQt5.QtCore as QtC
 import PyQt5.QtGui as QtG
 import PyQt5.QtWidgets as QtW
@@ -16,7 +14,7 @@ class EditTagsDialog(_dialog_base.Dialog):
     _COMPOUND_TAGS_TAB = 1
     _TAGS_TAB = 2
 
-    def __init__(self, tags_dao: data_access.TagsDao, editable: bool = True, parent: typ.Optional[QtW.QWidget] = None):
+    def __init__(self, tags_dao: data_access.TagsDao, editable: bool = True, parent: QtW.QWidget = None):
         """Creates a dialog.
 
         :param tags_dao: Tags DAO instance.
@@ -34,7 +32,7 @@ class EditTagsDialog(_dialog_base.Dialog):
                         tab.update_type_label(tag_type)
             self._check_integrity()
 
-        def types_deleted(deleted_types: typ.List[model.TagType]):
+        def types_deleted(deleted_types: list[model.TagType]):
             for tab in self._tabs[1:]:
                 tab.delete_types(deleted_types)
 
@@ -109,7 +107,7 @@ class EditTagsDialog(_dialog_base.Dialog):
 
         return layout
 
-    def _init_buttons(self) -> typ.List[QtW.QAbstractButton]:
+    def _init_buttons(self) -> list[QtW.QAbstractButton]:
         if self._editable:
             def apply():
                 self._apply()

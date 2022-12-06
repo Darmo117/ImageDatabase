@@ -2,7 +2,6 @@ import abc
 import pathlib
 import re
 import sqlite3
-import typing as typ
 
 from .. import utils
 
@@ -62,7 +61,7 @@ class DAO(abc.ABC):
             return 0
 
     @staticmethod
-    def _similarity(hash1: typ.Optional[bytes], hash2: typ.Optional[bytes]) -> bool:
+    def _similarity(hash1: bytes | None, hash2: bytes | None) -> bool:
         """Indicates whether the two provided hashes are similar, based on
         Hamming distance.
 
