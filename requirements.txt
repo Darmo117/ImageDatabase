@@ -7,7 +7,7 @@ imageio==2.22.4
 kiwisolver==1.4.4
 lark-parser==0.12.0
 matplotlib==3.6.2
-mpmath==1.2.1
+mpmath==1.3.0
 networkx==2.8.8
 numpy==1.23.5
 opencv-python-headless==4.6.0.66
