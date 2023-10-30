@@ -165,4 +165,4 @@ See [requirements.txt](https://github.com/Darmo117/ImageDatabase/blob/master/req
 
 ## Author
 
-- Damien Vergnet [@Darmo117](https://github.com/Darmo117)
+- Damia Vergnet [@Darmo117](https://github.com/Darmo117)
