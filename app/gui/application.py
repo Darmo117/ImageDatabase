@@ -19,7 +19,7 @@ class Application(QtW.QMainWindow):
     """Application's main class."""
 
     _PATHS_TAB = 'paths'
-    _THUMBS_TAB = 'thumnails'
+    _THUMBS_TAB = 'thumbnails'
 
     def __init__(self):
         super().__init__()
