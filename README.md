@@ -1,5 +1,13 @@
 # Image Library
 
+## Important notice!
+
+This project is archived and thus no *longer maintained* as of 17/09/2024.
+
+A rebooted version with more features is available at https://github.com/Darmo117/ImagesLibrary.
+
+## Description
+
 Image Library lets you manage images by associating tags to them.
 
 Main features:
